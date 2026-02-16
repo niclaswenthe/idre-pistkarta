@@ -48,10 +48,10 @@
       max-width: none;
     }
 
-    /* Zoom-knappar — nere till höger, tumvänliga */
+    /* Zoom-knappar — nere till höger, ovanför joystick */
     .zoom-controls {
       position: fixed;
-      bottom: 32px;
+      bottom: 152px;
       right: 20px;
       display: flex;
       flex-direction: column;
@@ -104,6 +104,57 @@
 
     .reset-btn:active {
       transform: scale(0.92);
+    }
+
+    /* Joystick */
+    .joystick-container {
+      position: fixed;
+      bottom: 32px;
+      right: 20px;
+      z-index: 100;
+    }
+
+    .joystick-base {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .joystick-knob {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      cursor: grab;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: background 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .joystick-knob:active {
+      background: rgba(200, 200, 255, 0.95);
+      cursor: grabbing;
+    }
+
+    .joystick-knob::after {
+      content: '✦';
+      font-size: 18px;
+      color: #1a1a2e;
+      opacity: 0.5;
     }
 
     /* Laddningsmeddelande */
@@ -208,9 +259,15 @@
   <div id="zoom-level"></div>
 
   <div class="zoom-controls">
+    <button class="reset-btn" id="zoom-reset" aria-label="Återställ vy">⟲</button>
     <button class="zoom-btn" id="zoom-in" aria-label="Zooma in">+</button>
     <button class="zoom-btn" id="zoom-out" aria-label="Zooma ut">−</button>
-    <button class="reset-btn" id="zoom-reset" aria-label="Återställ vy">⟲</button>
+  </div>
+
+  <div class="joystick-container">
+    <div class="joystick-base" id="joystick-base">
+      <div class="joystick-knob" id="joystick-knob"></div>
+    </div>
   </div>
 
   <script>
@@ -228,6 +285,9 @@
     let isDragging = false;
     let startX, startY, startPosX, startPosY;
     let zoomTimeout;
+
+    // Joystick state (deklareras tidigt så touch-hanterare kan referera)
+    let joystickActive = false;
 
     const MIN_SCALE = 0.5;
     const MAX_SCALE = 6;
@@ -320,8 +380,9 @@
       showZoomLevel();
     });
 
-    // Touch: panorera med ett finger
+    // Touch: panorera med ett finger (inte om joystick är aktiv)
     container.addEventListener('touchstart', (e) => {
+      if (joystickActive) return;
       if (e.touches.length === 1) {
         isDragging = true;
         startX = e.touches[0].clientX;
@@ -332,6 +393,7 @@
     }, { passive: true });
 
     container.addEventListener('touchmove', (e) => {
+      if (joystickActive) return;
       e.preventDefault();
       if (isDragging && e.touches.length === 1) {
         const dx = e.touches[0].clientX - startX;
@@ -374,6 +436,100 @@
       const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
       zoomAt(delta, e.clientX, e.clientY);
     }, { passive: false });
+
+    // === JOYSTICK ===
+    const joystickBase = document.getElementById('joystick-base');
+    const joystickKnob = document.getElementById('joystick-knob');
+    let joystickAnimFrame = null;
+    let joystickDX = 0;
+    let joystickDY = 0;
+    const JOYSTICK_MAX_OFFSET = 22; // max pixels knob moves from center
+    const JOYSTICK_PAN_SPEED = 2.5; // pixels per frame — lagom speed
+
+    function joystickStart(clientX, clientY, e) {
+      e.preventDefault();
+      e.stopPropagation();
+      joystickActive = true;
+      joystickMove(clientX, clientY);
+      if (!joystickAnimFrame) joystickAnimate();
+    }
+
+    function joystickMove(clientX, clientY) {
+      if (!joystickActive) return;
+      const rect = joystickBase.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
+
+      // Clamp to max offset
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > JOYSTICK_MAX_OFFSET) {
+        dx = (dx / dist) * JOYSTICK_MAX_OFFSET;
+        dy = (dy / dist) * JOYSTICK_MAX_OFFSET;
+      }
+
+      joystickDX = dx / JOYSTICK_MAX_OFFSET; // -1 to 1
+      joystickDY = dy / JOYSTICK_MAX_OFFSET;
+
+      // Move knob visually
+      joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    }
+
+    function joystickEnd() {
+      joystickActive = false;
+      joystickDX = 0;
+      joystickDY = 0;
+      joystickKnob.style.transform = 'translate(-50%, -50%)';
+      if (joystickAnimFrame) {
+        cancelAnimationFrame(joystickAnimFrame);
+        joystickAnimFrame = null;
+      }
+    }
+
+    function joystickAnimate() {
+      if (!joystickActive) {
+        joystickAnimFrame = null;
+        return;
+      }
+      // INVERTERAT: dra vänster → kartan rör sig höger
+      posX -= joystickDX * JOYSTICK_PAN_SPEED;
+      posY -= joystickDY * JOYSTICK_PAN_SPEED;
+      updateTransform();
+      joystickAnimFrame = requestAnimationFrame(joystickAnimate);
+    }
+
+    // Touch events for joystick
+    joystickKnob.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      joystickStart(t.clientX, t.clientY, e);
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (joystickActive && e.touches.length === 1) {
+        joystickMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (joystickActive) joystickEnd();
+    });
+
+    // Mouse events for joystick (desktop testing)
+    joystickKnob.addEventListener('mousedown', (e) => {
+      joystickStart(e.clientX, e.clientY, e);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (joystickActive) {
+        joystickMove(e.clientX, e.clientY);
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (joystickActive) joystickEnd();
+    });
 
     // Resize
     window.addEventListener('resize', () => {
