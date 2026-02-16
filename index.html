@@ -494,8 +494,11 @@
         return;
       }
       // INVERTERAT: dra vänster → kartan rör sig höger
-      posX -= joystickDX * JOYSTICK_PAN_SPEED;
-      posY -= joystickDY * JOYSTICK_PAN_SPEED;
+      // Exponentiell kurva: mjuk start, snabb vid ytterkant
+      var easedDX = Math.sign(joystickDX) * Math.pow(Math.abs(joystickDX), 2.5);
+      var easedDY = Math.sign(joystickDY) * Math.pow(Math.abs(joystickDY), 2.5);
+      posX -= easedDX * JOYSTICK_PAN_SPEED;
+      posY -= easedDY * JOYSTICK_PAN_SPEED;
       updateTransform();
       joystickAnimFrame = requestAnimationFrame(joystickAnimate);
     }
