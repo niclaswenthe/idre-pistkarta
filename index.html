@@ -48,6 +48,61 @@
       max-width: none;
     }
 
+    /* Positionsmarkörer overlay — samma storlek som bilden */
+    #markers-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    .user-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      transition: left 0.8s ease-out, top 0.8s ease-out;
+    }
+
+    .user-marker-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      position: relative;
+    }
+
+    .user-marker-dot::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 2px solid;
+      border-color: inherit;
+      opacity: 0.4;
+      animation: pulse-ring 2s ease-out infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 0.4; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    .user-marker-label {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.75);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+    }
+
     /* Zoom-knappar — nere till höger, ovanför joystick */
     .zoom-controls {
       position: fixed;
@@ -236,6 +291,289 @@
     #zoom-level.visible {
       opacity: 1;
     }
+
+    /* ====== Grupp/session UI ====== */
+
+    /* Grupp-knapp (nere till vänster) */
+    .group-btn {
+      position: fixed;
+      bottom: 32px;
+      left: 20px;
+      z-index: 100;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.92);
+      color: #1a1a2e;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+
+    .group-btn:active {
+      transform: scale(0.92);
+      background: rgba(200, 200, 255, 0.95);
+    }
+
+    .group-btn.active {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .group-btn .badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #f44336;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Session-statusbar (överst) */
+    .session-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: white;
+      padding: 8px 16px;
+      padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 150;
+      font-size: 14px;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease;
+    }
+
+    .session-bar.visible {
+      transform: translateY(0);
+    }
+
+    .session-bar .room-code {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    .session-bar .member-count {
+      opacity: 0.8;
+      font-size: 13px;
+    }
+
+    .session-bar .leave-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* Modal overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 20px;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal {
+      background: #1e1e32;
+      border-radius: 20px;
+      padding: 28px 24px;
+      max-width: 340px;
+      width: 100%;
+      color: white;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal h2 {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .modal p {
+      font-size: 14px;
+      opacity: 0.7;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .modal label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.6;
+      margin-bottom: 6px;
+    }
+
+    .modal input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 16px;
+      outline: none;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .modal input[type="text"]:focus {
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .modal input[type="text"]::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .modal .code-input {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+
+    .color-option.selected {
+      border-color: white;
+      transform: scale(1.15);
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .btn-primary {
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      padding: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      background: transparent;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-secondary:active {
+      transform: scale(0.97);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-cancel {
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .divider {
+      text-align: center;
+      opacity: 0.4;
+      font-size: 13px;
+      margin: 4px 0;
+    }
+
+    /* GPS-status */
+    .gps-status {
+      position: fixed;
+      bottom: 96px;
+      left: 20px;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .gps-status.visible {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -245,7 +583,7 @@
   </div>
 
   <div id="placeholder">
-    <h2>⛷️ Pistkarta</h2>
+    <h2>Pistkarta</h2>
     <p>Lägg kartbilden som <strong>pistkarta.jpg</strong> i samma mapp som denna fil.</p>
     <p style="font-size: 13px; opacity: 0.5;">Stöder: .jpg, .png, .webp</p>
   </div>
@@ -253,10 +591,28 @@
   <div id="map-container">
     <div id="map">
       <img id="map-img" alt="Pistkarta Idre Fjäll">
+      <div id="markers-overlay"></div>
     </div>
   </div>
 
   <div id="zoom-level"></div>
+
+  <!-- Session-bar (visas när man är i en grupp) -->
+  <div class="session-bar" id="session-bar">
+    <div>
+      <span class="room-code" id="session-room-code"></span>
+      <span class="member-count" id="session-member-count"></span>
+    </div>
+    <button class="leave-btn" id="session-leave">Lämna</button>
+  </div>
+
+  <!-- Grupp-knapp (nere till vänster) -->
+  <button class="group-btn" id="group-btn">
+    <span id="group-btn-icon">👥</span>
+  </button>
+
+  <!-- GPS-status -->
+  <div class="gps-status" id="gps-status"></div>
 
   <div class="zoom-controls">
     <button class="reset-btn" id="zoom-reset" aria-label="Återställ vy">⟲</button>
@@ -270,7 +626,94 @@
     </div>
   </div>
 
+  <!-- Modal: Välj åtgärd -->
+  <div class="modal-overlay" id="modal-menu">
+    <div class="modal">
+      <h2>Hitta varandra</h2>
+      <p>Skapa en grupp eller gå med i en befintlig för att se varandras positioner på kartan.</p>
+      <div class="modal-actions">
+        <button class="btn-primary" id="btn-create-group">Skapa ny grupp</button>
+        <div class="divider">eller</div>
+        <button class="btn-secondary" id="btn-join-group">Gå med i grupp</button>
+        <button class="btn-cancel" id="btn-cancel-menu">Avbryt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Skapa grupp (ange namn + färg) -->
+  <div class="modal-overlay" id="modal-create">
+    <div class="modal">
+      <h2>Skapa grupp</h2>
+      <p>Välj ditt namn och färg — dina vänner ser dig på kartan.</p>
+      <label>Ditt namn</label>
+      <input type="text" id="create-name" placeholder="T.ex. Niclas" maxlength="20" autocomplete="off">
+      <label>Välj färg</label>
+      <div class="color-picker" id="create-colors"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="btn-do-create">Skapa grupp</button>
+        <button class="btn-cancel" id="btn-back-create">Tillbaka</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Gå med (ange kod + namn + färg) -->
+  <div class="modal-overlay" id="modal-join">
+    <div class="modal">
+      <h2>Gå med i grupp</h2>
+      <p>Ange koden som din vän delade med dig.</p>
+      <label>Gruppkod</label>
+      <input type="text" id="join-code" class="code-input" placeholder="XXXX" maxlength="4" autocomplete="off">
+      <label>Ditt namn</label>
+      <input type="text" id="join-name" placeholder="T.ex. Niclas" maxlength="20" autocomplete="off">
+      <label>Välj färg</label>
+      <div class="color-picker" id="join-colors"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="btn-do-join">Gå med</button>
+        <button class="btn-cancel" id="btn-back-join">Tillbaka</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Gruppinfo (visa kod, medlemmar) -->
+  <div class="modal-overlay" id="modal-info">
+    <div class="modal">
+      <h2>Din grupp</h2>
+      <p>Dela koden med dina vänner så de kan gå med.</p>
+      <div style="text-align:center; margin: 16px 0;">
+        <div id="info-room-code" style="font-size: 36px; font-weight: 800; letter-spacing: 4px;"></div>
+      </div>
+      <label>Medlemmar</label>
+      <div id="info-members" style="margin-bottom: 16px;"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="btn-share-code">Dela kod</button>
+        <button class="btn-secondary" id="btn-leave-group">Lämna grupp</button>
+        <button class="btn-cancel" id="btn-close-info">Stäng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat for simplicity in vanilla JS) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
   <script>
+    // ============================
+    // Firebase config (bilbingo-v2 projekt)
+    // ============================
+    firebase.initializeApp({
+      apiKey: "AIzaSyB2N7mFoJ83oOniMtfF3ZkzccnK4FyvfDM",
+      authDomain: "bilbingo-b8999.firebaseapp.com",
+      databaseURL: "https://bilbingo-b8999-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bilbingo-b8999",
+      storageBucket: "bilbingo-b8999.firebasestorage.app",
+      messagingSenderId: "8371565415",
+      appId: "1:8371565415:web:3b02df7376cee8c88235c2",
+    });
+    const db = firebase.database();
+
+    // ============================
+    // KART-KONTROLLER (befintlig kod)
+    // ============================
     const mapEl = document.getElementById('map');
     const imgEl = document.getElementById('map-img');
     const container = document.getElementById('map-container');
@@ -278,22 +721,18 @@
     const placeholder = document.getElementById('placeholder');
     const zoomLevelEl = document.getElementById('zoom-level');
 
-    // State
     let scale = 1;
     let posX = 0;
     let posY = 0;
     let isDragging = false;
     let startX, startY, startPosX, startPosY;
     let zoomTimeout;
-
-    // Joystick state (deklareras tidigt så touch-hanterare kan referera)
     let joystickActive = false;
 
     const MIN_SCALE = 0.5;
     const MAX_SCALE = 6;
     const ZOOM_STEP = 0.25;
 
-    // Försök ladda bild
     const imageCandidates = ['pistkarta.webp', 'pistkarta.jpg', 'pistkarta.png'];
     let imageLoaded = false;
 
@@ -303,7 +742,6 @@
         placeholder.style.display = 'flex';
         return;
       }
-
       const testImg = new Image();
       testImg.onload = function() {
         imageLoaded = true;
@@ -316,7 +754,6 @@
       };
       testImg.src = imageCandidates[index];
     }
-
     tryLoadImage(0);
 
     function fitToScreen() {
@@ -324,11 +761,9 @@
       const ch = container.clientHeight;
       const iw = imgEl.naturalWidth;
       const ih = imgEl.naturalHeight;
-
       scale = Math.min(cw / iw, ch / ih);
       posX = (cw - iw * scale) / 2;
       posY = (ch - ih * scale) / 2;
-
       updateTransform();
     }
 
@@ -349,17 +784,13 @@
     function zoomAt(delta, cx, cy) {
       const oldScale = scale;
       scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale + delta));
-
-      // Zooma mot centrum av skärmen (eller angiven punkt)
       const ratio = scale / oldScale;
       posX = cx - (cx - posX) * ratio;
       posY = cy - (cy - posY) * ratio;
-
       updateTransform();
       showZoomLevel();
     }
 
-    // Knappar
     document.getElementById('zoom-in').addEventListener('click', (e) => {
       e.preventDefault();
       const cx = container.clientWidth / 2;
@@ -380,7 +811,7 @@
       showZoomLevel();
     });
 
-    // Touch: panorera med ett finger (inte om joystick är aktiv)
+    // Touch: panorera med ett finger
     container.addEventListener('touchstart', (e) => {
       if (joystickActive) return;
       if (e.touches.length === 1) {
@@ -443,8 +874,8 @@
     let joystickAnimFrame = null;
     let joystickDX = 0;
     let joystickDY = 0;
-    const JOYSTICK_MAX_OFFSET = 22; // max pixels knob moves from center
-    const JOYSTICK_PAN_SPEED = 6.0; // pixels per frame — ännu snabbare
+    const JOYSTICK_MAX_OFFSET = 22;
+    const JOYSTICK_PAN_SPEED = 6.0;
 
     function joystickStart(clientX, clientY, e) {
       e.preventDefault();
@@ -459,21 +890,15 @@
       const rect = joystickBase.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-
       let dx = clientX - centerX;
       let dy = clientY - centerY;
-
-      // Clamp to max offset
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > JOYSTICK_MAX_OFFSET) {
         dx = (dx / dist) * JOYSTICK_MAX_OFFSET;
         dy = (dy / dist) * JOYSTICK_MAX_OFFSET;
       }
-
-      joystickDX = dx / JOYSTICK_MAX_OFFSET; // -1 to 1
+      joystickDX = dx / JOYSTICK_MAX_OFFSET;
       joystickDY = dy / JOYSTICK_MAX_OFFSET;
-
-      // Move knob visually
       joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
     }
 
@@ -493,8 +918,6 @@
         joystickAnimFrame = null;
         return;
       }
-      // INVERTERAT: dra vänster → kartan rör sig höger
-      // Exponentiell kurva: mjuk start, snabb vid ytterkant
       var easedDX = Math.sign(joystickDX) * Math.pow(Math.abs(joystickDX), 2.5);
       var easedDY = Math.sign(joystickDY) * Math.pow(Math.abs(joystickDY), 2.5);
       posX -= easedDX * JOYSTICK_PAN_SPEED;
@@ -503,7 +926,6 @@
       joystickAnimFrame = requestAnimationFrame(joystickAnimate);
     }
 
-    // Touch events for joystick
     joystickKnob.addEventListener('touchstart', (e) => {
       const t = e.touches[0];
       joystickStart(t.clientX, t.clientY, e);
@@ -519,7 +941,6 @@
       if (joystickActive) joystickEnd();
     });
 
-    // Mouse events for joystick (desktop testing)
     joystickKnob.addEventListener('mousedown', (e) => {
       joystickStart(e.clientX, e.clientY, e);
     });
@@ -534,9 +955,678 @@
       if (joystickActive) joystickEnd();
     });
 
-    // Resize
     window.addEventListener('resize', () => {
       if (imageLoaded) fitToScreen();
+    });
+
+    // ============================
+    // GPS → PIXEL KALIBRERING
+    // ============================
+    //
+    // Referenspunkter: GPS-koordinater (lat, lng) → pixel (x, y) på kartbilden (4000×2700)
+    // Pixelkoordinater är uppskattade från visuell analys av kartbilden.
+    // Dessa kan finjusteras — se kalibreringsläget nedan.
+    //
+    const REFERENCE_POINTS = [
+      // Lift M — nedre vänster, vid "NORD"-området
+      { id: 'M', lat: 61.880204, lng: 12.823573, px: 490, py: 1780 },
+      // Lift H (den sydligare, 61.885) — vänster-mitten
+      { id: 'H1', lat: 61.885135, lng: 12.819700, px: 640, py: 680 },
+      // Lift F — uppe till vänster
+      { id: 'F', lat: 61.887457, lng: 12.815602, px: 370, py: 430 },
+      // Lift C — mitten/toppen
+      { id: 'C', lat: 61.890733, lng: 12.826176, px: 1220, py: 360 },
+      // Lift H2 (den nordligare, 61.891) — nära C, lite norr/öst
+      { id: 'H2', lat: 61.891180, lng: 12.828846, px: 1400, py: 310 },
+      // Lift J — mitt-övre
+      { id: 'J', lat: 61.890292, lng: 12.830380, px: 1510, py: 370 },
+      // Lift L — mitt-höger
+      { id: 'L', lat: 61.891884, lng: 12.840278, px: 1870, py: 290 },
+      // Lift B — högst upp, nordöst
+      { id: 'B', lat: 61.898811, lng: 12.849990, px: 2280, py: 150 },
+      // Lift R — sydväst, nere
+      { id: 'R', lat: 61.876536, lng: 12.838049, px: 890, py: 2020 },
+      // Lift T — sydöst, nedre höger
+      { id: 'T', lat: 61.882224, lng: 12.875592, px: 2480, py: 1550 },
+      // Lift U — östra delen, uppe
+      { id: 'U', lat: 61.888142, lng: 12.869819, px: 2260, py: 640 },
+      // Lift V — nära U
+      { id: 'V', lat: 61.888480, lng: 12.868481, px: 2200, py: 610 },
+      // Lift X — mitten
+      { id: 'X', lat: 61.889510, lng: 12.851912, px: 1950, py: 440 },
+      // Restaurang Utsikten (vid siffran 7)
+      { id: 'Uts', lat: 61.887795, lng: 12.857254, px: 1760, py: 400 },
+    ];
+
+    // Beräkna affin transformationsmatris med minsta-kvadratmetoden
+    // Mappar (lat, lng) → (pixel_x, pixel_y) med 6-parametrig affin transform:
+    //   px = a*lat + b*lng + c
+    //   py = d*lat + e*lng + f
+    function computeAffineTransform(points) {
+      const n = points.length;
+      // Vi löser två separata system: ett för px, ett för py
+      // [sum(lat^2)   sum(lat*lng) sum(lat) ] [a]   [sum(lat*px)]
+      // [sum(lat*lng) sum(lng^2)   sum(lng) ] [b] = [sum(lng*px)]
+      // [sum(lat)     sum(lng)     n        ] [c]   [sum(px)    ]
+
+      let sLat2 = 0, sLng2 = 0, sLatLng = 0, sLat = 0, sLng = 0;
+      let sLatPx = 0, sLngPx = 0, sPx = 0;
+      let sLatPy = 0, sLngPy = 0, sPy = 0;
+
+      for (const p of points) {
+        sLat2 += p.lat * p.lat;
+        sLng2 += p.lng * p.lng;
+        sLatLng += p.lat * p.lng;
+        sLat += p.lat;
+        sLng += p.lng;
+        sLatPx += p.lat * p.px;
+        sLngPx += p.lng * p.px;
+        sPx += p.px;
+        sLatPy += p.lat * p.py;
+        sLngPy += p.lng * p.py;
+        sPy += p.py;
+      }
+
+      // Solve 3x3 linear system using Cramer's rule
+      function solve3x3(A, b) {
+        const det = A[0][0]*(A[1][1]*A[2][2]-A[1][2]*A[2][1])
+                  - A[0][1]*(A[1][0]*A[2][2]-A[1][2]*A[2][0])
+                  + A[0][2]*(A[1][0]*A[2][1]-A[1][1]*A[2][0]);
+        if (Math.abs(det) < 1e-12) return null;
+
+        const x = [];
+        for (let i = 0; i < 3; i++) {
+          const M = A.map(row => [...row]);
+          for (let j = 0; j < 3; j++) M[j][i] = b[j];
+          const di = M[0][0]*(M[1][1]*M[2][2]-M[1][2]*M[2][1])
+                   - M[0][1]*(M[1][0]*M[2][2]-M[1][2]*M[2][0])
+                   + M[0][2]*(M[1][0]*M[2][1]-M[1][1]*M[2][0]);
+          x.push(di / det);
+        }
+        return x;
+      }
+
+      const A = [
+        [sLat2, sLatLng, sLat],
+        [sLatLng, sLng2, sLng],
+        [sLat, sLng, n]
+      ];
+
+      const abcX = solve3x3(A, [sLatPx, sLngPx, sPx]);
+      const abcY = solve3x3(A, [sLatPy, sLngPy, sPy]);
+
+      if (!abcX || !abcY) return null;
+
+      return {
+        a: abcX[0], b: abcX[1], c: abcX[2],  // för pixel X
+        d: abcY[0], e: abcY[1], f: abcY[2],   // för pixel Y
+      };
+    }
+
+    const affine = computeAffineTransform(REFERENCE_POINTS);
+
+    function gpsToPixel(lat, lng) {
+      if (!affine) return { x: 0, y: 0 };
+      return {
+        x: affine.a * lat + affine.b * lng + affine.c,
+        y: affine.d * lat + affine.e * lng + affine.f,
+      };
+    }
+
+    // ============================
+    // GRUPP/SESSION-SYSTEM
+    // ============================
+    const COLORS = [
+      '#FF5252', '#448AFF', '#69F0AE', '#FFD740',
+      '#E040FB', '#FF6E40', '#40C4FF', '#B2FF59',
+    ];
+
+    const markersOverlay = document.getElementById('markers-overlay');
+    const sessionBar = document.getElementById('session-bar');
+    const sessionRoomCode = document.getElementById('session-room-code');
+    const sessionMemberCount = document.getElementById('session-member-count');
+    const groupBtn = document.getElementById('group-btn');
+    const groupBtnIcon = document.getElementById('group-btn-icon');
+    const gpsStatusEl = document.getElementById('gps-status');
+
+    let currentRoom = null;     // { code, ref }
+    let myUserId = null;
+    let myName = '';
+    let myColor = COLORS[0];
+    let gpsWatchId = null;
+    let membersListener = null;
+    let markers = {};           // userId → DOM element
+
+    // Ladda sparad profil
+    function loadProfile() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('pistkarta-profile'));
+        if (saved) {
+          myName = saved.name || '';
+          myColor = saved.color || COLORS[0];
+          myUserId = saved.userId || generateId();
+        } else {
+          myUserId = generateId();
+        }
+      } catch {
+        myUserId = generateId();
+      }
+    }
+
+    function saveProfile() {
+      localStorage.setItem('pistkarta-profile', JSON.stringify({
+        name: myName,
+        color: myColor,
+        userId: myUserId,
+      }));
+    }
+
+    // Ladda senaste rummet (auto-rejoin)
+    function loadLastRoom() {
+      try {
+        return JSON.parse(localStorage.getItem('pistkarta-room'));
+      } catch {
+        return null;
+      }
+    }
+
+    function saveLastRoom(code) {
+      localStorage.setItem('pistkarta-room', JSON.stringify({ code }));
+    }
+
+    function clearLastRoom() {
+      localStorage.removeItem('pistkarta-room');
+    }
+
+    function generateId() {
+      return Math.random().toString(36).substring(2, 10);
+    }
+
+    function generateRoomCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 4; i++) {
+        code += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return code;
+    }
+
+    // ============================
+    // FIREBASE-OPERATIONER
+    // ============================
+    function roomRef(code) {
+      return db.ref(`pistkarta/rooms/${code}`);
+    }
+
+    function memberRef(code, userId) {
+      return db.ref(`pistkarta/rooms/${code}/members/${userId}`);
+    }
+
+    async function createRoom() {
+      const code = generateRoomCode();
+      await roomRef(code).set({
+        created: Date.now(),
+        code: code,
+      });
+      return code;
+    }
+
+    async function roomExists(code) {
+      const snap = await roomRef(code).once('value');
+      return snap.exists();
+    }
+
+    async function joinRoom(code) {
+      await memberRef(code, myUserId).set({
+        name: myName,
+        color: myColor,
+        lat: 0,
+        lng: 0,
+        lastUpdate: Date.now(),
+        online: true,
+      });
+
+      // Rensa min position vid disconnect
+      memberRef(code, myUserId).child('online').onDisconnect().set(false);
+      memberRef(code, myUserId).child('lastUpdate').onDisconnect().set(Date.now());
+    }
+
+    async function leaveRoom() {
+      if (!currentRoom) return;
+
+      stopGPS();
+      if (membersListener) {
+        roomRef(currentRoom.code).child('members').off('value', membersListener);
+        membersListener = null;
+      }
+
+      // Ta bort mig
+      await memberRef(currentRoom.code, myUserId).remove();
+
+      // Kolla om rummet är tomt — radera i så fall
+      const snap = await roomRef(currentRoom.code).child('members').once('value');
+      if (!snap.exists() || !snap.val()) {
+        await roomRef(currentRoom.code).remove();
+      }
+
+      currentRoom = null;
+      clearLastRoom();
+      clearAllMarkers();
+      updateUI();
+    }
+
+    function updateMyPosition(lat, lng) {
+      if (!currentRoom) return;
+      memberRef(currentRoom.code, myUserId).update({
+        lat: lat,
+        lng: lng,
+        lastUpdate: Date.now(),
+        online: true,
+      });
+    }
+
+    function listenToMembers(code) {
+      if (membersListener) {
+        roomRef(code).child('members').off('value', membersListener);
+      }
+      membersListener = roomRef(code).child('members').on('value', (snap) => {
+        const members = snap.val() || {};
+        updateMarkers(members);
+        updateSessionBar(members);
+      });
+    }
+
+    // ============================
+    // GPS-TRACKING
+    // ============================
+    function startGPS() {
+      if (!navigator.geolocation) {
+        showGpsStatus('GPS stöds inte');
+        return;
+      }
+
+      showGpsStatus('Söker GPS...');
+
+      gpsWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude, accuracy } = pos.coords;
+          if (accuracy > 200) {
+            showGpsStatus(`GPS: ~${Math.round(accuracy)}m (låg precision)`);
+          } else {
+            showGpsStatus(`GPS: ~${Math.round(accuracy)}m`);
+            setTimeout(() => hideGpsStatus(), 3000);
+          }
+          updateMyPosition(latitude, longitude);
+        },
+        (err) => {
+          console.warn('GPS-fel:', err);
+          if (err.code === 1) {
+            showGpsStatus('GPS nekad — tillåt platsåtkomst');
+          } else {
+            showGpsStatus('GPS-fel');
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 5000,
+          timeout: 10000,
+        }
+      );
+    }
+
+    function stopGPS() {
+      if (gpsWatchId !== null) {
+        navigator.geolocation.clearWatch(gpsWatchId);
+        gpsWatchId = null;
+      }
+      hideGpsStatus();
+    }
+
+    function showGpsStatus(text) {
+      gpsStatusEl.textContent = text;
+      gpsStatusEl.classList.add('visible');
+    }
+
+    function hideGpsStatus() {
+      gpsStatusEl.classList.remove('visible');
+    }
+
+    // ============================
+    // MARKÖRER PÅ KARTAN
+    // ============================
+    function updateMarkers(members) {
+      const activeIds = new Set();
+
+      for (const [userId, data] of Object.entries(members)) {
+        if (!data || !data.name) continue;
+        activeIds.add(userId);
+
+        // Hoppa över offline användare som inte uppdaterat på 10 min
+        if (!data.online && (Date.now() - data.lastUpdate > 600000)) continue;
+
+        // Hoppa över om ingen GPS-position (lat=0, lng=0)
+        if (data.lat === 0 && data.lng === 0) continue;
+
+        const pixel = gpsToPixel(data.lat, data.lng);
+
+        if (markers[userId]) {
+          // Uppdatera befintlig markör
+          markers[userId].style.left = pixel.x + 'px';
+          markers[userId].style.top = pixel.y + 'px';
+          // Uppdatera opacitet baserat på online-status
+          markers[userId].style.opacity = data.online ? '1' : '0.5';
+        } else {
+          // Skapa ny markör
+          const el = document.createElement('div');
+          el.className = 'user-marker';
+          el.style.left = pixel.x + 'px';
+          el.style.top = pixel.y + 'px';
+
+          const dot = document.createElement('div');
+          dot.className = 'user-marker-dot';
+          dot.style.backgroundColor = data.color || '#FF5252';
+          dot.style.borderColor = data.color || '#FF5252';
+
+          const label = document.createElement('div');
+          label.className = 'user-marker-label';
+          label.textContent = userId === myUserId ? `${data.name} (du)` : data.name;
+
+          el.appendChild(dot);
+          el.appendChild(label);
+          markersOverlay.appendChild(el);
+          markers[userId] = el;
+        }
+      }
+
+      // Ta bort markörer för medlemmar som lämnat
+      for (const userId of Object.keys(markers)) {
+        if (!activeIds.has(userId)) {
+          markers[userId].remove();
+          delete markers[userId];
+        }
+      }
+    }
+
+    function clearAllMarkers() {
+      for (const el of Object.values(markers)) {
+        el.remove();
+      }
+      markers = {};
+    }
+
+    // Uppdatera markers-overlay storlek
+    function updateOverlaySize() {
+      if (imgEl.naturalWidth) {
+        markersOverlay.style.width = imgEl.naturalWidth + 'px';
+        markersOverlay.style.height = imgEl.naturalHeight + 'px';
+      }
+    }
+
+    const origFitToScreen = fitToScreen;
+    // Koppla overlay-storlek till bildladdning
+    imgEl.addEventListener('load', updateOverlaySize);
+
+    // ============================
+    // UI-HANTERING
+    // ============================
+    function updateUI() {
+      if (currentRoom) {
+        groupBtn.classList.add('active');
+        groupBtnIcon.textContent = '📍';
+        sessionBar.classList.add('visible');
+        sessionRoomCode.textContent = currentRoom.code;
+      } else {
+        groupBtn.classList.remove('active');
+        groupBtnIcon.textContent = '👥';
+        sessionBar.classList.remove('visible');
+      }
+    }
+
+    function updateSessionBar(members) {
+      if (!members) return;
+      const count = Object.keys(members).length;
+      sessionMemberCount.textContent = ` · ${count} ${count === 1 ? 'person' : 'personer'}`;
+    }
+
+    // Modaler
+    function showModal(id) {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('visible'));
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('visible');
+    }
+
+    function hideAllModals() {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('visible'));
+    }
+
+    // Fyll färgväljare
+    function fillColorPicker(containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      COLORS.forEach(color => {
+        const el = document.createElement('div');
+        el.className = 'color-option' + (color === myColor ? ' selected' : '');
+        el.style.backgroundColor = color;
+        el.addEventListener('click', () => {
+          container.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+          el.classList.add('selected');
+          myColor = color;
+        });
+        container.appendChild(el);
+      });
+    }
+
+    // ============================
+    // EVENT HANDLERS
+    // ============================
+
+    // Grupp-knapp
+    groupBtn.addEventListener('click', () => {
+      if (currentRoom) {
+        // Visa gruppinfo
+        showGroupInfo();
+      } else {
+        showModal('modal-menu');
+      }
+    });
+
+    // Meny: Skapa grupp
+    document.getElementById('btn-create-group').addEventListener('click', () => {
+      document.getElementById('create-name').value = myName;
+      fillColorPicker('create-colors');
+      showModal('modal-create');
+    });
+
+    // Meny: Gå med
+    document.getElementById('btn-join-group').addEventListener('click', () => {
+      document.getElementById('join-name').value = myName;
+      document.getElementById('join-code').value = '';
+      fillColorPicker('join-colors');
+      showModal('modal-join');
+    });
+
+    // Avbryt
+    document.getElementById('btn-cancel-menu').addEventListener('click', hideAllModals);
+    document.getElementById('btn-back-create').addEventListener('click', () => showModal('modal-menu'));
+    document.getElementById('btn-back-join').addEventListener('click', () => showModal('modal-menu'));
+    document.getElementById('btn-close-info').addEventListener('click', hideAllModals);
+
+    // Skapa grupp
+    document.getElementById('btn-do-create').addEventListener('click', async () => {
+      const nameInput = document.getElementById('create-name');
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameInput.focus();
+        return;
+      }
+
+      myName = name;
+      saveProfile();
+
+      const btn = document.getElementById('btn-do-create');
+      btn.disabled = true;
+      btn.textContent = 'Skapar...';
+
+      try {
+        const code = await createRoom();
+        await joinRoom(code);
+        currentRoom = { code };
+        saveLastRoom(code);
+        listenToMembers(code);
+        startGPS();
+        hideAllModals();
+        updateUI();
+
+        // Visa gruppinfo direkt så man kan dela koden
+        setTimeout(() => showGroupInfo(), 300);
+      } catch (err) {
+        console.error('Kunde inte skapa rum:', err);
+        alert('Kunde inte skapa grupp. Försök igen.');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Skapa grupp';
+    });
+
+    // Gå med i grupp
+    document.getElementById('btn-do-join').addEventListener('click', async () => {
+      const codeInput = document.getElementById('join-code');
+      const nameInput = document.getElementById('join-name');
+      const code = codeInput.value.trim().toUpperCase();
+      const name = nameInput.value.trim();
+
+      if (!code || code.length < 4) { codeInput.focus(); return; }
+      if (!name) { nameInput.focus(); return; }
+
+      myName = name;
+      saveProfile();
+
+      const btn = document.getElementById('btn-do-join');
+      btn.disabled = true;
+      btn.textContent = 'Ansluter...';
+
+      try {
+        const exists = await roomExists(code);
+        if (!exists) {
+          alert('Gruppen hittades inte. Kontrollera koden.');
+          btn.disabled = false;
+          btn.textContent = 'Gå med';
+          return;
+        }
+
+        await joinRoom(code);
+        currentRoom = { code };
+        saveLastRoom(code);
+        listenToMembers(code);
+        startGPS();
+        hideAllModals();
+        updateUI();
+      } catch (err) {
+        console.error('Kunde inte gå med:', err);
+        alert('Kunde inte ansluta. Försök igen.');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Gå med';
+    });
+
+    // Lämna grupp (session-bar)
+    document.getElementById('session-leave').addEventListener('click', async () => {
+      await leaveRoom();
+    });
+
+    // Gruppinfo
+    function showGroupInfo() {
+      if (!currentRoom) return;
+      document.getElementById('info-room-code').textContent = currentRoom.code;
+
+      // Hämta medlemmar
+      roomRef(currentRoom.code).child('members').once('value', (snap) => {
+        const members = snap.val() || {};
+        const membersEl = document.getElementById('info-members');
+        membersEl.innerHTML = '';
+
+        for (const [userId, data] of Object.entries(members)) {
+          if (!data || !data.name) continue;
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;';
+
+          const dot = document.createElement('div');
+          dot.style.cssText = `width:14px;height:14px;border-radius:50%;background:${data.color};flex-shrink:0;`;
+
+          const nameEl = document.createElement('span');
+          nameEl.style.cssText = 'font-size:15px;';
+          nameEl.textContent = data.name + (userId === myUserId ? ' (du)' : '');
+
+          const statusEl = document.createElement('span');
+          statusEl.style.cssText = `font-size:11px;opacity:0.5;margin-left:auto;`;
+          statusEl.textContent = data.online ? 'online' : 'offline';
+
+          row.appendChild(dot);
+          row.appendChild(nameEl);
+          row.appendChild(statusEl);
+          membersEl.appendChild(row);
+        }
+      });
+
+      showModal('modal-info');
+    }
+
+    // Dela kod
+    document.getElementById('btn-share-code').addEventListener('click', async () => {
+      if (!currentRoom) return;
+      const text = `Gå med i min grupp på Idre-pistkartan! Kod: ${currentRoom.code}`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Idre Pistkarta', text });
+        } catch {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(currentRoom.code);
+          const btn = document.getElementById('btn-share-code');
+          btn.textContent = 'Kopierad!';
+          setTimeout(() => { btn.textContent = 'Dela kod'; }, 2000);
+        } catch {
+          prompt('Kopiera koden:', currentRoom.code);
+        }
+      }
+    });
+
+    // Lämna grupp (från info-modal)
+    document.getElementById('btn-leave-group').addEventListener('click', async () => {
+      hideAllModals();
+      await leaveRoom();
+    });
+
+    // Auto-rejoin vid sidladdning
+    loadProfile();
+    const lastRoom = loadLastRoom();
+    if (lastRoom && lastRoom.code) {
+      roomExists(lastRoom.code).then(exists => {
+        if (exists) {
+          joinRoom(lastRoom.code).then(() => {
+            currentRoom = { code: lastRoom.code };
+            listenToMembers(lastRoom.code);
+            startGPS();
+            updateUI();
+          });
+        } else {
+          clearLastRoom();
+        }
+      });
+    }
+
+    // Stäng modal med klick utanför
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) hideAllModals();
+      });
+    });
+
+    // Uppercase-transform för rumskods-input
+    document.getElementById('join-code').addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
     });
   </script>
 </body>
