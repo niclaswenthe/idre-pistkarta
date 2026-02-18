@@ -68,24 +68,47 @@
       height: 20px;
       border-radius: 50%;
       border: 3px solid white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.6);
       position: relative;
+      animation: pulse-dot 1s ease-in-out infinite;
     }
 
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); box-shadow: 0 2px 12px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.6); }
+      50%       { transform: scale(1.25); box-shadow: 0 2px 18px rgba(0,0,0,0.7), 0 0 0 4px rgba(255,255,255,0.9); }
+    }
+
+    /* Yttre expanderande ring 1 */
+    .user-marker-dot::before {
+      content: '';
+      position: absolute;
+      inset: -5px;
+      border-radius: 50%;
+      border: 3px solid white;
+      opacity: 0;
+      animation: pulse-ring-outer 1s ease-out infinite;
+    }
+
+    /* Yttre expanderande ring 2 — förskjuten fas */
     .user-marker-dot::after {
       content: '';
       position: absolute;
-      inset: -6px;
+      inset: -5px;
       border-radius: 50%;
       border: 2px solid;
       border-color: inherit;
-      opacity: 0.4;
-      animation: pulse-ring 2s ease-out infinite;
+      opacity: 0;
+      animation: pulse-ring-color 1s ease-out 0.5s infinite;
     }
 
-    @keyframes pulse-ring {
-      0% { transform: scale(1); opacity: 0.4; }
-      100% { transform: scale(1.8); opacity: 0; }
+    @keyframes pulse-ring-outer {
+      0%   { transform: scale(1);   opacity: 0.9; }
+      100% { transform: scale(2.6); opacity: 0;   }
+    }
+
+    @keyframes pulse-ring-color {
+      0%   { transform: scale(1);   opacity: 0.8; }
+      100% { transform: scale(2.2); opacity: 0;   }
     }
 
     .user-marker-label {
