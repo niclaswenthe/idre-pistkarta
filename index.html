@@ -574,6 +574,405 @@
     .gps-status.visible {
       opacity: 1;
     }
+
+    /* ====== CHATT ====== */
+
+    /* Chatt-knapp (ovanför grupp-knappen) */
+    .chat-btn {
+      position: fixed;
+      bottom: 100px;
+      left: 20px;
+      z-index: 100;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.92);
+      color: #1a1a2e;
+      font-size: 24px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+
+    .chat-btn.visible {
+      display: flex;
+    }
+
+    .chat-btn:active {
+      transform: scale(0.92);
+      background: rgba(200, 200, 255, 0.95);
+    }
+
+    .chat-btn .chat-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #f44336;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      padding: 0 4px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chat-btn .chat-badge.visible {
+      display: flex;
+    }
+
+    /* Chatt-panel (slides in från botten) */
+    .chat-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70vh;
+      background: #1e1e32;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      z-index: 250;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .chat-panel.open {
+      transform: translateY(0);
+    }
+
+    .chat-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+    }
+
+    .chat-panel-title {
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .chat-close-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Meddelandelista */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 12px 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+    }
+
+    /* Meddelandebubbla */
+    .chat-msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 78%;
+    }
+
+    .chat-msg.mine {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .chat-msg.theirs {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+
+    .chat-msg-sender {
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 3px;
+      opacity: 0.85;
+    }
+
+    .chat-msg-bubble {
+      padding: 9px 13px;
+      border-radius: 16px;
+      font-size: 15px;
+      line-height: 1.4;
+      color: white;
+      word-break: break-word;
+    }
+
+    .chat-msg.mine .chat-msg-bubble {
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-msg.theirs .chat-msg-bubble {
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-msg-time {
+      font-size: 10px;
+      opacity: 0.45;
+      margin-top: 3px;
+    }
+
+    /* Bild i chatt */
+    .chat-img {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 10px;
+      display: block;
+      cursor: pointer;
+      object-fit: cover;
+    }
+
+    /* Fil i chatt */
+    .chat-file-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .chat-file-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .chat-file-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .chat-file-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+
+    .chat-file-size {
+      font-size: 11px;
+      opacity: 0.6;
+    }
+
+    /* Audio-widget */
+    .chat-audio {
+      width: 100%;
+      max-width: 220px;
+      height: 36px;
+      border-radius: 8px;
+      accent-color: #4CAF50;
+    }
+
+    /* Input-rad */
+    .chat-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 10px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+      background: #1e1e32;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      color: white;
+      font-size: 15px;
+      padding: 9px 14px;
+      outline: none;
+      resize: none;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      touch-action: auto;
+    }
+
+    .chat-input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .chat-input:focus {
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Gemensam stil för knappar i inputraden */
+    .chat-icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, transform 0.1s;
+      touch-action: none;
+    }
+
+    .chat-icon-btn:active {
+      transform: scale(0.9);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .chat-send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: #4CAF50;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .chat-send-btn:active {
+      transform: scale(0.9);
+      background: #388E3C;
+    }
+
+    .chat-send-btn:disabled {
+      background: rgba(255, 255, 255, 0.1);
+      cursor: not-allowed;
+    }
+
+    /* Röstinspelning-indikator */
+    .chat-voice-btn.recording {
+      background: #f44336;
+      animation: voice-pulse 0.8s ease infinite;
+    }
+
+    @keyframes voice-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+
+    /* Bifoga-meny */
+    .attach-menu {
+      position: absolute;
+      bottom: 70px;
+      left: 10px;
+      background: #2a2a45;
+      border-radius: 16px;
+      padding: 8px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      z-index: 260;
+      min-width: 160px;
+    }
+
+    .attach-menu.open {
+      display: flex;
+    }
+
+    .attach-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+
+    .attach-menu-item:active {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Bildförhandsvisning (fullscreen) */
+    .img-fullscreen {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 400;
+      padding: 20px;
+    }
+
+    .img-fullscreen.visible {
+      display: flex;
+    }
+
+    .img-fullscreen img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    /* Liten tidsseparator i chatten */
+    .chat-day-sep {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      margin: 4px 0;
+    }
   </style>
 </head>
 <body>
@@ -625,6 +1024,49 @@
       <div class="joystick-knob" id="joystick-knob"></div>
     </div>
   </div>
+
+  <!-- Chatt-knapp (ovanför grupp-knappen) -->
+  <button class="chat-btn" id="chat-btn" aria-label="Gruppchatt">
+    <span>💬</span>
+    <span class="chat-badge" id="chat-badge"></span>
+  </button>
+
+  <!-- Chatt-panel -->
+  <div class="chat-panel" id="chat-panel">
+    <div class="chat-panel-header">
+      <span class="chat-panel-title" id="chat-panel-title">Gruppchatt</span>
+      <button class="chat-close-btn" id="chat-close-btn" aria-label="Stäng chatt">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <!-- Bifoga-meny (popup) -->
+    <div class="attach-menu" id="attach-menu">
+      <button class="attach-menu-item" id="attach-camera">
+        <span>📷</span><span>Kamera</span>
+      </button>
+      <button class="attach-menu-item" id="attach-image">
+        <span>🖼</span><span>Bild från bibliotek</span>
+      </button>
+      <button class="attach-menu-item" id="attach-file">
+        <span>📄</span><span>Fil</span>
+      </button>
+    </div>
+    <div class="chat-input-row">
+      <button class="chat-icon-btn" id="attach-btn" aria-label="Bifoga">📎</button>
+      <input type="text" class="chat-input" id="chat-input" placeholder="Skriv ett meddelande..." autocomplete="off" maxlength="1000">
+      <button class="chat-icon-btn chat-voice-btn" id="voice-btn" aria-label="Röstmeddelande">🎤</button>
+      <button class="chat-send-btn" id="chat-send-btn" aria-label="Skicka">➤</button>
+    </div>
+  </div>
+
+  <!-- Bildvisare (fullscreen) -->
+  <div class="img-fullscreen" id="img-fullscreen">
+    <img id="img-fullscreen-img" alt="Bild">
+  </div>
+
+  <!-- Dolda fil-inputs -->
+  <input type="file" id="file-input-camera" accept="image/*" capture="environment" style="display:none">
+  <input type="file" id="file-input-image" accept="image/*" style="display:none">
+  <input type="file" id="file-input-file" accept="*/*" style="display:none">
 
   <!-- Modal: Välj åtgärd -->
   <div class="modal-overlay" id="modal-menu">
@@ -1646,6 +2088,625 @@
     document.getElementById('join-code').addEventListener('input', (e) => {
       e.target.value = e.target.value.toUpperCase();
     });
+
+    // ============================
+    // GRUPP-CHATT
+    // ============================
+
+    const chatBtn        = document.getElementById('chat-btn');
+    const chatBadge      = document.getElementById('chat-badge');
+    const chatPanel      = document.getElementById('chat-panel');
+    const chatPanelTitle = document.getElementById('chat-panel-title');
+    const chatCloseBtn   = document.getElementById('chat-close-btn');
+    const chatMessages   = document.getElementById('chat-messages');
+    const chatInput      = document.getElementById('chat-input');
+    const chatSendBtn    = document.getElementById('chat-send-btn');
+    const attachBtn      = document.getElementById('attach-btn');
+    const attachMenu     = document.getElementById('attach-menu');
+    const voiceBtn       = document.getElementById('voice-btn');
+    const imgFullscreen  = document.getElementById('img-fullscreen');
+    const imgFullscreenImg = document.getElementById('img-fullscreen-img');
+
+    let chatOpen = false;
+    let unreadCount = 0;
+    let chatListener = null;
+    let lastRenderedMsgId = null;
+    let isFirstLoad = true;
+
+    // ---- Notifikationsljud ----
+    function playNotificationSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 800;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.3);
+      } catch(e) {
+        // AudioContext ej tillgänglig
+      }
+    }
+
+    // ---- Badge ----
+    function updateChatBadge() {
+      if (unreadCount > 0) {
+        chatBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        chatBadge.classList.add('visible');
+      } else {
+        chatBadge.classList.remove('visible');
+      }
+    }
+
+    function resetUnread() {
+      unreadCount = 0;
+      updateChatBadge();
+    }
+
+    // ---- Tid-formatering ----
+    function formatTime(ts) {
+      const d = new Date(ts);
+      const h = d.getHours().toString().padStart(2, '0');
+      const m = d.getMinutes().toString().padStart(2, '0');
+      return `${h}:${m}`;
+    }
+
+    // ---- Rendera ett meddelande ----
+    function renderMessage(msgId, data) {
+      const isMine = data.sender === myUserId;
+      const msgEl = document.createElement('div');
+      msgEl.className = 'chat-msg ' + (isMine ? 'mine' : 'theirs');
+      msgEl.dataset.msgId = msgId;
+
+      if (!isMine) {
+        const sender = document.createElement('div');
+        sender.className = 'chat-msg-sender';
+        sender.style.color = data.senderColor || '#aaa';
+        sender.textContent = data.senderName || 'Okänd';
+        msgEl.appendChild(sender);
+      }
+
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-msg-bubble';
+      bubble.style.backgroundColor = isMine
+        ? (data.senderColor || '#4CAF50')
+        : 'rgba(255,255,255,0.1)';
+
+      if (data.type === 'text') {
+        bubble.textContent = data.text || '';
+
+      } else if (data.type === 'image') {
+        const img = document.createElement('img');
+        img.className = 'chat-img';
+        img.src = data.data;
+        img.alt = data.fileName || 'Bild';
+        img.addEventListener('click', () => openFullscreenImg(data.data));
+        bubble.appendChild(img);
+
+      } else if (data.type === 'file') {
+        const link = document.createElement('a');
+        link.className = 'chat-file-link';
+        link.href = data.data;
+        link.download = data.fileName || 'fil';
+        link.addEventListener('click', e => e.stopPropagation());
+
+        const icon = document.createElement('span');
+        icon.className = 'chat-file-icon';
+        icon.textContent = getFileIcon(data.mimeType || '');
+
+        const info = document.createElement('div');
+        info.className = 'chat-file-info';
+
+        const fname = document.createElement('span');
+        fname.className = 'chat-file-name';
+        fname.textContent = data.fileName || 'Fil';
+
+        const fsize = document.createElement('span');
+        fsize.className = 'chat-file-size';
+        fsize.textContent = data.fileSize ? formatBytes(data.fileSize) : '';
+
+        info.appendChild(fname);
+        info.appendChild(fsize);
+        link.appendChild(icon);
+        link.appendChild(info);
+        bubble.appendChild(link);
+
+      } else if (data.type === 'voice') {
+        const audio = document.createElement('audio');
+        audio.className = 'chat-audio';
+        audio.controls = true;
+        audio.src = data.data;
+        audio.preload = 'none';
+        bubble.appendChild(audio);
+      }
+
+      msgEl.appendChild(bubble);
+
+      const time = document.createElement('div');
+      time.className = 'chat-msg-time';
+      time.textContent = formatTime(data.timestamp || Date.now());
+      msgEl.appendChild(time);
+
+      return msgEl;
+    }
+
+    function getFileIcon(mime) {
+      if (mime.startsWith('image/')) return '🖼';
+      if (mime === 'application/pdf') return '📄';
+      if (mime.includes('word') || mime.includes('document')) return '📝';
+      if (mime.includes('sheet') || mime.includes('excel')) return '📊';
+      if (mime.includes('zip') || mime.includes('rar') || mime.includes('7z')) return '🗜';
+      return '📎';
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(0) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function scrollToBottom(smooth) {
+      if (smooth) {
+        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+      } else {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    }
+
+    function openFullscreenImg(src) {
+      imgFullscreenImg.src = src;
+      imgFullscreen.classList.add('visible');
+    }
+
+    imgFullscreen.addEventListener('click', () => {
+      imgFullscreen.classList.remove('visible');
+      imgFullscreenImg.src = '';
+    });
+
+    // ---- Firebase-lyssnare för chatt ----
+    function startChatListener(code) {
+      stopChatListener();
+      isFirstLoad = true;
+      chatMessages.innerHTML = '';
+      lastRenderedMsgId = null;
+
+      const ref = db.ref(`pistkarta/rooms/${code}/messages`).limitToLast(100);
+
+      chatListener = ref.on('child_added', (snap) => {
+        const data = snap.val();
+        const msgId = snap.key;
+        if (!data) return;
+
+        // Hoppa över dubblett
+        if (chatMessages.querySelector(`[data-msg-id="${msgId}"]`)) return;
+
+        const msgEl = renderMessage(msgId, data);
+
+        // Hitta rätt position (sortera efter timestamp)
+        let inserted = false;
+        const children = chatMessages.querySelectorAll('.chat-msg');
+        for (let i = children.length - 1; i >= 0; i--) {
+          const existingId = children[i].dataset.msgId;
+          const existingSnap = children[i].dataset.ts;
+          const existingTs = existingSnap ? parseInt(existingSnap) : 0;
+          if ((data.timestamp || 0) >= existingTs) {
+            children[i].insertAdjacentElement('afterend', msgEl);
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) chatMessages.prepend(msgEl);
+        msgEl.dataset.ts = data.timestamp || 0;
+
+        if (isFirstLoad) {
+          // Inledande laddning — scrolla direkt utan animation
+          scrollToBottom(false);
+        } else {
+          // Nytt meddelande
+          const atBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 60;
+          if (atBottom || data.sender === myUserId) {
+            scrollToBottom(true);
+          }
+
+          if (!chatOpen) {
+            // Meddela bara om chatten är stängd och det är en annans meddelande
+            if (data.sender !== myUserId) {
+              unreadCount++;
+              updateChatBadge();
+              playNotificationSound();
+            }
+          }
+        }
+      });
+
+      // Markera att initial laddning är klar efter en kort stund
+      ref.once('value', () => {
+        isFirstLoad = false;
+        scrollToBottom(false);
+      });
+    }
+
+    function stopChatListener() {
+      if (chatListener && currentRoom) {
+        db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).off('child_added', chatListener);
+      }
+      chatListener = null;
+    }
+
+    // ---- Öppna/stäng chatt ----
+    function openChat() {
+      chatOpen = true;
+      chatPanel.classList.add('open');
+      resetUnread();
+      setTimeout(() => {
+        scrollToBottom(false);
+        chatInput.focus();
+      }, 360);
+    }
+
+    function closeChat() {
+      chatOpen = false;
+      chatPanel.classList.remove('open');
+      closeAttachMenu();
+    }
+
+    chatBtn.addEventListener('click', () => {
+      if (chatOpen) {
+        closeChat();
+      } else {
+        openChat();
+      }
+    });
+
+    chatCloseBtn.addEventListener('click', closeChat);
+
+    // Stäng chatten om man trycker utanför (på kartan)
+    document.getElementById('map-container').addEventListener('touchstart', () => {
+      if (chatOpen) closeChat();
+    }, { passive: true });
+
+    // ---- Skicka textmeddelande ----
+    function sendTextMessage(text) {
+      if (!currentRoom || !text.trim()) return;
+      const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).push();
+      ref.set({
+        type: 'text',
+        sender: myUserId,
+        senderName: myName,
+        senderColor: myColor,
+        text: text.trim(),
+        timestamp: Date.now(),
+      });
+    }
+
+    chatSendBtn.addEventListener('click', () => {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      sendTextMessage(text);
+      chatInput.value = '';
+      chatInput.focus();
+    });
+
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text) return;
+        sendTextMessage(text);
+        chatInput.value = '';
+      }
+    });
+
+    // touch-action: auto på inputfält (tillåt scroll + tangentbord)
+    chatInput.style.touchAction = 'auto';
+
+    // ---- Bifoga-meny ----
+    function openAttachMenu() {
+      attachMenu.classList.add('open');
+    }
+
+    function closeAttachMenu() {
+      attachMenu.classList.remove('open');
+    }
+
+    attachBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (attachMenu.classList.contains('open')) {
+        closeAttachMenu();
+      } else {
+        openAttachMenu();
+      }
+    });
+
+    // Stäng bifoga-menyn vid klick utanför
+    document.addEventListener('click', (e) => {
+      if (!attachMenu.contains(e.target) && e.target !== attachBtn) {
+        closeAttachMenu();
+      }
+    });
+
+    // Kamera
+    document.getElementById('attach-camera').addEventListener('click', () => {
+      closeAttachMenu();
+      document.getElementById('file-input-camera').click();
+    });
+
+    // Bild från bibliotek
+    document.getElementById('attach-image').addEventListener('click', () => {
+      closeAttachMenu();
+      document.getElementById('file-input-image').click();
+    });
+
+    // Fil
+    document.getElementById('attach-file').addEventListener('click', () => {
+      closeAttachMenu();
+      document.getElementById('file-input-file').click();
+    });
+
+    // ---- Bildkomprimering ----
+    function compressImage(file, maxW, maxH, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let w = img.width;
+            let h = img.height;
+            if (w > maxW || h > maxH) {
+              const ratio = Math.min(maxW / w, maxH / h);
+              w = Math.round(w * ratio);
+              h = Math.round(h * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(dataUrl);
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ---- Skicka bild ----
+    async function sendImageFile(file) {
+      if (!currentRoom) return;
+      try {
+        const dataUrl = await compressImage(file, 800, 800, 0.6);
+        // ~1.5 MB gräns på base64 (ca 2MB rå data)
+        if (dataUrl.length > 2000000) {
+          alert('Bilden är för stor efter komprimering. Välj en mindre bild.');
+          return;
+        }
+        const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).push();
+        ref.set({
+          type: 'image',
+          sender: myUserId,
+          senderName: myName,
+          senderColor: myColor,
+          data: dataUrl,
+          fileName: file.name,
+          mimeType: 'image/jpeg',
+          timestamp: Date.now(),
+        });
+      } catch(e) {
+        alert('Kunde inte skicka bilden. Försök igen.');
+        console.error(e);
+      }
+    }
+
+    // ---- Skicka fil ----
+    async function sendGenericFile(file) {
+      if (!currentRoom) return;
+      const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+      if (file.size > MAX_SIZE) {
+        alert(`Filen är för stor (max 2 MB). Filens storlek: ${formatBytes(file.size)}`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).push();
+        ref.set({
+          type: 'file',
+          sender: myUserId,
+          senderName: myName,
+          senderColor: myColor,
+          data: dataUrl,
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          fileSize: file.size,
+          timestamp: Date.now(),
+        });
+      };
+      reader.onerror = () => alert('Kunde inte läsa filen.');
+      reader.readAsDataURL(file);
+    }
+
+    // File inputs
+    document.getElementById('file-input-camera').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) sendImageFile(file);
+      e.target.value = '';
+    });
+
+    document.getElementById('file-input-image').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) sendImageFile(file);
+      e.target.value = '';
+    });
+
+    document.getElementById('file-input-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.type.startsWith('image/')) {
+        sendImageFile(file);
+      } else {
+        sendGenericFile(file);
+      }
+      e.target.value = '';
+    });
+
+    // ---- Röstinspelning ----
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let voiceTimeout = null;
+    let isRecording = false;
+
+    async function startRecording() {
+      if (isRecording) return;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : MediaRecorder.isTypeSupported('audio/mp4')
+            ? 'audio/mp4'
+            : 'audio/webm';
+
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+        audioChunks = [];
+
+        mediaRecorder.addEventListener('dataavailable', (e) => {
+          if (e.data && e.data.size > 0) audioChunks.push(e.data);
+        });
+
+        mediaRecorder.addEventListener('stop', () => {
+          stream.getTracks().forEach(t => t.stop());
+          if (audioChunks.length > 0) {
+            const blob = new Blob(audioChunks, { type: mimeType });
+            sendVoiceMessage(blob, mimeType);
+          }
+          audioChunks = [];
+        });
+
+        mediaRecorder.start(100);
+        isRecording = true;
+        voiceBtn.classList.add('recording');
+
+        // Max 30 sekunder
+        voiceTimeout = setTimeout(() => {
+          if (isRecording) stopRecording();
+        }, 30000);
+
+      } catch(e) {
+        console.error('Mikrofon-fel:', e);
+        alert('Kunde inte komma åt mikrofonen. Kontrollera behörigheter.');
+      }
+    }
+
+    function stopRecording() {
+      if (!isRecording || !mediaRecorder) return;
+      clearTimeout(voiceTimeout);
+      isRecording = false;
+      voiceBtn.classList.remove('recording');
+      if (mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      mediaRecorder = null;
+    }
+
+    function sendVoiceMessage(blob, mimeType) {
+      if (!currentRoom) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        if (dataUrl.length > 2000000) {
+          alert('Röstmeddelandet är för långt (max ~30 sek).');
+          return;
+        }
+        const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).push();
+        ref.set({
+          type: 'voice',
+          sender: myUserId,
+          senderName: myName,
+          senderColor: myColor,
+          data: dataUrl,
+          mimeType: mimeType,
+          timestamp: Date.now(),
+        });
+      };
+      reader.readAsDataURL(blob);
+    }
+
+    // Touch-håll på röst-knappen = spela in
+    voiceBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      startRecording();
+    }, { passive: false });
+
+    voiceBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      stopRecording();
+    }, { passive: false });
+
+    voiceBtn.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      stopRecording();
+    }, { passive: false });
+
+    // Desktop: mousedown/mouseup
+    voiceBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      startRecording();
+    });
+
+    voiceBtn.addEventListener('mouseup', () => {
+      stopRecording();
+    });
+
+    voiceBtn.addEventListener('mouseleave', () => {
+      if (isRecording) stopRecording();
+    });
+
+    // ---- Integrera med grupp-systemet ----
+    // Patcha updateUI för att visa/dölja chatt-knappen och starta/stoppa lyssnare
+    const _originalUpdateUI = updateUI;
+    updateUI = function() {
+      _originalUpdateUI();
+      if (currentRoom) {
+        chatBtn.classList.add('visible');
+        chatPanelTitle.textContent = currentRoom.name ? `${currentRoom.name} — Chatt` : 'Gruppchatt';
+        startChatListener(currentRoom.code);
+      } else {
+        chatBtn.classList.remove('visible');
+        closeChat();
+        stopChatListener();
+        chatMessages.innerHTML = '';
+        resetUnread();
+      }
+    };
+
+    // Patcha leaveRoom för att rensa chatt-lyssnare
+    const _originalLeaveRoom = leaveRoom;
+    leaveRoom = async function() {
+      closeChat();
+      stopChatListener();
+      await _originalLeaveRoom();
+    };
+
+    // Om man redan är i ett rum när sidan laddas (auto-rejoin)
+    // updateUI() kallas redan i auto-rejoin-koden, men vi måste se till att
+    // vår patchade version anropas. Eftersom leaveRoom och updateUI är omtilldelade
+    // till nya funktioner fungerar detta korrekt för nya händelser.
+    // Men för auto-rejoin som sker innan patchen: kontrollera vid DOMContentLoaded.
+    // Vi löser det med en liten fördröjning som garanterar att patchen hunnit appliceras.
+    setTimeout(() => {
+      if (currentRoom) {
+        chatBtn.classList.add('visible');
+        chatPanelTitle.textContent = currentRoom.name ? `${currentRoom.name} — Chatt` : 'Gruppchatt';
+        startChatListener(currentRoom.code);
+      }
+    }, 500);
+
   </script>
 </body>
 </html>
