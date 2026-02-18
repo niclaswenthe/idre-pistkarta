@@ -640,11 +640,13 @@
     </div>
   </div>
 
-  <!-- Modal: Skapa grupp (ange namn + färg) -->
+  <!-- Modal: Skapa grupp (ange gruppnamn + namn + färg) -->
   <div class="modal-overlay" id="modal-create">
     <div class="modal">
       <h2>Skapa grupp</h2>
-      <p>Välj ditt namn och färg — dina vänner ser dig på kartan.</p>
+      <p>Ge gruppen ett namn, välj ditt namn och färg.</p>
+      <label>Gruppnamn</label>
+      <input type="text" id="create-group-name" placeholder="T.ex. Skidgänget" maxlength="30" autocomplete="off">
       <label>Ditt namn</label>
       <input type="text" id="create-name" placeholder="T.ex. Niclas" maxlength="20" autocomplete="off">
       <label>Välj färg</label>
@@ -674,10 +676,10 @@
     </div>
   </div>
 
-  <!-- Modal: Gruppinfo (visa kod, medlemmar) -->
+  <!-- Modal: Gruppinfo (visa namn, kod, medlemmar) -->
   <div class="modal-overlay" id="modal-info">
     <div class="modal">
-      <h2>Din grupp</h2>
+      <h2 id="info-room-name">Din grupp</h2>
       <p>Dela koden med dina vänner så de kan gå med.</p>
       <div style="text-align:center; margin: 16px 0;">
         <div id="info-room-code" style="font-size: 36px; font-weight: 800; letter-spacing: 4px;"></div>
@@ -1130,8 +1132,8 @@
       }
     }
 
-    function saveLastRoom(code) {
-      localStorage.setItem('pistkarta-room', JSON.stringify({ code }));
+    function saveLastRoom(code, name) {
+      localStorage.setItem('pistkarta-room', JSON.stringify({ code, name: name || '' }));
     }
 
     function clearLastRoom() {
@@ -1162,11 +1164,12 @@
       return db.ref(`pistkarta/rooms/${code}/members/${userId}`);
     }
 
-    async function createRoom() {
+    async function createRoom(groupName) {
       const code = generateRoomCode();
       await roomRef(code).set({
         created: Date.now(),
         code: code,
+        name: groupName || '',
       });
       return code;
     }
@@ -1374,7 +1377,7 @@
         groupBtn.classList.add('active');
         groupBtnIcon.textContent = '📍';
         sessionBar.classList.add('visible');
-        sessionRoomCode.textContent = currentRoom.code;
+        sessionRoomCode.textContent = currentRoom.name || currentRoom.code;
       } else {
         groupBtn.classList.remove('active');
         groupBtnIcon.textContent = '👥';
@@ -1432,6 +1435,7 @@
 
     // Meny: Skapa grupp
     document.getElementById('btn-create-group').addEventListener('click', () => {
+      document.getElementById('create-group-name').value = '';
       document.getElementById('create-name').value = myName;
       fillColorPicker('create-colors');
       showModal('modal-create');
@@ -1453,6 +1457,13 @@
 
     // Skapa grupp
     document.getElementById('btn-do-create').addEventListener('click', async () => {
+      const groupNameInput = document.getElementById('create-group-name');
+      const groupName = groupNameInput.value.trim();
+      if (!groupName) {
+        groupNameInput.focus();
+        return;
+      }
+
       const nameInput = document.getElementById('create-name');
       const name = nameInput.value.trim();
       if (!name) {
@@ -1468,10 +1479,10 @@
       btn.textContent = 'Skapar...';
 
       try {
-        const code = await createRoom();
+        const code = await createRoom(groupName);
         await joinRoom(code);
-        currentRoom = { code };
-        saveLastRoom(code);
+        currentRoom = { code, name: groupName };
+        saveLastRoom(code, groupName);
         listenToMembers(code);
         startGPS();
         hideAllModals();
@@ -1506,17 +1517,19 @@
       btn.textContent = 'Ansluter...';
 
       try {
-        const exists = await roomExists(code);
-        if (!exists) {
+        const roomSnap = await roomRef(code).once('value');
+        if (!roomSnap.exists()) {
           alert('Gruppen hittades inte. Kontrollera koden.');
           btn.disabled = false;
           btn.textContent = 'Gå med';
           return;
         }
 
+        const roomData = roomSnap.val();
+        const roomName = roomData.name || '';
         await joinRoom(code);
-        currentRoom = { code };
-        saveLastRoom(code);
+        currentRoom = { code, name: roomName };
+        saveLastRoom(code, roomName);
         listenToMembers(code);
         startGPS();
         hideAllModals();
@@ -1538,6 +1551,7 @@
     // Gruppinfo
     function showGroupInfo() {
       if (!currentRoom) return;
+      document.getElementById('info-room-name').textContent = currentRoom.name || '';
       document.getElementById('info-room-code').textContent = currentRoom.code;
 
       // Hämta medlemmar
@@ -1575,7 +1589,8 @@
     // Dela kod
     document.getElementById('btn-share-code').addEventListener('click', async () => {
       if (!currentRoom) return;
-      const text = `Gå med i min grupp på Idre-pistkartan! Kod: ${currentRoom.code}`;
+      const groupLabel = currentRoom.name ? `gruppen "${currentRoom.name}"` : 'min grupp';
+      const text = `Gå med i ${groupLabel} på Idre-pistkartan! Kod: ${currentRoom.code}`;
 
       if (navigator.share) {
         try {
@@ -1603,10 +1618,13 @@
     loadProfile();
     const lastRoom = loadLastRoom();
     if (lastRoom && lastRoom.code) {
-      roomExists(lastRoom.code).then(exists => {
-        if (exists) {
+      roomRef(lastRoom.code).once('value').then(snap => {
+        if (snap.exists()) {
+          const roomData = snap.val();
+          const roomName = roomData.name || lastRoom.name || '';
           joinRoom(lastRoom.code).then(() => {
-            currentRoom = { code: lastRoom.code };
+            currentRoom = { code: lastRoom.code, name: roomName };
+            saveLastRoom(lastRoom.code, roomName);
             listenToMembers(lastRoom.code);
             startGPS();
             updateUI();
