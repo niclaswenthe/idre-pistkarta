@@ -126,6 +126,31 @@
       letter-spacing: 0.3px;
     }
 
+    .user-marker-lastseen {
+      position: absolute;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.65);
+      color: rgba(255,255,255,0.7);
+      padding: 1px 6px;
+      border-radius: 8px;
+      font-size: 9px;
+      white-space: nowrap;
+      display: none;
+    }
+
+    /* Offline-markör: ingen puls, dämpad */
+    .user-marker-dot.offline {
+      animation: none !important;
+      opacity: 0.5;
+    }
+    .user-marker-dot.offline::before,
+    .user-marker-dot.offline::after {
+      animation: none !important;
+      display: none;
+    }
+
     /* Zoom-knappar — nere till höger, ovanför joystick */
     .zoom-controls {
       position: fixed;
@@ -996,6 +1021,115 @@
       color: rgba(255, 255, 255, 0.35);
       margin: 4px 0;
     }
+
+    /* Medlemslista-knapp */
+    .members-btn {
+      position: fixed;
+      bottom: 168px;
+      left: 20px;
+      z-index: 100;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.92);
+      color: #1a1a2e;
+      font-size: 24px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+    .members-btn.visible {
+      display: flex;
+    }
+    .members-btn:active {
+      transform: scale(0.92);
+      background: rgba(200, 200, 255, 0.95);
+    }
+
+    /* Medlemslista-panel */
+    .members-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 55vh;
+      background: #1e1e32;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      z-index: 250;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+    .members-panel.open {
+      transform: translateY(0);
+    }
+    .members-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+    }
+    .members-panel-title {
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .members-list {
+      overflow-y: auto;
+      padding: 8px 16px 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Medlemsrad */
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .member-row:last-child {
+      border-bottom: none;
+    }
+    .member-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    .member-dot.online {
+      box-shadow: 0 0 8px currentColor;
+      border-color: white;
+    }
+    .member-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .member-name {
+      font-size: 15px;
+      color: white;
+      font-weight: 500;
+    }
+    .member-status {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 2px;
+    }
+    .member-status.online {
+      color: #69F0AE;
+    }
   </style>
 </head>
 <body>
@@ -1053,6 +1187,20 @@
     <span>💬</span>
     <span class="chat-badge" id="chat-badge"></span>
   </button>
+
+  <!-- Medlemslista-knapp (ovanför chatt-knappen) -->
+  <button class="members-btn" id="members-btn" aria-label="Medlemslista">
+    <span>👥</span>
+  </button>
+
+  <!-- Medlemslista-panel -->
+  <div class="members-panel" id="members-panel">
+    <div class="members-panel-header">
+      <span class="members-panel-title" id="members-panel-title">Gruppmedlemmar</span>
+      <button class="chat-close-btn" id="members-close-btn" aria-label="Stäng">✕</button>
+    </div>
+    <div class="members-list" id="members-list"></div>
+  </div>
 
   <!-- Chatt-panel -->
   <div class="chat-panel" id="chat-panel">
@@ -1657,6 +1805,8 @@
       // Rensa min position vid disconnect
       memberRef(code, myUserId).child('online').onDisconnect().set(false);
       memberRef(code, myUserId).child('lastUpdate').onDisconnect().set(Date.now());
+
+      askNotificationPermission();
     }
 
     async function leaveRoom() {
@@ -1699,8 +1849,10 @@
       }
       membersListener = roomRef(code).child('members').on('value', (snap) => {
         const members = snap.val() || {};
+        lastMembersData = members;
         updateMarkers(members);
         updateSessionBar(members);
+        if (membersPanelOpen) renderMembersList(members);
       });
     }
 
@@ -1762,6 +1914,16 @@
     // ============================
     // MARKÖRER PÅ KARTAN
     // ============================
+    function formatLastSeen(timestamp) {
+      const diff = Date.now() - timestamp;
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just nu';
+      if (mins < 60) return `${mins} min sedan`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h sedan`;
+      return 'över 1 dag sedan';
+    }
+
     function updateMarkers(members) {
       const activeIds = new Set();
 
@@ -1781,8 +1943,24 @@
           // Uppdatera befintlig markör
           markers[userId].style.left = pixel.x + 'px';
           markers[userId].style.top = pixel.y + 'px';
-          // Uppdatera opacitet baserat på online-status
-          markers[userId].style.opacity = data.online ? '1' : '0.5';
+          const dot = markers[userId].querySelector('.user-marker-dot');
+          if (dot) {
+            if (data.online) {
+              dot.classList.remove('offline');
+            } else {
+              dot.classList.add('offline');
+            }
+          }
+          // Uppdatera senast sedd
+          const lastSeenEl = markers[userId].querySelector('.user-marker-lastseen');
+          if (lastSeenEl) {
+            if (!data.online && data.lastUpdate) {
+              lastSeenEl.textContent = formatLastSeen(data.lastUpdate);
+              lastSeenEl.style.display = 'block';
+            } else {
+              lastSeenEl.style.display = 'none';
+            }
+          }
         } else {
           // Skapa ny markör
           const el = document.createElement('div');
@@ -1794,13 +1972,24 @@
           dot.className = 'user-marker-dot';
           dot.style.backgroundColor = data.color || '#FF5252';
           dot.style.borderColor = data.color || '#FF5252';
+          if (!data.online) dot.classList.add('offline');
 
           const label = document.createElement('div');
           label.className = 'user-marker-label';
           label.textContent = userId === myUserId ? `${data.name} (du)` : data.name;
 
+          const lastSeen = document.createElement('div');
+          lastSeen.className = 'user-marker-lastseen';
+          if (!data.online && data.lastUpdate) {
+            lastSeen.textContent = formatLastSeen(data.lastUpdate);
+            lastSeen.style.display = 'block';
+          } else {
+            lastSeen.style.display = 'none';
+          }
+
           el.appendChild(dot);
           el.appendChild(label);
+          el.appendChild(lastSeen);
           markersOverlay.appendChild(el);
           markers[userId] = el;
         }
@@ -1852,8 +2041,9 @@
 
     function updateSessionBar(members) {
       if (!members) return;
-      const count = Object.keys(members).length;
-      sessionMemberCount.textContent = ` · ${count} ${count === 1 ? 'person' : 'personer'}`;
+      const total = Object.keys(members).length;
+      const onlineCount = Object.values(members).filter(m => m && m.online).length;
+      sessionMemberCount.textContent = ` · ${onlineCount}/${total} online`;
     }
 
     // Modaler
@@ -2140,19 +2330,62 @@
     function playNotificationSound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = 800;
-        osc.type = 'sine';
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.3);
-      } catch(e) {
-        // AudioContext ej tillgänglig
+        const now = ctx.currentTime;
+
+        // Första ding
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.frequency.value = 880;
+        osc1.type = 'sine';
+        gain1.gain.setValueAtTime(0.5, now);
+        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc1.start(now);
+        osc1.stop(now + 0.25);
+
+        // Andra ding (höjt en kvint)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.frequency.value = 1174;
+        osc2.type = 'sine';
+        gain2.gain.setValueAtTime(0.4, now + 0.2);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+        osc2.start(now + 0.2);
+        osc2.stop(now + 0.5);
+      } catch(e) {}
+
+      // Vibrera
+      try {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      } catch(e) {}
+    }
+
+    // ---- Web Notifications ----
+    let notifPermissionAsked = false;
+    function askNotificationPermission() {
+      if (notifPermissionAsked) return;
+      notifPermissionAsked = true;
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
       }
+    }
+
+    function showBrowserNotification(title, body) {
+      try {
+        if ('Notification' in window && Notification.permission === 'granted') {
+          if (document.hidden) {
+            new Notification(title, {
+              body: body,
+              icon: '💬',
+              tag: 'pistkarta-chat',
+              renotify: true,
+            });
+          }
+        }
+      } catch(e) {}
     }
 
     // ---- Badge ----
@@ -2341,6 +2574,10 @@
               unreadCount++;
               updateChatBadge();
               playNotificationSound();
+              showBrowserNotification(
+                currentRoom?.name || 'Gruppchatt',
+                `${data.senderName}: ${data.type === 'text' ? data.text : (data.type === 'image' ? '📷 Bild' : data.type === 'voice' ? '🎤 Röstmeddelande' : '📎 Fil')}`
+              );
             }
           }
         }
@@ -2690,6 +2927,88 @@
       if (isRecording) stopRecording();
     });
 
+    // ============================
+    // GRUPPLISTA-PANEL
+    // ============================
+    const membersBtn = document.getElementById('members-btn');
+    const membersPanel = document.getElementById('members-panel');
+    const membersList = document.getElementById('members-list');
+    const membersPanelTitle = document.getElementById('members-panel-title');
+    const membersCloseBtn = document.getElementById('members-close-btn');
+    let membersPanelOpen = false;
+    let lastMembersData = null;
+
+    function openMembersPanel() {
+      membersPanelOpen = true;
+      membersPanel.classList.add('open');
+      if (lastMembersData) renderMembersList(lastMembersData);
+    }
+
+    function closeMembersPanel() {
+      membersPanelOpen = false;
+      membersPanel.classList.remove('open');
+    }
+
+    membersBtn.addEventListener('click', () => {
+      if (membersPanelOpen) {
+        closeMembersPanel();
+      } else {
+        // Stäng chatten om den är öppen
+        if (chatOpen) closeChat();
+        openMembersPanel();
+      }
+    });
+
+    membersCloseBtn.addEventListener('click', closeMembersPanel);
+
+    document.getElementById('map-container').addEventListener('touchstart', () => {
+      if (membersPanelOpen) closeMembersPanel();
+    }, { passive: true });
+
+    function renderMembersList(members) {
+      membersList.innerHTML = '';
+      const sorted = Object.entries(members).sort((a, b) => {
+        // Online först, sedan efter namn
+        if (a[1].online && !b[1].online) return -1;
+        if (!a[1].online && b[1].online) return 1;
+        return (a[1].name || '').localeCompare(b[1].name || '');
+      });
+
+      for (const [userId, data] of sorted) {
+        if (!data || !data.name) continue;
+        const row = document.createElement('div');
+        row.className = 'member-row';
+
+        const dot = document.createElement('div');
+        dot.className = 'member-dot' + (data.online ? ' online' : '');
+        dot.style.backgroundColor = data.color || '#FF5252';
+        dot.style.color = data.color || '#FF5252';
+
+        const info = document.createElement('div');
+        info.className = 'member-info';
+
+        const name = document.createElement('div');
+        name.className = 'member-name';
+        name.textContent = data.name + (userId === myUserId ? ' (du)' : '');
+
+        const status = document.createElement('div');
+        status.className = 'member-status' + (data.online ? ' online' : '');
+        if (data.online) {
+          status.textContent = '● Live nu';
+        } else if (data.lastUpdate) {
+          status.textContent = '○ ' + formatLastSeen(data.lastUpdate);
+        } else {
+          status.textContent = '○ Offline';
+        }
+
+        info.appendChild(name);
+        info.appendChild(status);
+        row.appendChild(dot);
+        row.appendChild(info);
+        membersList.appendChild(row);
+      }
+    }
+
     // ---- Integrera med grupp-systemet ----
     // Patcha updateUI för att visa/dölja chatt-knappen och starta/stoppa lyssnare
     const _originalUpdateUI = updateUI;
@@ -2697,11 +3016,14 @@
       _originalUpdateUI();
       if (currentRoom) {
         chatBtn.classList.add('visible');
+        membersBtn.classList.add('visible');
         chatPanelTitle.textContent = currentRoom.name ? `${currentRoom.name} — Chatt` : 'Gruppchatt';
         startChatListener(currentRoom.code);
       } else {
         chatBtn.classList.remove('visible');
+        membersBtn.classList.remove('visible');
         closeChat();
+        closeMembersPanel();
         stopChatListener();
         chatMessages.innerHTML = '';
         resetUnread();
@@ -2725,6 +3047,7 @@
     setTimeout(() => {
       if (currentRoom) {
         chatBtn.classList.add('visible');
+        membersBtn.classList.add('visible');
         chatPanelTitle.textContent = currentRoom.name ? `${currentRoom.name} — Chatt` : 'Gruppchatt';
         startChatListener(currentRoom.code);
       }
