@@ -2315,9 +2315,11 @@
 
       const code = urlGroupCode.toUpperCase().trim();
 
-      // Kolla om vi redan är i denna grupp
-      if (lastRoom && lastRoom.code === code) {
-        // Auto-rejoin som vanligt
+      // Kolla om vi redan är i denna grupp och har en komplett profil
+      const alreadyInGroup = lastRoom && lastRoom.code === code && myName;
+
+      if (alreadyInGroup) {
+        // Användaren är redan med i denna grupp — auto-rejoin utan att visa modal
         roomRef(code).once('value').then(snap => {
           if (snap.exists()) {
             const roomData = snap.val();
@@ -2329,15 +2331,19 @@
               startGPS();
               updateUI();
             });
+          } else {
+            // Rummet finns inte längre — rensa och visa inget
+            clearLastRoom();
           }
         });
       } else {
-        // Ny grupp via länk — visa join-modal med koden ifylld
+        // Ny grupp via länk (eller saknar profil) — visa join-modal med koden + ev. namn/färg ifyllt
         roomRef(code).once('value').then(snap => {
           if (snap.exists()) {
             const roomData = snap.val();
             const roomName = roomData.name || '';
             document.getElementById('join-code').value = code;
+            // Fyll i namn och färg från senaste sessionen om det finns
             document.getElementById('join-name').value = myName;
             fillColorPicker('join-colors');
 
