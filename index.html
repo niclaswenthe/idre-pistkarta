@@ -1311,6 +1311,18 @@
     </div>
   </div>
 
+  <!-- Modal: Bekräfta gruppbyte -->
+  <div class="modal-overlay" id="modal-confirm-group">
+    <div class="modal">
+      <h2>Byta grupp?</h2>
+      <p id="confirm-group-text"></p>
+      <div class="modal-actions">
+        <button class="btn-primary" id="btn-confirm-switch">Byt grupp</button>
+        <button class="btn-secondary" id="btn-confirm-stay">Stanna kvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- QR-kod bibliotek -->
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
@@ -2342,18 +2354,56 @@
           if (snap.exists()) {
             const roomData = snap.val();
             const roomName = roomData.name || '';
-            document.getElementById('join-code').value = code;
-            // Fyll i namn och färg från senaste sessionen om det finns
-            document.getElementById('join-name').value = myName;
-            fillColorPicker('join-colors');
 
-            // Uppdatera modaltiteln med gruppnamnet
-            const joinModal = document.querySelector('#modal-join .modal h2');
-            if (joinModal && roomName) {
-              joinModal.textContent = `Gå med i "${roomName}"`;
+            // Är användaren redan i en ANNAN grupp?
+            const inDifferentGroup = lastRoom && lastRoom.code !== code && myName;
+
+            if (inDifferentGroup) {
+              // Visa bekräftelsedialog innan gruppbyte
+              const currentGroupLabel = lastRoom.name ? `"${lastRoom.name}"` : `gruppen ${lastRoom.code}`;
+              const newGroupLabel = roomName ? `"${roomName}"` : `gruppen ${code}`;
+              document.getElementById('confirm-group-text').textContent =
+                `Du är redan med i gruppen ${currentGroupLabel}. Vill du lämna den och gå med i ${newGroupLabel}?`;
+
+              // Knapp: Byt grupp
+              const btnSwitch = document.getElementById('btn-confirm-switch');
+              const btnStay = document.getElementById('btn-confirm-stay');
+
+              // Klona knapparna för att rensa eventuella gamla lyssnare
+              const newBtnSwitch = btnSwitch.cloneNode(true);
+              const newBtnStay = btnStay.cloneNode(true);
+              btnSwitch.parentNode.replaceChild(newBtnSwitch, btnSwitch);
+              btnStay.parentNode.replaceChild(newBtnStay, btnStay);
+
+              newBtnSwitch.addEventListener('click', () => {
+                hideAllModals();
+                // Fyll i join-modal och gå vidare
+                document.getElementById('join-code').value = code;
+                document.getElementById('join-name').value = myName;
+                fillColorPicker('join-colors');
+                const joinModal = document.querySelector('#modal-join .modal h2');
+                if (joinModal && roomName) {
+                  joinModal.textContent = `Gå med i "${roomName}"`;
+                }
+                showModal('modal-join');
+              });
+
+              newBtnStay.addEventListener('click', () => {
+                hideAllModals();
+              });
+
+              showModal('modal-confirm-group');
+            } else {
+              // Ingen aktiv grupp (eller saknar profil) — visa join-modal direkt
+              document.getElementById('join-code').value = code;
+              document.getElementById('join-name').value = myName;
+              fillColorPicker('join-colors');
+              const joinModal = document.querySelector('#modal-join .modal h2');
+              if (joinModal && roomName) {
+                joinModal.textContent = `Gå med i "${roomName}"`;
+              }
+              showModal('modal-join');
             }
-
-            showModal('modal-join');
           } else {
             alert('Gruppen hittades inte. Länken kan vara felaktig eller gruppen kan ha tagits bort.');
           }
