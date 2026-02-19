@@ -603,26 +603,6 @@
       margin: 4px 0;
     }
 
-    /* GPS-status */
-    .gps-status {
-      position: fixed;
-      bottom: 96px;
-      left: 20px;
-      z-index: 100;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-    }
-
-    .gps-status.visible {
-      opacity: 1;
-    }
-
     /* ====== CHATT ====== */
 
     /* Chatt-knapp (ovanför grupp-knappen) */
@@ -1166,9 +1146,6 @@
   <button class="group-btn" id="group-btn">
     <span id="group-btn-icon">👥</span>
   </button>
-
-  <!-- GPS-status -->
-  <div class="gps-status" id="gps-status"></div>
 
   <div class="zoom-controls">
     <button class="reset-btn" id="zoom-reset" aria-label="Återställ vy">⟲</button>
@@ -1721,7 +1698,6 @@
     const sessionMemberCount = document.getElementById('session-member-count');
     const groupBtn = document.getElementById('group-btn');
     const groupBtnIcon = document.getElementById('group-btn-icon');
-    const gpsStatusEl = document.getElementById('gps-status');
 
     let currentRoom = null;     // { code, ref }
     let myUserId = null;
@@ -1880,30 +1856,16 @@
     // ============================
     function startGPS() {
       if (!navigator.geolocation) {
-        showGpsStatus('GPS stöds inte');
         return;
       }
 
-      showGpsStatus('Söker GPS...');
-
       gpsWatchId = navigator.geolocation.watchPosition(
         (pos) => {
-          const { latitude, longitude, accuracy } = pos.coords;
-          if (accuracy > 200) {
-            showGpsStatus(`GPS: ~${Math.round(accuracy)}m (låg precision)`);
-          } else {
-            showGpsStatus(`GPS: ~${Math.round(accuracy)}m`);
-            setTimeout(() => hideGpsStatus(), 3000);
-          }
+          const { latitude, longitude } = pos.coords;
           updateMyPosition(latitude, longitude);
         },
         (err) => {
           console.warn('GPS-fel:', err);
-          if (err.code === 1) {
-            showGpsStatus('GPS nekad — tillåt platsåtkomst');
-          } else {
-            showGpsStatus('GPS-fel');
-          }
         },
         {
           enableHighAccuracy: true,
@@ -1918,16 +1880,6 @@
         navigator.geolocation.clearWatch(gpsWatchId);
         gpsWatchId = null;
       }
-      hideGpsStatus();
-    }
-
-    function showGpsStatus(text) {
-      gpsStatusEl.textContent = text;
-      gpsStatusEl.classList.add('visible');
-    }
-
-    function hideGpsStatus() {
-      gpsStatusEl.classList.remove('visible');
     }
 
     // ============================
