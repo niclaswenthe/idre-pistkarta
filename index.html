@@ -1293,19 +1293,26 @@
   <div class="modal-overlay" id="modal-info">
     <div class="modal">
       <h2 id="info-room-name">Din grupp</h2>
-      <p>Dela koden med dina vänner så de kan gå med.</p>
+      <p>Dela länken eller QR-koden med dina vänner!</p>
       <div style="text-align:center; margin: 16px 0;">
         <div id="info-room-code" style="font-size: 36px; font-weight: 800; letter-spacing: 4px;"></div>
+        <div id="info-share-url" style="font-size: 11px; color: #aaa; margin-top: 4px; word-break: break-all;"></div>
+      </div>
+      <div style="text-align:center; margin: 8px 0 16px;">
+        <canvas id="info-qr-canvas" style="border-radius: 8px; max-width: 180px;"></canvas>
       </div>
       <label>Medlemmar</label>
       <div id="info-members" style="margin-bottom: 16px;"></div>
       <div class="modal-actions">
-        <button class="btn-primary" id="btn-share-code">Dela kod</button>
+        <button class="btn-primary" id="btn-share-code">📤 Dela länk</button>
         <button class="btn-secondary" id="btn-leave-group">Lämna grupp</button>
         <button class="btn-cancel" id="btn-close-info">Stäng</button>
       </div>
     </div>
   </div>
+
+  <!-- QR-kod bibliotek -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 
   <!-- Firebase SDK (compat for simplicity in vanilla JS) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -2204,10 +2211,29 @@
     });
 
     // Gruppinfo
+    function getShareUrl() {
+      const base = window.location.origin + window.location.pathname;
+      return base + '?group=' + currentRoom.code;
+    }
+
     function showGroupInfo() {
       if (!currentRoom) return;
       document.getElementById('info-room-name').textContent = currentRoom.name || '';
       document.getElementById('info-room-code').textContent = currentRoom.code;
+
+      // Visa delningslänk
+      const shareUrl = getShareUrl();
+      document.getElementById('info-share-url').textContent = shareUrl;
+
+      // Generera QR-kod
+      const qrCanvas = document.getElementById('info-qr-canvas');
+      if (typeof QRCode !== 'undefined') {
+        QRCode.toCanvas(qrCanvas, shareUrl, {
+          width: 180,
+          margin: 2,
+          color: { dark: '#1a1a2e', light: '#ffffff' }
+        }).catch(err => console.error('QR error:', err));
+      }
 
       // Hämta medlemmar
       roomRef(currentRoom.code).child('members').once('value', (snap) => {
@@ -2241,24 +2267,25 @@
       showModal('modal-info');
     }
 
-    // Dela kod
+    // Dela länk
     document.getElementById('btn-share-code').addEventListener('click', async () => {
       if (!currentRoom) return;
+      const shareUrl = getShareUrl();
       const groupLabel = currentRoom.name ? `gruppen "${currentRoom.name}"` : 'min grupp';
-      const text = `Gå med i ${groupLabel} på Idre-pistkartan! Kod: ${currentRoom.code}`;
+      const text = `Gå med i ${groupLabel} på Idre-pistkartan!`;
 
       if (navigator.share) {
         try {
-          await navigator.share({ title: 'Idre Pistkarta', text });
+          await navigator.share({ title: 'Idre Pistkarta', text, url: shareUrl });
         } catch {}
       } else {
         try {
-          await navigator.clipboard.writeText(currentRoom.code);
+          await navigator.clipboard.writeText(shareUrl);
           const btn = document.getElementById('btn-share-code');
-          btn.textContent = 'Kopierad!';
-          setTimeout(() => { btn.textContent = 'Dela kod'; }, 2000);
+          btn.textContent = '✅ Länk kopierad!';
+          setTimeout(() => { btn.textContent = '📤 Dela länk'; }, 2000);
         } catch {
-          prompt('Kopiera koden:', currentRoom.code);
+          prompt('Kopiera länken:', shareUrl);
         }
       }
     });
@@ -2272,7 +2299,57 @@
     // Auto-rejoin vid sidladdning
     loadProfile();
     const lastRoom = loadLastRoom();
-    if (lastRoom && lastRoom.code) {
+
+    // Kolla om URL:en har en gruppkod (?group=XJKM)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlGroupCode = urlParams.get('group');
+
+    if (urlGroupCode) {
+      // Rensa URL-parametern utan att ladda om sidan
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+
+      const code = urlGroupCode.toUpperCase().trim();
+
+      // Kolla om vi redan är i denna grupp
+      if (lastRoom && lastRoom.code === code) {
+        // Auto-rejoin som vanligt
+        roomRef(code).once('value').then(snap => {
+          if (snap.exists()) {
+            const roomData = snap.val();
+            const roomName = roomData.name || lastRoom.name || '';
+            joinRoom(code).then(() => {
+              currentRoom = { code, name: roomName };
+              saveLastRoom(code, roomName);
+              listenToMembers(code);
+              startGPS();
+              updateUI();
+            });
+          }
+        });
+      } else {
+        // Ny grupp via länk — visa join-modal med koden ifylld
+        roomRef(code).once('value').then(snap => {
+          if (snap.exists()) {
+            const roomData = snap.val();
+            const roomName = roomData.name || '';
+            document.getElementById('join-code').value = code;
+            document.getElementById('join-name').value = myName;
+            fillColorPicker('join-colors');
+
+            // Uppdatera modaltiteln med gruppnamnet
+            const joinModal = document.querySelector('#modal-join .modal h2');
+            if (joinModal && roomName) {
+              joinModal.textContent = `Gå med i "${roomName}"`;
+            }
+
+            showModal('modal-join');
+          } else {
+            alert('Gruppen hittades inte. Länken kan vara felaktig eller gruppen kan ha tagits bort.');
+          }
+        });
+      }
+    } else if (lastRoom && lastRoom.code) {
       roomRef(lastRoom.code).once('value').then(snap => {
         if (snap.exists()) {
           const roomData = snap.val();
