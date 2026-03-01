@@ -1425,6 +1425,8 @@
     // Touch: panorera med ett finger
     container.addEventListener('touchstart', (e) => {
       if (joystickActive) return;
+      // Tillåt scroll i chatten
+      if (e.target.closest('.chat-panel')) return;
       if (e.touches.length === 1) {
         isDragging = true;
         startX = e.touches[0].clientX;
@@ -1436,6 +1438,8 @@
 
     container.addEventListener('touchmove', (e) => {
       if (joystickActive) return;
+      // Tillåt scroll i chatten
+      if (e.target.closest('.chat-panel')) return;
       e.preventDefault();
       if (isDragging && e.touches.length === 1) {
         const dx = e.touches[0].clientX - startX;
@@ -1474,6 +1478,8 @@
 
     // Mouse wheel zoom
     container.addEventListener('wheel', (e) => {
+      // Tillåt scroll i chatten
+      if (e.target.closest('.chat-panel')) return;
       e.preventDefault();
       const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
       zoomAt(delta, e.clientX, e.clientY);
@@ -2714,8 +2720,9 @@
     chatCloseBtn.addEventListener('click', closeChat);
 
     // Stäng chatten om man trycker utanför (på kartan)
-    document.getElementById('map-container').addEventListener('touchstart', () => {
-      if (chatOpen) closeChat();
+    document.getElementById('map-container').addEventListener('touchstart', (e) => {
+      // Stäng bara om man inte trycker i chatten
+      if (chatOpen && !e.target.closest('.chat-panel')) closeChat();
     }, { passive: true });
 
     // ---- Skicka textmeddelande ----
@@ -3050,8 +3057,9 @@
 
     membersCloseBtn.addEventListener('click', closeMembersPanel);
 
-    document.getElementById('map-container').addEventListener('touchstart', () => {
-      if (membersPanelOpen) closeMembersPanel();
+    document.getElementById('map-container').addEventListener('touchstart', (e) => {
+      // Stäng bara om man inte trycker i medlemspanelen
+      if (membersPanelOpen && !e.target.closest('.members-panel')) closeMembersPanel();
     }, { passive: true });
 
     function renderMembersList(members) {
