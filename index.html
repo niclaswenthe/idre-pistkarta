@@ -1776,11 +1776,17 @@
     // Pixelkoordinater är uppskattade från visuell analys av kartbilden.
     // Dessa kan finjusteras — se kalibreringsläget nedan.
     //
+    // VIKTIGT: Dessa pixelkoordinater är kalibrerade för en 4000x2700 bild.
+    // Om den faktiska bilden har andra dimensioner, skalas koordinaterna automatiskt.
+    const CALIBRATION_IMAGE_WIDTH = 4000;
+    const CALIBRATION_IMAGE_HEIGHT = 2700;
+
     const REFERENCE_POINTS = [
       // Lift M — nedre vänster, vid "NORD"-området
       { id: 'M', lat: 61.880204, lng: 12.823573, px: 490, py: 1780 },
       // Lift H (den sydligare, 61.885) — vänster-mitten
-      { id: 'H1', lat: 61.885135, lng: 12.819700, px: 640, py: 680 },
+      // FIXED: Was 680 (too far up), corrected based on lat interpolation
+      { id: 'H1', lat: 61.885135, lng: 12.819700, px: 640, py: 1200 },
       // Lift F — uppe till vänster
       { id: 'F', lat: 61.887457, lng: 12.815602, px: 370, py: 430 },
       // Lift C — mitten/toppen
@@ -1798,9 +1804,11 @@
       // Lift T — sydöst, nedre höger
       { id: 'T', lat: 61.882224, lng: 12.875592, px: 2480, py: 1550 },
       // Lift U — östra delen, uppe
-      { id: 'U', lat: 61.888142, lng: 12.869819, px: 2260, py: 640 },
+      // FIXED: Was 640 (too far down), should be near top like Uts/F
+      { id: 'U', lat: 61.888142, lng: 12.869819, px: 2260, py: 500 },
       // Lift V — nära U
-      { id: 'V', lat: 61.888480, lng: 12.868481, px: 2200, py: 610 },
+      // FIXED: Was 610 (too far down), should be near U
+      { id: 'V', lat: 61.888480, lng: 12.868481, px: 2200, py: 480 },
       // Lift X — mitten
       { id: 'X', lat: 61.889510, lng: 12.851912, px: 1950, py: 440 },
       // Restaurang Utsikten (vid siffran 7)
@@ -1901,6 +1909,15 @@
         px += wx[i] * rbf(r);
         py += wy[i] * rbf(r);
       }
+
+      // Skala koordinaterna om bilden har andra dimensioner än kalibreringen
+      if (imgEl.naturalWidth && imgEl.naturalHeight) {
+        const scaleX = imgEl.naturalWidth / CALIBRATION_IMAGE_WIDTH;
+        const scaleY = imgEl.naturalHeight / CALIBRATION_IMAGE_HEIGHT;
+        px *= scaleX;
+        py *= scaleY;
+      }
+
       return { x: px, y: py };
     }
 
@@ -2267,6 +2284,15 @@
         if (data.lat === 0 && data.lng === 0) continue;
 
         const pixel = gpsToPixel(data.lat, data.lng);
+
+        // Debug: Logga första markörens position för att verifiera kalibrering
+        if (Object.keys(markers).length === 0) {
+          console.log('[Marker Debug] First marker position:');
+          console.log(`  GPS: lat=${data.lat}, lng=${data.lng}`);
+          console.log(`  Pixel: x=${pixel.x.toFixed(1)}, y=${pixel.y.toFixed(1)}`);
+          console.log(`  Image size: ${imgEl.naturalWidth}x${imgEl.naturalHeight}`);
+          console.log(`  Calibration size: ${CALIBRATION_IMAGE_WIDTH}x${CALIBRATION_IMAGE_HEIGHT}`);
+        }
 
         // Spara data för popup
         markerDataMap[userId] = data;
