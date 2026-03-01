@@ -1173,6 +1173,14 @@
       gap: 12px;
       padding: 12px 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 12px 8px;
+      margin: 0 -8px;
+      transition: background-color 0.15s;
+    }
+    .member-row:active {
+      background-color: rgba(255, 255, 255, 0.1);
     }
     .member-row:last-child {
       border-bottom: none;
@@ -3468,6 +3476,13 @@
         info.appendChild(status);
         row.appendChild(dot);
         row.appendChild(info);
+
+        // Tryck på medlem → visa position på kartan
+        row.addEventListener('click', () => {
+          closeMembersPanel();
+          panToPosition(userId);
+        });
+
         membersList.appendChild(row);
       }
     }
