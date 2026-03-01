@@ -1359,6 +1359,9 @@
     let isPinching = false;
     let initialPinchDistance = 0;
     let initialPinchScale = 1;
+    let initialPinchPosX = 0;
+    let initialPinchPosY = 0;
+    let initialPinchCenter = { x: 0, y: 0 };
 
     const MIN_SCALE = 0.5;
     const MAX_SCALE = 6;
@@ -1476,6 +1479,9 @@
         isPinching = true;
         initialPinchDistance = getTouchDistance(e.touches[0], e.touches[1]);
         initialPinchScale = scale;
+        initialPinchPosX = posX;
+        initialPinchPosY = posY;
+        initialPinchCenter = getTouchCenter(e.touches[0], e.touches[1]);
       }
     }, { passive: true });
 
@@ -1487,18 +1493,16 @@
       if (isPinching && e.touches.length === 2) {
         e.preventDefault();
         const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
-        const center = getTouchCenter(e.touches[0], e.touches[1]);
 
         // Beräkna ny scale baserat på förändringen i avstånd
         const distanceRatio = currentDistance / initialPinchDistance;
         const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, initialPinchScale * distanceRatio));
 
-        // Zooma mot centrum av pinch-gesturen
-        const oldScale = scale;
+        // Zooma mot centrum av pinch-gesturen relativt till initial position
+        const scaleRatio = newScale / initialPinchScale;
         scale = newScale;
-        const ratio = scale / oldScale;
-        posX = center.x - (center.x - posX) * ratio;
-        posY = center.y - (center.y - posY) * ratio;
+        posX = initialPinchCenter.x - (initialPinchCenter.x - initialPinchPosX) * scaleRatio;
+        posY = initialPinchCenter.y - (initialPinchCenter.y - initialPinchPosY) * scaleRatio;
 
         updateTransform();
         showZoomLevel();
