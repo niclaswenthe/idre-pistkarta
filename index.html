@@ -2002,7 +2002,7 @@
         activeIds.add(userId);
 
         // Hoppa över offline användare som inte uppdaterat på 10 min
-        if (!data.online && (Date.now() - data.lastUpdate > 600000)) continue;
+        if (!data.lastUpdate || (Date.now() - data.lastUpdate > 600000)) continue;
 
         // Hoppa över om ingen GPS-position (lat=0, lng=0)
         if (data.lat === 0 && data.lng === 0) continue;
@@ -2015,7 +2015,9 @@
           markers[userId].style.top = pixel.y + 'px';
           const dot = markers[userId].querySelector('.user-marker-dot');
           if (dot) {
-            if (data.online) {
+            const isStale = !data.lastUpdate || (Date.now() - data.lastUpdate > 60000); // 1 minut
+            const isActive = data.online && !isStale;
+            if (isActive) {
               dot.classList.remove('offline');
             } else {
               dot.classList.add('offline');
@@ -2024,7 +2026,9 @@
           // Uppdatera senast sedd
           const lastSeenEl = markers[userId].querySelector('.user-marker-lastseen');
           if (lastSeenEl) {
-            if (!data.online && data.lastUpdate) {
+            const isStale = !data.lastUpdate || (Date.now() - data.lastUpdate > 60000); // 1 minut
+            const isActive = data.online && !isStale;
+            if (!isActive && data.lastUpdate) {
               lastSeenEl.textContent = formatLastSeen(data.lastUpdate);
               lastSeenEl.style.display = 'block';
             } else {
@@ -2042,7 +2046,9 @@
           dot.className = 'user-marker-dot';
           dot.style.backgroundColor = data.color || '#FF5252';
           dot.style.borderColor = data.color || '#FF5252';
-          if (!data.online) dot.classList.add('offline');
+          const isStale = !data.lastUpdate || (Date.now() - data.lastUpdate > 60000); // 1 minut
+          const isActive = data.online && !isStale;
+          if (!isActive) dot.classList.add('offline');
 
           const label = document.createElement('div');
           label.className = 'user-marker-label';
@@ -2050,7 +2056,7 @@
 
           const lastSeen = document.createElement('div');
           lastSeen.className = 'user-marker-lastseen';
-          if (!data.online && data.lastUpdate) {
+          if (!isActive && data.lastUpdate) {
             lastSeen.textContent = formatLastSeen(data.lastUpdate);
             lastSeen.style.display = 'block';
           } else {
