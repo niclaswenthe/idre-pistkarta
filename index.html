@@ -2167,8 +2167,16 @@
 
     // Funktion för att panorera till en position direkt (utan animation)
     function panToPosition(userId) {
-      const data = markerDataMap[userId];
-      if (!data || !data.lat || !data.lng) return;
+      // Försök hämta data från markerDataMap först, annars från lastMembersData
+      let data = markerDataMap[userId];
+      if (!data && lastMembersData && lastMembersData[userId]) {
+        data = lastMembersData[userId];
+      }
+      if (!data) return;
+
+      // Kolla att lat/lng finns och inte är (0, 0)
+      const hasValidPosition = data.lat != null && data.lng != null && !(data.lat === 0 && data.lng === 0);
+      if (!hasValidPosition) return;
 
       // Konvertera GPS till pixel-koordinater på kartbilden
       const pixel = gpsToPixel(data.lat, data.lng);
@@ -3448,11 +3456,19 @@
         row.appendChild(dot);
         row.appendChild(info);
 
-        // Tryck på medlem → visa position på kartan
-        row.addEventListener('click', () => {
-          closeMembersPanel();
-          panToPosition(userId);
-        });
+        // Kolla om medlemmen har en giltig GPS-position
+        const hasGPS = data.lat != null && data.lng != null && !(data.lat === 0 && data.lng === 0);
+
+        if (hasGPS) {
+          row.style.cursor = 'pointer';
+          row.addEventListener('click', () => {
+            closeMembersPanel();
+            panToPosition(userId);
+          });
+        } else {
+          row.style.opacity = '0.5';
+          row.style.cursor = 'default';
+        }
 
         membersList.appendChild(row);
       }
