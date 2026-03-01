@@ -1358,7 +1358,7 @@
     // Pinch-to-zoom variabler
     let isPinching = false;
 
-    const MIN_SCALE = 0.5;
+    let MIN_SCALE = 0.1;
     const MAX_SCALE = 6;
     const ZOOM_STEP = 0.25;
 
@@ -1391,6 +1391,8 @@
       const iw = imgEl.naturalWidth;
       const ih = imgEl.naturalHeight;
       scale = Math.min(cw / iw, ch / ih);
+      // Sätt MIN_SCALE till fit-to-screen-nivån så man alltid kan zooma ut helt
+      MIN_SCALE = scale * 0.8; // Lite marginal under fit-to-screen
       posX = (cw - iw * scale) / 2;
       posY = (ch - ih * scale) / 2;
       updateTransform();
@@ -1506,14 +1508,12 @@
           const zoomFactor = currentDistance / lastPinchDistance;
           const oldScale = scale;
           const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * zoomFactor));
+          const ratio = newScale / oldScale;
 
-          if (newScale !== oldScale) {
-            const ratio = newScale / oldScale;
-            // Zooma mot mittpunkten mellan fingrarna
-            posX = currentCenter.x - (currentCenter.x - posX) * ratio;
-            posY = currentCenter.y - (currentCenter.y - posY) * ratio;
-            scale = newScale;
-          }
+          // Zooma mot mittpunkten mellan fingrarna
+          posX = currentCenter.x - (currentCenter.x - posX) * ratio;
+          posY = currentCenter.y - (currentCenter.y - posY) * ratio;
+          scale = newScale;
         }
 
         // Panorera med två fingrar (flytta mittpunkten)
