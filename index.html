@@ -1807,79 +1807,101 @@
       { id: 'Uts', lat: 61.887795, lng: 12.857254, px: 1760, py: 400 },
     ];
 
-    // Beräkna affin transformationsmatris med minsta-kvadratmetoden
-    // Mappar (lat, lng) → (pixel_x, pixel_y) med 6-parametrig affin transform:
-    //   px = a*lat + b*lng + c
-    //   py = d*lat + e*lng + f
-    function computeAffineTransform(points) {
+    // Thin Plate Spline (TPS) — exakt interpolation genom alla referenspunkter.
+    // En affin transform fungerar dåligt på en 3D-perspektivkarta eftersom
+    // relationen GPS→pixel är icke-linjär. TPS hanterar detta genom att
+    // passa en böjbar "plåt" exakt genom alla kända punkter och interpolera
+    // mjukt däremellan.
+    //
+    // Systemet löser:  [K P; P' 0] * [w; a] = [v; 0]
+    // där K_ij = r²·ln(r), P = [1, lat, lng]
+
+    function computeTPS(points) {
       const n = points.length;
-      // Vi löser två separata system: ett för px, ett för py
-      // [sum(lat^2)   sum(lat*lng) sum(lat) ] [a]   [sum(lat*px)]
-      // [sum(lat*lng) sum(lng^2)   sum(lng) ] [b] = [sum(lng*px)]
-      // [sum(lat)     sum(lng)     n        ] [c]   [sum(px)    ]
+      const SCALE = 1000; // Skala upp GPS-grader för numerisk stabilitet
 
-      let sLat2 = 0, sLng2 = 0, sLatLng = 0, sLat = 0, sLng = 0;
-      let sLatPx = 0, sLngPx = 0, sPx = 0;
-      let sLatPy = 0, sLngPy = 0, sPy = 0;
-
-      for (const p of points) {
-        sLat2 += p.lat * p.lat;
-        sLng2 += p.lng * p.lng;
-        sLatLng += p.lat * p.lng;
-        sLat += p.lat;
-        sLng += p.lng;
-        sLatPx += p.lat * p.px;
-        sLngPx += p.lng * p.px;
-        sPx += p.px;
-        sLatPy += p.lat * p.py;
-        sLngPy += p.lng * p.py;
-        sPy += p.py;
+      function rbf(r) {
+        return r < 1e-10 ? 0 : r * r * Math.log(r);
       }
 
-      // Solve 3x3 linear system using Cramer's rule
-      function solve3x3(A, b) {
-        const det = A[0][0]*(A[1][1]*A[2][2]-A[1][2]*A[2][1])
-                  - A[0][1]*(A[1][0]*A[2][2]-A[1][2]*A[2][0])
-                  + A[0][2]*(A[1][0]*A[2][1]-A[1][1]*A[2][0]);
-        if (Math.abs(det) < 1e-12) return null;
+      function gpsDist(p1, p2) {
+        const dLat = (p1.lat - p2.lat) * SCALE;
+        const dLng = (p1.lng - p2.lng) * SCALE;
+        return Math.sqrt(dLat * dLat + dLng * dLng);
+      }
 
-        const x = [];
-        for (let i = 0; i < 3; i++) {
-          const M = A.map(row => [...row]);
-          for (let j = 0; j < 3; j++) M[j][i] = b[j];
-          const di = M[0][0]*(M[1][1]*M[2][2]-M[1][2]*M[2][1])
-                   - M[0][1]*(M[1][0]*M[2][2]-M[1][2]*M[2][0])
-                   + M[0][2]*(M[1][0]*M[2][1]-M[1][1]*M[2][0]);
-          x.push(di / det);
+      // Bygg matris [K P; P' 0] — storlek (n+3) x (n+3)
+      const size = n + 3;
+      function buildSystem(values) {
+        const M = [];
+        const b = [];
+        for (let i = 0; i < size; i++) {
+          M.push(new Array(size).fill(0));
+          b.push(0);
+        }
+        // K-blocket
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j < n; j++) {
+            if (i !== j) M[i][j] = rbf(gpsDist(points[i], points[j]));
+          }
+        }
+        // P-blocket
+        for (let i = 0; i < n; i++) {
+          M[i][n] = 1;  M[i][n+1] = points[i].lat * SCALE;  M[i][n+2] = points[i].lng * SCALE;
+          M[n][i] = 1;  M[n+1][i] = points[i].lat * SCALE;  M[n+2][i] = points[i].lng * SCALE;
+        }
+        for (let i = 0; i < n; i++) b[i] = values[i];
+        return { M, b };
+      }
+
+      // Gauss-elimination med pivotering
+      function solve(A, b) {
+        const nn = A.length;
+        const aug = A.map((row, i) => [...row, b[i]]);
+        for (let col = 0; col < nn; col++) {
+          let maxVal = Math.abs(aug[col][col]), maxRow = col;
+          for (let row = col + 1; row < nn; row++) {
+            if (Math.abs(aug[row][col]) > maxVal) { maxVal = Math.abs(aug[row][col]); maxRow = row; }
+          }
+          [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+          if (Math.abs(aug[col][col]) < 1e-20) return null;
+          for (let row = col + 1; row < nn; row++) {
+            const f = aug[row][col] / aug[col][col];
+            for (let j = col; j <= nn; j++) aug[row][j] -= f * aug[col][j];
+          }
+        }
+        const x = new Array(nn).fill(0);
+        for (let row = nn - 1; row >= 0; row--) {
+          x[row] = aug[row][nn];
+          for (let j = row + 1; j < nn; j++) x[row] -= aug[row][j] * x[j];
+          x[row] /= aug[row][row];
         }
         return x;
       }
 
-      const A = [
-        [sLat2, sLatLng, sLat],
-        [sLatLng, sLng2, sLng],
-        [sLat, sLng, n]
-      ];
+      const sysX = buildSystem(points.map(p => p.px));
+      const sysY = buildSystem(points.map(p => p.py));
+      const wx = solve(sysX.M, sysX.b);
+      const wy = solve(sysY.M, sysY.b);
+      if (!wx || !wy) return null;
 
-      const abcX = solve3x3(A, [sLatPx, sLngPx, sPx]);
-      const abcY = solve3x3(A, [sLatPy, sLngPy, sPy]);
-
-      if (!abcX || !abcY) return null;
-
-      return {
-        a: abcX[0], b: abcX[1], c: abcX[2],  // för pixel X
-        d: abcY[0], e: abcY[1], f: abcY[2],   // för pixel Y
-      };
+      return { wx, wy, n, points, SCALE, rbf, gpsDist };
     }
 
-    const affine = computeAffineTransform(REFERENCE_POINTS);
+    const tps = computeTPS(REFERENCE_POINTS);
 
     function gpsToPixel(lat, lng) {
-      if (!affine) return { x: 0, y: 0 };
-      return {
-        x: affine.a * lat + affine.b * lng + affine.c,
-        y: affine.d * lat + affine.e * lng + affine.f,
-      };
+      if (!tps) return { x: 0, y: 0 };
+      const { wx, wy, n, points, SCALE, rbf, gpsDist } = tps;
+      const pt = { lat, lng };
+      let px = wx[n] + wx[n+1] * lat * SCALE + wx[n+2] * lng * SCALE;
+      let py = wy[n] + wy[n+1] * lat * SCALE + wy[n+2] * lng * SCALE;
+      for (let i = 0; i < n; i++) {
+        const r = gpsDist(pt, points[i]);
+        px += wx[i] * rbf(r);
+        py += wy[i] * rbf(r);
+      }
+      return { x: px, y: py };
     }
 
     // ============================
