@@ -3429,8 +3429,12 @@
         const row = document.createElement('div');
         row.className = 'member-row';
 
+        const isGpsStale = !data.lastUpdate || (Date.now() - data.lastUpdate > 60000); // 1 minut
+        const isLive = data.online && !isGpsStale;
+        const hasRecentGPS = data.lastUpdate && (Date.now() - data.lastUpdate <= 3600000); // 60 min
+
         const dot = document.createElement('div');
-        dot.className = 'member-dot' + (data.online ? ' online' : '');
+        dot.className = 'member-dot' + (isLive ? ' online' : '');
         dot.style.backgroundColor = data.color || '#FF5252';
         dot.style.color = data.color || '#FF5252';
 
@@ -3442,8 +3446,8 @@
         name.textContent = data.name + (userId === myUserId ? ' (du)' : '');
 
         const status = document.createElement('div');
-        status.className = 'member-status' + (data.online ? ' online' : '');
-        if (data.online) {
+        status.className = 'member-status' + (isLive ? ' online' : '');
+        if (isLive) {
           status.textContent = '● Live nu';
         } else if (data.lastUpdate) {
           status.textContent = '○ ' + formatLastSeen(data.lastUpdate);
@@ -3456,10 +3460,11 @@
         row.appendChild(dot);
         row.appendChild(info);
 
-        // Kolla om medlemmen har en giltig GPS-position
+        // Kolla om medlemmen har en giltig GPS-position OCH synlig markör
         const hasGPS = data.lat != null && data.lng != null && !(data.lat === 0 && data.lng === 0);
+        const hasVisibleMarker = hasGPS && hasRecentGPS;
 
-        if (hasGPS) {
+        if (hasVisibleMarker) {
           row.style.cursor = 'pointer';
           row.addEventListener('click', () => {
             closeMembersPanel();
