@@ -152,6 +152,86 @@
       display: none;
     }
 
+    /* Klickbar markör */
+    .user-marker-clickable {
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    /* Popup för senast aktiv */
+    .marker-popup {
+      position: fixed;
+      background: rgba(30, 30, 50, 0.96);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      z-index: 400;
+      display: none;
+      pointer-events: none;
+      min-width: 200px;
+    }
+
+    .marker-popup.visible {
+      display: block;
+    }
+
+    .marker-popup-name {
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .marker-popup-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    .marker-popup-time {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .marker-popup-status {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+    }
+
+    .marker-popup-active {
+      color: #4CAF50;
+      font-weight: 600;
+    }
+
+    .marker-popup-button {
+      margin-top: 12px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.92);
+      color: #1a1a2e;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.1s ease, background 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      pointer-events: auto;
+    }
+
+    .marker-popup-button:active {
+      transform: scale(0.96);
+      background: rgba(200, 200, 255, 0.95);
+    }
+
     /* Zoom-knappar — nere till höger, ovanför joystick */
     .zoom-controls {
       position: fixed;
@@ -1157,6 +1237,17 @@
     <button class="leave-btn" id="session-leave">Lämna</button>
   </div>
 
+  <!-- Marker popup -->
+  <div class="marker-popup" id="marker-popup">
+    <div class="marker-popup-name">
+      <div class="marker-popup-color" id="popup-color"></div>
+      <span id="popup-name"></span>
+    </div>
+    <div class="marker-popup-time" id="popup-time"></div>
+    <div class="marker-popup-status" id="popup-status"></div>
+    <button class="marker-popup-button" id="popup-show-position">Visa position</button>
+  </div>
+
   <!-- Grupp-knapp (nere till vänster) -->
   <button class="group-btn" id="group-btn">
     <span id="group-btn-icon">👥</span>
@@ -1805,6 +1896,7 @@
     let gpsWatchId = null;
     let membersListener = null;
     let markers = {};           // userId → DOM element
+    let markerDataMap = {};     // userId → member data för popup
 
     // Ladda sparad profil
     function loadProfile() {
@@ -1994,6 +2086,164 @@
       return 'över 1 dag sedan';
     }
 
+    function formatTimeForPopup(ts) {
+      const d = new Date(ts);
+      const h = d.getHours().toString().padStart(2, '0');
+      const m = d.getMinutes().toString().padStart(2, '0');
+      return `${h}:${m}`;
+    }
+
+    // Popup för markör-info
+    const markerPopup = document.getElementById('marker-popup');
+    const popupName = document.getElementById('popup-name');
+    const popupColor = document.getElementById('popup-color');
+    const popupTime = document.getElementById('popup-time');
+    const popupStatus = document.getElementById('popup-status');
+    const popupShowPositionBtn = document.getElementById('popup-show-position');
+
+    let currentPopupUserId = null;
+
+    function showMarkerPopup(userId, event) {
+      const data = markerDataMap[userId];
+      if (!data) return;
+
+      currentPopupUserId = userId;
+
+      // Sätt innehåll
+      popupName.textContent = userId === myUserId ? `${data.name} (du)` : data.name;
+      popupColor.style.backgroundColor = data.color || '#FF5252';
+
+      const isStale = !data.lastUpdate || (Date.now() - data.lastUpdate > 60000);
+      const isActive = data.online && !isStale;
+
+      if (isActive) {
+        popupTime.textContent = `Senast aktiv: ${formatTimeForPopup(data.lastUpdate)}`;
+        popupStatus.textContent = 'Online';
+        popupStatus.className = 'marker-popup-status marker-popup-active';
+      } else if (data.lastUpdate) {
+        popupTime.textContent = `Senast aktiv: ${formatTimeForPopup(data.lastUpdate)}`;
+        popupStatus.textContent = formatLastSeen(data.lastUpdate);
+        popupStatus.className = 'marker-popup-status';
+      } else {
+        popupTime.textContent = 'Ingen GPS-data';
+        popupStatus.textContent = '';
+        popupStatus.className = 'marker-popup-status';
+      }
+
+      // Positionera popup
+      const rect = event.target.getBoundingClientRect();
+      const popupWidth = 220;
+      const popupHeight = 140; // Ökad höjd för knappen
+
+      let left = rect.left + rect.width / 2 - popupWidth / 2;
+      let top = rect.top - popupHeight - 10;
+
+      // Håll inom viewport
+      if (left < 10) left = 10;
+      if (left + popupWidth > window.innerWidth - 10) {
+        left = window.innerWidth - popupWidth - 10;
+      }
+      if (top < 10) {
+        top = rect.bottom + 10;
+      }
+
+      markerPopup.style.left = left + 'px';
+      markerPopup.style.top = top + 'px';
+      markerPopup.classList.add('visible');
+    }
+
+    function hideMarkerPopup() {
+      markerPopup.classList.remove('visible');
+      currentPopupUserId = null;
+    }
+
+    // Funktion för att panorera till en position med mjuk animation
+    function panToPosition(userId) {
+      const data = markerDataMap[userId];
+      if (!data || !data.lat || !data.lng) return;
+
+      // Konvertera GPS till pixel-koordinater på kartbilden
+      const pixel = gpsToPixel(data.lat, data.lng);
+
+      // Zooma in lite om användaren är för utzoomad
+      const targetScale = Math.max(scale, 1.5);
+
+      // Beräkna centrum av viewport
+      const cw = container.clientWidth;
+      const ch = container.clientHeight;
+      const centerX = cw / 2;
+      const centerY = ch / 2;
+
+      // Animera panorering och zoom
+      const startScale = scale;
+      const startPosX = posX;
+      const startPosY = posY;
+      const duration = 600; // ms
+      const startTime = Date.now();
+
+      function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Easing function (ease-in-out)
+        const eased = progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        // Interpolera zoom
+        scale = startScale + (targetScale - startScale) * eased;
+
+        // Beräkna målposition: positionen där pixel-koordinaten hamnar i centrum
+        const targetPosX = centerX - pixel.x * scale;
+        const targetPosY = centerY - pixel.y * scale;
+
+        // Interpolera position
+        posX = startPosX + (targetPosX - startPosX) * eased;
+        posY = startPosY + (targetPosY - startPosY) * eased;
+
+        updateTransform();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          showZoomLevel();
+        }
+      }
+
+      hideMarkerPopup();
+      animate();
+    }
+
+    // Event listener för "Visa position"-knappen
+    popupShowPositionBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentPopupUserId) {
+        panToPosition(currentPopupUserId);
+      }
+    });
+
+    popupShowPositionBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (currentPopupUserId) {
+        panToPosition(currentPopupUserId);
+      }
+    });
+
+    // Stäng popup när man klickar någon annanstans
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-marker-clickable') && !e.target.closest('.marker-popup')) {
+        hideMarkerPopup();
+      }
+    });
+
+    // Stäng popup vid touch utanför
+    document.addEventListener('touchstart', (e) => {
+      if (!e.target.closest('.user-marker-clickable') && !e.target.closest('.marker-popup')) {
+        hideMarkerPopup();
+      }
+    });
+
     function updateMarkers(members) {
       const activeIds = new Set();
 
@@ -2008,6 +2258,9 @@
         if (data.lat === 0 && data.lng === 0) continue;
 
         const pixel = gpsToPixel(data.lat, data.lng);
+
+        // Spara data för popup
+        markerDataMap[userId] = data;
 
         if (markers[userId]) {
           // Uppdatera befintlig markör
@@ -2043,12 +2296,23 @@
           el.style.top = pixel.y + 'px';
 
           const dot = document.createElement('div');
-          dot.className = 'user-marker-dot';
+          dot.className = 'user-marker-dot user-marker-clickable';
           dot.style.backgroundColor = data.color || '#FF5252';
           dot.style.borderColor = data.color || '#FF5252';
           const isStale = !data.lastUpdate || (Date.now() - data.lastUpdate > 60000); // 1 minut
           const isActive = data.online && !isStale;
           if (!isActive) dot.classList.add('offline');
+
+          // Lägg till click handler för popup
+          dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showMarkerPopup(userId, e);
+          });
+          dot.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showMarkerPopup(userId, e);
+          });
 
           const label = document.createElement('div');
           label.className = 'user-marker-label';
@@ -2076,6 +2340,7 @@
         if (!activeIds.has(userId)) {
           markers[userId].remove();
           delete markers[userId];
+          delete markerDataMap[userId];
         }
       }
     }
@@ -2085,6 +2350,8 @@
         el.remove();
       }
       markers = {};
+      markerDataMap = {};
+      hideMarkerPopup();
     }
 
     // Uppdatera markers-overlay storlek
