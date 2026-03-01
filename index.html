@@ -57,6 +57,19 @@
       pointer-events: none;
     }
 
+    /* Debug grid overlay */
+    #grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      display: none;
+      z-index: 5;
+    }
+    #grid-overlay.visible {
+      display: block;
+    }
+
     .user-marker {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -1231,6 +1244,7 @@
     <div id="map">
       <img id="map-img" alt="Pistkarta Idre Fjäll">
       <div id="markers-overlay"></div>
+      <canvas id="grid-overlay"></canvas>
     </div>
   </div>
 
@@ -1919,6 +1933,185 @@
       }
 
       return { x: px, y: py };
+    }
+
+    // ============================
+    // DEBUG: FISKNÄT (GRID OVERLAY)
+    // ============================
+    // Aktiveras med ?debug=1 i URL:en.
+    // Ritar ett rutnät över kartan och plottar alla referenspunkter
+    // så man visuellt kan verifiera att GPS→pixel-mappningen stämmer.
+
+    const gridCanvas = document.getElementById('grid-overlay');
+    const gridCtx = gridCanvas.getContext('2d');
+
+    function drawDebugGrid() {
+      const w = imgEl.naturalWidth;
+      const h = imgEl.naturalHeight;
+      if (!w || !h) return;
+
+      gridCanvas.width = w;
+      gridCanvas.height = h;
+      gridCanvas.style.width = w + 'px';
+      gridCanvas.style.height = h + 'px';
+
+      const ctx = gridCtx;
+      ctx.clearRect(0, 0, w, h);
+
+      // --- Rutnät (fisknät) ---
+      const gridSpacing = 200; // 200px mellanrum vid 4000x2700 referens
+      const scaleX = w / CALIBRATION_IMAGE_WIDTH;
+      const scaleY = h / CALIBRATION_IMAGE_HEIGHT;
+      const spacingX = gridSpacing * scaleX;
+      const spacingY = gridSpacing * scaleY;
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.lineWidth = 1;
+
+      // Vertikala linjer
+      for (let x = 0; x <= w; x += spacingX) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      // Horisontella linjer
+      for (let y = 0; y <= h; y += spacingY) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // --- Pixelkoordinater vid rutnätet (var 5:e linje) ---
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.font = `${Math.round(12 * scaleX)}px monospace`;
+      let lineIdx = 0;
+      for (let x = 0; x <= w; x += spacingX) {
+        if (lineIdx % 5 === 0) {
+          const calX = Math.round(x / scaleX);
+          ctx.fillText(calX, x + 3, 14 * scaleY);
+        }
+        lineIdx++;
+      }
+      lineIdx = 0;
+      for (let y = 0; y <= h; y += spacingY) {
+        if (lineIdx % 5 === 0) {
+          const calY = Math.round(y / scaleY);
+          ctx.fillText(calY, 3, y + 14 * scaleY);
+        }
+        lineIdx++;
+      }
+
+      // --- Plotta referenspunkter (liftar) ---
+      const dotRadius = Math.round(10 * scaleX);
+      const fontSize = Math.round(16 * scaleX);
+      const smallFont = Math.round(11 * scaleX);
+
+      REFERENCE_POINTS.forEach((ref, i) => {
+        // Beräkna pixel via TPS (bör matcha ref.px/py exakt)
+        const computed = gpsToPixel(ref.lat, ref.lng);
+        // Referenspunktens pixelposition (skalad till bildens storlek)
+        const refPx = ref.px * scaleX;
+        const refPy = ref.py * scaleY;
+
+        // Rita referensposition (gul ring)
+        ctx.beginPath();
+        ctx.arc(refPx, refPy, dotRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = '#FFD740';
+        ctx.lineWidth = 3 * scaleX;
+        ctx.stroke();
+
+        // Rita TPS-beräknad position (röd fylld prick)
+        ctx.beginPath();
+        ctx.arc(computed.x, computed.y, dotRadius * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = '#FF5252';
+        ctx.fill();
+
+        // Linje mellan ref och TPS (om det finns skillnad)
+        const dx = computed.x - refPx;
+        const dy = computed.y - refPy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 2) {
+          ctx.beginPath();
+          ctx.moveTo(refPx, refPy);
+          ctx.lineTo(computed.x, computed.y);
+          ctx.strokeStyle = '#FF5252';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // Etikett med namn
+        const labelX = refPx + dotRadius + 5;
+        const labelY = refPy - dotRadius - 5;
+
+        // Bakgrund bakom text
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        const label = ref.id;
+        const textW = ctx.measureText(label).width;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(labelX - 2, labelY - fontSize, textW + 8, fontSize + 6);
+
+        // Text
+        ctx.fillStyle = '#FFD740';
+        ctx.fillText(label, labelX + 2, labelY);
+
+        // GPS-koordinater under etiketten
+        ctx.font = `${smallFont}px monospace`;
+        const gpsLabel = `${ref.lat.toFixed(4)}, ${ref.lng.toFixed(4)}`;
+        const gpsW = ctx.measureText(gpsLabel).width;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(labelX - 2, labelY + 2, gpsW + 8, smallFont + 4);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillText(gpsLabel, labelX + 2, labelY + smallFont + 2);
+
+        // Pixelkoordinater
+        const pxLabel = `px(${ref.px}, ${ref.py})`;
+        const pxW = ctx.measureText(pxLabel).width;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(labelX - 2, labelY + smallFont + 8, pxW + 8, smallFont + 4);
+        ctx.fillStyle = 'rgba(255, 215, 64, 0.8)';
+        ctx.fillText(pxLabel, labelX + 2, labelY + smallFont * 2 + 8);
+      });
+
+      // --- Legend ---
+      const legendX = 20 * scaleX;
+      const legendY = h - 120 * scaleY;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(legendX, legendY, 320 * scaleX, 100 * scaleY);
+      ctx.strokeStyle = '#FFD740';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(legendX, legendY, 320 * scaleX, 100 * scaleY);
+
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      ctx.fillStyle = '#FFD740';
+      ctx.fillText('DEBUG: Kalibreringsrutnät', legendX + 10, legendY + 24 * scaleY);
+
+      ctx.font = `${smallFont}px sans-serif`;
+      ctx.fillStyle = '#FFD740';
+      ctx.fillText('⭕ = Referenspunkt (manuellt satt px/py)', legendX + 10, legendY + 48 * scaleY);
+      ctx.fillStyle = '#FF5252';
+      ctx.fillText('🔴 = TPS-beräknad position (bör matcha)', legendX + 10, legendY + 68 * scaleY);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.fillText(`Rutnät: ${gridSpacing}px | Bild: ${w}x${h}`, legendX + 10, legendY + 88 * scaleY);
+
+      gridCanvas.classList.add('visible');
+      console.log('[Debug Grid] Ritade fisknät med', REFERENCE_POINTS.length, 'referenspunkter');
+    }
+
+    function hideDebugGrid() {
+      gridCanvas.classList.remove('visible');
+    }
+
+    // Aktivera debug-läge via URL-parameter ?debug=1
+    if (new URLSearchParams(window.location.search).get('debug') === '1') {
+      imgEl.addEventListener('load', () => {
+        setTimeout(drawDebugGrid, 200); // Vänta lite så bilden renderat klart
+      });
+      // Om bilden redan laddats
+      if (imgEl.naturalWidth) {
+        setTimeout(drawDebugGrid, 200);
+      }
     }
 
     // ============================
