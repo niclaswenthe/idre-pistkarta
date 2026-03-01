@@ -1795,38 +1795,51 @@
     const CALIBRATION_IMAGE_WIDTH = 4000;
     const CALIBRATION_IMAGE_HEIGHT = 2700;
 
+    // GPS-koordinater hämtade från OpenStreetMap (center av liftlinjen).
+    // Pixelpositioner (px, py) bestämda genom visuell analys av kartbilden (4000×2700).
+    // Liftbokstav enligt Idre Fjälls officiella karta.
     const REFERENCE_POINTS = [
-      // Lift M — nedre vänster, vid "NORD"-området
-      { id: 'M', lat: 61.880204, lng: 12.823573, px: 490, py: 1780 },
-      // Lift H (den sydligare, 61.885) — vänster-mitten
-      // FIXED: Was 680 (too far up), corrected based on lat interpolation
-      { id: 'H1', lat: 61.885135, lng: 12.819700, px: 640, py: 1200 },
-      // Lift F — uppe till vänster
-      { id: 'F', lat: 61.887457, lng: 12.815602, px: 370, py: 430 },
-      // Lift C — mitten/toppen
-      { id: 'C', lat: 61.890733, lng: 12.826176, px: 1220, py: 360 },
-      // Lift H2 (den nordligare, 61.891) — nära C, lite norr/öst
-      { id: 'H2', lat: 61.891180, lng: 12.828846, px: 1400, py: 310 },
-      // Lift J — mitt-övre
-      { id: 'J', lat: 61.890292, lng: 12.830380, px: 1510, py: 370 },
-      // Lift L — mitt-höger
-      { id: 'L', lat: 61.891884, lng: 12.840278, px: 1870, py: 290 },
-      // Lift B — högst upp, nordöst
-      { id: 'B', lat: 61.898811, lng: 12.849990, px: 2280, py: 150 },
-      // Lift R — sydväst, nere
-      { id: 'R', lat: 61.876536, lng: 12.838049, px: 890, py: 2020 },
-      // Lift T — sydöst, nedre höger
-      { id: 'T', lat: 61.882224, lng: 12.875592, px: 2480, py: 1550 },
-      // Lift U — östra delen, uppe
-      // FIXED: Was 640 (too far down), should be near top like Uts/F
-      { id: 'U', lat: 61.888142, lng: 12.869819, px: 2260, py: 500 },
-      // Lift V — nära U
-      // FIXED: Was 610 (too far down), should be near U
-      { id: 'V', lat: 61.888480, lng: 12.868481, px: 2200, py: 480 },
-      // Lift X — mitten
-      { id: 'X', lat: 61.889510, lng: 12.851912, px: 1950, py: 440 },
-      // Restaurang Utsikten (vid siffran 7)
-      { id: 'Uts', lat: 61.887795, lng: 12.857254, px: 1760, py: 400 },
+      // === NORD-SEKTIONEN (övre vänster på kartan) ===
+      // A = Nord 6:an — stor 6-stolslift, NORD. Tydlig stolsliftsymbol.
+      { id: 'A', lat: 61.8936, lng: 12.8537, px: 860, py: 520 },
+      // B = Nordknappen — knapplift, högst upp i NORD
+      { id: 'B', lat: 61.8957, lng: 12.8494, px: 750, py: 350 },
+
+      // === VÄST-SEKTIONEN (vänster-mitten) ===
+      // H = Väst 6:an — stor 6-stolslift på västra sidan
+      { id: 'H', lat: 61.8881, lng: 12.8353, px: 520, py: 1050 },
+      // I = Tunnelliften — knapplift, västra sidan
+      { id: 'I', lat: 61.8878, lng: 12.8254, px: 450, py: 1200 },
+      // J = Västtransporten — kort transportlift
+      { id: 'J', lat: 61.8903, lng: 12.8348, px: 650, py: 900 },
+
+      // === MITT/TOPP (centrala övre delen) ===
+      // C = Askeliften — vid Björnens rullband-området
+      { id: 'C', lat: 61.8912, lng: 12.8272, px: 500, py: 700 },
+      // K = Familjeliften — mitt på berget
+      { id: 'K', lat: 61.8904, lng: 12.8344, px: 640, py: 880 },
+      // L = Talliften — T-bar, centralt på berget
+      { id: 'L', lat: 61.8907, lng: 12.8455, px: 1250, py: 500 },
+      // Y = Toppliften — vid toppen
+      { id: 'Y', lat: 61.8886, lng: 12.8553, px: 1550, py: 500 },
+
+      // === ÖST-SEKTIONEN (höger på kartan) ===
+      // U = Ost 6:an — stor 6-stolslift, östra sidan
+      { id: 'U', lat: 61.8848, lng: 12.8671, px: 2250, py: 1100 },
+      // V = Ost 4:an — 4-stolslift, nära U
+      { id: 'V', lat: 61.8880, lng: 12.8645, px: 2150, py: 800 },
+      // T = Ostknappen — knapplift, nedre öst
+      { id: 'T', lat: 61.8821, lng: 12.8692, px: 2400, py: 1450 },
+      // X = Chockentransporten — transport mellan sektioner
+      { id: 'X', lat: 61.8895, lng: 12.8679, px: 2250, py: 550 },
+
+      // === SÖDRA/NEDRE (botten av kartan) ===
+      // N = Sydgondolen — gondol, bottenstation vid byn
+      { id: 'N', lat: 61.8846, lng: 12.8403, px: 1200, py: 1800 },
+      // R = Biejjieliften — södra delen
+      { id: 'R', lat: 61.8801, lng: 12.8358, px: 750, py: 2100 },
+      // S = Dalsliften — lång lift, södra delen
+      { id: 'S', lat: 61.8801, lng: 12.8497, px: 1450, py: 2200 },
     ];
 
     // Thin Plate Spline (TPS) — exakt interpolation genom alla referenspunkter.
