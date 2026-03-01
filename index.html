@@ -2165,7 +2165,7 @@
       currentPopupUserId = null;
     }
 
-    // Funktion för att panorera till en position med mjuk animation
+    // Funktion för att panorera till en position direkt (utan animation)
     function panToPosition(userId) {
       const data = markerDataMap[userId];
       if (!data || !data.lat || !data.lng) return;
@@ -2173,8 +2173,8 @@
       // Konvertera GPS till pixel-koordinater på kartbilden
       const pixel = gpsToPixel(data.lat, data.lng);
 
-      // Zooma in lite om användaren är för utzoomad
-      const targetScale = Math.max(scale, 1.5);
+      // Sätt zoom direkt till 2.0 för tydlig visning
+      scale = 2.0;
 
       // Beräkna centrum av viewport
       const cw = container.clientWidth;
@@ -2182,44 +2182,15 @@
       const centerX = cw / 2;
       const centerY = ch / 2;
 
-      // Animera panorering och zoom
-      const startScale = scale;
-      const startPosX = posX;
-      const startPosY = posY;
-      const duration = 600; // ms
-      const startTime = Date.now();
+      // Beräkna position så att markören hamnar i centrum
+      posX = centerX - pixel.x * scale;
+      posY = centerY - pixel.y * scale;
 
-      function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-
-        // Easing function (ease-in-out)
-        const eased = progress < 0.5
-          ? 2 * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-
-        // Interpolera zoom
-        scale = startScale + (targetScale - startScale) * eased;
-
-        // Beräkna målposition: positionen där pixel-koordinaten hamnar i centrum
-        const targetPosX = centerX - pixel.x * scale;
-        const targetPosY = centerY - pixel.y * scale;
-
-        // Interpolera position
-        posX = startPosX + (targetPosX - startPosX) * eased;
-        posY = startPosY + (targetPosY - startPosY) * eased;
-
-        updateTransform();
-
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          showZoomLevel();
-        }
-      }
+      // Uppdatera transform direkt
+      updateTransform();
+      showZoomLevel();
 
       hideMarkerPopup();
-      animate();
     }
 
     // Event listener för "Visa position"-knappen
