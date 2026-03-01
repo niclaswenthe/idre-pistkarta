@@ -30,7 +30,7 @@
       height: 100%;
       overflow: hidden;
       position: relative;
-      touch-action: pan-x pan-y pinch-zoom;
+      touch-action: none;
     }
 
     #map {
@@ -1357,11 +1357,6 @@
 
     // Pinch-to-zoom variabler
     let isPinching = false;
-    let initialPinchDistance = 0;
-    let initialPinchScale = 1;
-    let initialPinchPosX = 0;
-    let initialPinchPosY = 0;
-    let initialPinchCenter = { x: 0, y: 0 };
 
     const MIN_SCALE = 0.5;
     const MAX_SCALE = 6;
@@ -1461,52 +1456,78 @@
     });
 
     // Touch: panorera med ett finger, pinch-to-zoom med två fingrar
+    let lastPinchDistance = 0;
+    let lastPinchCenter = { x: 0, y: 0 };
+
     container.addEventListener('touchstart', (e) => {
       if (joystickActive) return;
       // Tillåt scroll i chatten och medlemspanelen
       if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
 
-      if (e.touches.length === 1) {
+      if (e.touches.length === 2) {
+        // Starta pinch-to-zoom — alltid prioritera över drag
+        e.preventDefault();
+        isDragging = false;
+        isPinching = true;
+        lastPinchDistance = getTouchDistance(e.touches[0], e.touches[1]);
+        lastPinchCenter = getTouchCenter(e.touches[0], e.touches[1]);
+      } else if (e.touches.length === 1 && !isPinching) {
         isDragging = true;
-        isPinching = false;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         startPosX = posX;
         startPosY = posY;
-      } else if (e.touches.length === 2) {
-        // Starta pinch-to-zoom
-        isDragging = false;
-        isPinching = true;
-        initialPinchDistance = getTouchDistance(e.touches[0], e.touches[1]);
-        initialPinchScale = scale;
-        initialPinchPosX = posX;
-        initialPinchPosY = posY;
-        initialPinchCenter = getTouchCenter(e.touches[0], e.touches[1]);
       }
-    }, { passive: true });
+    }, { passive: false });
 
     container.addEventListener('touchmove', (e) => {
       if (joystickActive) return;
       // Tillåt scroll i chatten och medlemspanelen
       if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
 
-      if (isPinching && e.touches.length === 2) {
+      if (e.touches.length === 2) {
         e.preventDefault();
+
+        // Om vi inte redan pinchat — starta nu (kan hända om andra fingret läggs till under move)
+        if (!isPinching) {
+          isPinching = true;
+          isDragging = false;
+          lastPinchDistance = getTouchDistance(e.touches[0], e.touches[1]);
+          lastPinchCenter = getTouchCenter(e.touches[0], e.touches[1]);
+          return;
+        }
+
         const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
+        const currentCenter = getTouchCenter(e.touches[0], e.touches[1]);
 
-        // Beräkna ny scale baserat på förändringen i avstånd
-        const distanceRatio = currentDistance / initialPinchDistance;
-        const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, initialPinchScale * distanceRatio));
+        // Inkrementell zoom: jämför med FÖREGÅENDE frame, inte startpunkten
+        // Detta ger jämn känsla utan hopp
+        if (lastPinchDistance > 0) {
+          const zoomFactor = currentDistance / lastPinchDistance;
+          const oldScale = scale;
+          const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * zoomFactor));
 
-        // Zooma mot centrum av pinch-gesturen relativt till initial position
-        const scaleRatio = newScale / initialPinchScale;
-        scale = newScale;
-        posX = initialPinchCenter.x - (initialPinchCenter.x - initialPinchPosX) * scaleRatio;
-        posY = initialPinchCenter.y - (initialPinchCenter.y - initialPinchPosY) * scaleRatio;
+          if (newScale !== oldScale) {
+            const ratio = newScale / oldScale;
+            // Zooma mot mittpunkten mellan fingrarna
+            posX = currentCenter.x - (currentCenter.x - posX) * ratio;
+            posY = currentCenter.y - (currentCenter.y - posY) * ratio;
+            scale = newScale;
+          }
+        }
+
+        // Panorera med två fingrar (flytta mittpunkten)
+        const panDX = currentCenter.x - lastPinchCenter.x;
+        const panDY = currentCenter.y - lastPinchCenter.y;
+        posX += panDX;
+        posY += panDY;
+
+        lastPinchDistance = currentDistance;
+        lastPinchCenter = currentCenter;
 
         updateTransform();
         showZoomLevel();
-      } else if (isDragging && e.touches.length === 1) {
+      } else if (isDragging && e.touches.length === 1 && !isPinching) {
         e.preventDefault();
         const dx = e.touches[0].clientX - startX;
         const dy = e.touches[0].clientY - startY;
@@ -1516,9 +1537,14 @@
       }
     }, { passive: false });
 
-    container.addEventListener('touchend', () => {
-      isDragging = false;
-      isPinching = false;
+    container.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) {
+        isPinching = false;
+        lastPinchDistance = 0;
+      }
+      if (e.touches.length === 0) {
+        isDragging = false;
+      }
     });
 
     // Mouse: panorera med klick + drag
