@@ -2001,8 +2001,8 @@
         if (!data || !data.name) continue;
         activeIds.add(userId);
 
-        // Hoppa över offline användare som inte uppdaterat på 10 min
-        if (!data.lastUpdate || (Date.now() - data.lastUpdate > 600000)) continue;
+        // Hoppa över offline användare som inte uppdaterat på 60 min
+        if (!data.lastUpdate || (Date.now() - data.lastUpdate > 3600000)) continue;
 
         // Hoppa över om ingen GPS-position (lat=0, lng=0)
         if (data.lat === 0 && data.lng === 0) continue;
