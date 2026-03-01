@@ -14,7 +14,7 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      touch-action: none;
+      /* touch-action: none flyttad till specifika element */
     }
 
     html, body {
@@ -30,6 +30,7 @@
       height: 100%;
       overflow: hidden;
       position: relative;
+      touch-action: none;
     }
 
     #map {
@@ -179,6 +180,7 @@
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       transition: transform 0.1s ease, background 0.15s ease;
+      touch-action: auto;
     }
 
     .zoom-btn:active {
@@ -203,6 +205,7 @@
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       transition: transform 0.1s ease;
+      touch-action: auto;
     }
 
     .reset-btn:active {
@@ -246,6 +249,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      touch-action: none;
     }
 
     .joystick-knob:active {
@@ -363,6 +367,7 @@
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       transition: transform 0.1s ease, background 0.15s ease;
+      touch-action: auto;
     }
 
     .group-btn:active {
@@ -449,6 +454,7 @@
       justify-content: center;
       z-index: 300;
       padding: 20px;
+      touch-action: auto;
     }
 
     .modal-overlay.visible {
@@ -463,6 +469,7 @@
       width: 100%;
       color: white;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      touch-action: auto;
     }
 
     .modal h2 {
@@ -498,6 +505,7 @@
       outline: none;
       margin-bottom: 16px;
       transition: border-color 0.2s;
+      touch-action: auto;
     }
 
     .modal input[type="text"]:focus {
@@ -626,6 +634,7 @@
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       transition: transform 0.1s ease, background 0.15s ease;
+      touch-action: auto;
     }
 
     .chat-btn.visible {
@@ -674,6 +683,7 @@
       transform: translateY(100%);
       transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       overflow: hidden;
+      touch-action: auto;
     }
 
     .chat-panel.open {
@@ -721,6 +731,7 @@
       gap: 8px;
       -webkit-overflow-scrolling: touch;
       scroll-behavior: smooth;
+      touch-action: pan-y;
     }
 
     .chat-messages::-webkit-scrollbar {
@@ -886,7 +897,7 @@
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
       transition: background 0.15s, transform 0.1s;
-      touch-action: none;
+      touch-action: auto;
     }
 
     .chat-icon-btn:active {
@@ -946,6 +957,7 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
       z-index: 260;
       min-width: 160px;
+      touch-action: auto;
     }
 
     .attach-menu.open {
@@ -1023,6 +1035,7 @@
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       transition: transform 0.1s ease, background 0.15s ease;
+      touch-action: auto;
     }
     .members-btn.visible {
       display: flex;
@@ -1048,6 +1061,7 @@
       transform: translateY(100%);
       transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
       overflow: hidden;
+      touch-action: auto;
     }
     .members-panel.open {
       transform: translateY(0);
@@ -1069,6 +1083,7 @@
       overflow-y: auto;
       padding: 8px 16px 16px;
       -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
     }
 
     /* Medlemsrad */
@@ -1425,8 +1440,8 @@
     // Touch: panorera med ett finger
     container.addEventListener('touchstart', (e) => {
       if (joystickActive) return;
-      // Tillåt scroll i chatten
-      if (e.target.closest('.chat-panel')) return;
+      // Tillåt scroll i chatten och medlemspanelen
+      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
       if (e.touches.length === 1) {
         isDragging = true;
         startX = e.touches[0].clientX;
@@ -1438,8 +1453,8 @@
 
     container.addEventListener('touchmove', (e) => {
       if (joystickActive) return;
-      // Tillåt scroll i chatten
-      if (e.target.closest('.chat-panel')) return;
+      // Tillåt scroll i chatten och medlemspanelen
+      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
       e.preventDefault();
       if (isDragging && e.touches.length === 1) {
         const dx = e.touches[0].clientX - startX;
@@ -1478,8 +1493,8 @@
 
     // Mouse wheel zoom
     container.addEventListener('wheel', (e) => {
-      // Tillåt scroll i chatten
-      if (e.target.closest('.chat-panel')) return;
+      // Tillåt scroll i chatten och medlemspanelen
+      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
       e.preventDefault();
       const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
       zoomAt(delta, e.clientX, e.clientY);
