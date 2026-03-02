@@ -1702,9 +1702,12 @@
       const testImg = new Image();
       testImg.onload = function() {
         imageLoaded = true;
+        // Set up imgEl's onload handler BEFORE setting src
+        imgEl.onload = function() {
+          loading.classList.add('hidden');
+          fitToScreen();
+        };
         imgEl.src = imageCandidates[index];
-        loading.classList.add('hidden');
-        fitToScreen();
       };
       testImg.onerror = function() {
         tryLoadImage(index + 1);
