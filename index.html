@@ -1609,6 +1609,115 @@
     #map-container.calibration-mode #map {
       cursor: crosshair !important;
     }
+
+    /* Toast notifications */
+    .toast {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: rgba(255, 77, 106, 0.95);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      z-index: 10000;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      max-width: 80%;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Like modal */
+    #like-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #like-modal.visible {
+      display: flex;
+    }
+
+    .like-modal-content {
+      background: #2a2a3e;
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 320px;
+      width: 90%;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .like-modal-header {
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .like-modal-list {
+      list-style: none;
+    }
+
+    .like-modal-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+    .like-modal-user-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid white;
+      flex-shrink: 0;
+    }
+
+    .like-modal-user-name {
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .like-modal-close {
+      margin-top: 16px;
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .like-modal-close:active {
+      background: rgba(255, 255, 255, 0.15);
+    }
   </style>
 </head>
 <body>
@@ -1756,6 +1865,21 @@
   <!-- Bildvisare (fullscreen) -->
   <div class="img-fullscreen" id="img-fullscreen">
     <img id="img-fullscreen-img" alt="Bild">
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Like modal -->
+  <div id="like-modal">
+    <div class="like-modal-content">
+      <div class="like-modal-header">
+        <span>❤️</span>
+        <span id="like-modal-title">Gillade av</span>
+      </div>
+      <ul class="like-modal-list" id="like-modal-list"></ul>
+      <button class="like-modal-close" id="like-modal-close">Stäng</button>
+    </div>
   </div>
 
   <!-- Dolda fil-inputs -->
@@ -3942,7 +4066,12 @@
 
       likeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        toggleLike(msgId);
+        // Om man klickar på räknaren, visa vilka som gillat
+        if (e.target === likeCount && likeCount.textContent) {
+          showLikesModal(msgId);
+        } else {
+          toggleLike(msgId);
+        }
       });
 
       const time = document.createElement('div');
@@ -3954,13 +4083,14 @@
       msgEl.appendChild(actions);
 
       // Starta lyssnare för likes på detta meddelande
-      listenToLikes(msgId, likeBtn, likeIcon, likeCount);
+      listenToLikes(msgId, likeBtn, likeIcon, likeCount, data);
 
       return msgEl;
     }
 
     // ---- Gilla-funktionalitet ----
     const likesListeners = {};
+    const likesData = {}; // Store likes data for each message
 
     function toggleLike(msgId) {
       if (!db || !currentRoom || !myUserId) return;
@@ -3974,7 +4104,7 @@
       });
     }
 
-    function listenToLikes(msgId, likeBtn, likeIcon, likeCount) {
+    function listenToLikes(msgId, likeBtn, likeIcon, likeCount, msgData) {
       if (!db || !currentRoom) return;
 
       // Rensa tidigare lyssnare för detta meddelande
@@ -3983,11 +4113,30 @@
         oldRef.off('value', likesListeners[msgId]);
       }
 
+      let previousLikes = null;
+
       const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes`);
       const listener = ref.on('value', (snap) => {
         const likes = snap.val();
         const count = likes ? Object.keys(likes).length : 0;
         const iLiked = likes && likes[myUserId];
+
+        // Store likes data for modal
+        likesData[msgId] = likes;
+
+        // Check if someone new liked my message (notification)
+        if (previousLikes && likes && msgData.sender === myUserId) {
+          const newLikers = Object.keys(likes).filter(uid => !previousLikes[uid] && uid !== myUserId);
+          if (newLikers.length > 0) {
+            // Get the first new liker's name
+            const newLikerId = newLikers[0];
+            getMemberName(newLikerId).then(name => {
+              showToast(`${name} gillade ditt meddelande`);
+            });
+          }
+        }
+
+        previousLikes = likes ? { ...likes } : null;
 
         likeIcon.textContent = iLiked ? '❤️' : '♡';
         likeCount.textContent = count > 0 ? count : '';
@@ -4003,6 +4152,91 @@
         const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes`);
         ref.off('value', likesListeners[msgId]);
         delete likesListeners[msgId];
+      }
+    }
+
+    // ---- Toast notification ----
+    const toastEl = document.getElementById('toast');
+    let toastTimeout = null;
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+
+      toastTimeout = setTimeout(() => {
+        toastEl.classList.remove('show');
+      }, 3000);
+    }
+
+    // ---- Like modal (show who liked) ----
+    const likeModal = document.getElementById('like-modal');
+    const likeModalList = document.getElementById('like-modal-list');
+    const likeModalClose = document.getElementById('like-modal-close');
+
+    likeModalClose.addEventListener('click', () => {
+      likeModal.classList.remove('visible');
+    });
+
+    likeModal.addEventListener('click', (e) => {
+      if (e.target === likeModal) {
+        likeModal.classList.remove('visible');
+      }
+    });
+
+    async function showLikesModal(msgId) {
+      const likes = likesData[msgId];
+      if (!likes) return;
+
+      likeModalList.innerHTML = '';
+
+      const userIds = Object.keys(likes);
+      for (const userId of userIds) {
+        const li = document.createElement('li');
+        li.className = 'like-modal-user';
+
+        const dot = document.createElement('div');
+        dot.className = 'like-modal-user-dot';
+
+        const name = document.createElement('div');
+        name.className = 'like-modal-user-name';
+
+        // Get member data
+        const memberName = await getMemberName(userId);
+        const memberColor = await getMemberColor(userId);
+
+        dot.style.backgroundColor = memberColor;
+        name.textContent = userId === myUserId ? `${memberName} (du)` : memberName;
+
+        li.appendChild(dot);
+        li.appendChild(name);
+        likeModalList.appendChild(li);
+      }
+
+      likeModal.classList.add('visible');
+    }
+
+    // ---- Get member info ----
+    async function getMemberName(userId) {
+      if (!db || !currentRoom) return 'Okänd';
+      try {
+        const snap = await memberRef(currentRoom.code, userId).once('value');
+        const data = snap.val();
+        return data?.name || 'Okänd';
+      } catch (e) {
+        return 'Okänd';
+      }
+    }
+
+    async function getMemberColor(userId) {
+      if (!db || !currentRoom) return '#aaa';
+      try {
+        const snap = await memberRef(currentRoom.code, userId).once('value');
+        const data = snap.val();
+        return data?.color || '#aaa';
+      } catch (e) {
+        return '#aaa';
       }
     }
 
