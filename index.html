@@ -1226,6 +1226,208 @@
     .member-status.online {
       color: #69F0AE;
     }
+
+    /* ====== CALIBRATION MODE ====== */
+    #calibration-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      pointer-events: none;
+    }
+
+    #calibration-overlay.active {
+      display: block;
+      pointer-events: auto;
+    }
+
+    #calibration-panel {
+      position: fixed;
+      left: 20px;
+      top: 20px;
+      bottom: 20px;
+      width: 280px;
+      background: rgba(30, 30, 50, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: hidden;
+      touch-action: auto;
+    }
+
+    @media (max-width: 768px) {
+      #calibration-panel {
+        left: 10px;
+        right: 10px;
+        width: auto;
+        bottom: auto;
+        max-height: 60vh;
+      }
+    }
+
+    #calibration-panel h2 {
+      color: white;
+      font-size: 18px;
+      margin: 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #calibration-panel p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    #calibration-lifts {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+    }
+
+    #calibration-lifts::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #calibration-lifts::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 2px;
+    }
+
+    #calibration-lifts::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+    }
+
+    .calibration-lift-item {
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid transparent;
+      border-radius: 10px;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .calibration-lift-item:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .calibration-lift-item.selected {
+      border-color: #4CAF50;
+      background: rgba(76, 175, 80, 0.15);
+    }
+
+    .calibration-lift-item.placed {
+      opacity: 0.6;
+    }
+
+    .calibration-lift-letter {
+      font-weight: 700;
+      font-size: 16px;
+      min-width: 20px;
+    }
+
+    .calibration-lift-status {
+      margin-left: auto;
+      font-size: 16px;
+    }
+
+    #calibration-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .calibration-btn {
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .calibration-btn:active {
+      transform: scale(0.97);
+    }
+
+    .calibration-btn-primary {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .calibration-btn-primary:hover {
+      background: #388E3C;
+    }
+
+    .calibration-btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .calibration-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Calibration markers on map */
+    .calibration-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .calibration-marker-circle {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #4CAF50;
+      border: 2px solid white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .calibration-marker-label {
+      position: absolute;
+      top: -26px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* Map cursor in calibration mode */
+    #map-container.calibration-mode {
+      cursor: crosshair !important;
+    }
+
+    #map-container.calibration-mode #map {
+      cursor: crosshair !important;
+    }
   </style>
 </head>
 <body>
@@ -1249,6 +1451,19 @@
   </div>
 
   <div id="zoom-level"></div>
+
+  <!-- Calibration overlay -->
+  <div id="calibration-overlay">
+    <div id="calibration-panel">
+      <h2>Kalibreringsläge</h2>
+      <p>Klicka på en lift nedan, sedan klicka på kartan där liften faktiskt finns.</p>
+      <div id="calibration-lifts"></div>
+      <div id="calibration-actions">
+        <button class="calibration-btn calibration-btn-primary" id="calibration-copy">Kopiera kod</button>
+        <button class="calibration-btn calibration-btn-secondary" id="calibration-reset">Återställ</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Session-bar (visas när man är i en grupp) -->
   <div class="session-bar" id="session-bar">
@@ -1799,47 +2014,49 @@
     // Pixelpositioner (px, py) bestämda genom visuell analys av kartbilden (4000×2700).
     // Liftbokstav enligt Idre Fjälls officiella karta.
     const REFERENCE_POINTS = [
-      // === NORD-SEKTIONEN (övre vänster på kartan) ===
-      // A = Nord 6:an — stor 6-stolslift, NORD. Tydlig stolsliftsymbol.
-      { id: 'A', lat: 61.8936, lng: 12.8537, px: 860, py: 520 },
-      // B = Nordknappen — knapplift, högst upp i NORD
-      { id: 'B', lat: 61.8957, lng: 12.8494, px: 750, py: 350 },
+      // === NORD-SEKTIONEN (övre vänster — "NORD" texten sitter vid ca x=680,y=470) ===
+      // A = Nord 6:an — stolslift med orange linje, går från dalen upp mot NORD-toppen
+      // Bottenstationen vid ca (720, 700), toppstationen vid ca (650, 440). Center:
+      { id: 'A', lat: 61.8936, lng: 12.8537, px: 690, py: 560 },
+      // B = Nordknappen — kort knapplift, högst upp i NORD, ovanför A
+      { id: 'B', lat: 61.8957, lng: 12.8494, px: 580, py: 400 },
 
-      // === VÄST-SEKTIONEN (vänster-mitten) ===
-      // H = Väst 6:an — stor 6-stolslift på västra sidan
-      { id: 'H', lat: 61.8881, lng: 12.8353, px: 520, py: 1050 },
-      // I = Tunnelliften — knapplift, västra sidan
-      { id: 'I', lat: 61.8878, lng: 12.8254, px: 450, py: 1200 },
-      // J = Västtransporten — kort transportlift
-      { id: 'J', lat: 61.8903, lng: 12.8348, px: 650, py: 900 },
+      // === VÄST-SEKTIONEN (längst till vänster — "VÄST" under NORD) ===
+      // H = Väst 6:an — stor stolslift, orange linje på västra sidan, går ganska långt upp
+      { id: 'H', lat: 61.8881, lng: 12.8353, px: 280, py: 780 },
+      // I = Tunnelliften — knapplift, längst ner till vänster under VÄST
+      { id: 'I', lat: 61.8878, lng: 12.8254, px: 120, py: 1050 },
+      // J = Västtransporten — kort transportlift, koppling väst till mitt
+      { id: 'J', lat: 61.8903, lng: 12.8348, px: 400, py: 680 },
 
-      // === MITT/TOPP (centrala övre delen) ===
-      // C = Askeliften — vid Björnens rullband-området
-      { id: 'C', lat: 61.8912, lng: 12.8272, px: 500, py: 700 },
-      // K = Familjeliften — mitt på berget
-      { id: 'K', lat: 61.8904, lng: 12.8344, px: 640, py: 880 },
-      // L = Talliften — T-bar, centralt på berget
-      { id: 'L', lat: 61.8907, lng: 12.8455, px: 1250, py: 500 },
-      // Y = Toppliften — vid toppen
-      { id: 'Y', lat: 61.8886, lng: 12.8553, px: 1550, py: 500 },
+      // === MITT/TOPP (centrala delen av berget) ===
+      // C = Askeliften — knapplift vid Björnen-området, vänster-mitt, under NORD
+      { id: 'C', lat: 61.8912, lng: 12.8272, px: 350, py: 620 },
+      // K = Familjeliften — knapplift, centralt mellan NORD och dalen
+      { id: 'K', lat: 61.8904, lng: 12.8344, px: 560, py: 750 },
+      // L = Talliften — T-bar, centralt på berget, till höger om K
+      { id: 'L', lat: 61.8907, lng: 12.8455, px: 950, py: 500 },
+      // Y = Toppliften — vid toppen av berget, centralt
+      { id: 'Y', lat: 61.8886, lng: 12.8553, px: 1200, py: 380 },
 
-      // === ÖST-SEKTIONEN (höger på kartan) ===
-      // U = Ost 6:an — stor 6-stolslift, östra sidan
-      { id: 'U', lat: 61.8848, lng: 12.8671, px: 2250, py: 1100 },
-      // V = Ost 4:an — 4-stolslift, nära U
-      { id: 'V', lat: 61.8880, lng: 12.8645, px: 2150, py: 800 },
-      // T = Ostknappen — knapplift, nedre öst
-      { id: 'T', lat: 61.8821, lng: 12.8692, px: 2400, py: 1450 },
-      // X = Chockentransporten — transport mellan sektioner
-      { id: 'X', lat: 61.8895, lng: 12.8679, px: 2250, py: 550 },
+      // === ÖST-SEKTIONEN (höger sida — "ÖST" texten vid ca x=1780,y=430) ===
+      // U = Ost 6:an — stor stolslift, orange linje, östra sidan
+      { id: 'U', lat: 61.8848, lng: 12.8671, px: 2050, py: 720 },
+      // V = Ost 4:an — 4-stolslift, bredvid U men lite mer uppåt
+      { id: 'V', lat: 61.8880, lng: 12.8645, px: 1950, py: 550 },
+      // T = Ostknappen — knapplift, nedre delen av ÖST
+      { id: 'T', lat: 61.8821, lng: 12.8692, px: 2200, py: 1050 },
+      // X = Chockentransporten — transport, överst i ÖST, koppling till mitt
+      { id: 'X', lat: 61.8895, lng: 12.8679, px: 1850, py: 420 },
 
-      // === SÖDRA/NEDRE (botten av kartan) ===
-      // N = Sydgondolen — gondol, bottenstation vid byn
-      { id: 'N', lat: 61.8846, lng: 12.8403, px: 1200, py: 1800 },
-      // R = Biejjieliften — södra delen
-      { id: 'R', lat: 61.8801, lng: 12.8358, px: 750, py: 2100 },
-      // S = Dalsliften — lång lift, södra delen
-      { id: 'S', lat: 61.8801, lng: 12.8497, px: 1450, py: 2200 },
+      // === SÖDRA/NEDRE (nedre halvan — dalen/byn) ===
+      // N = Sydgondolen — lång gondollinje från dalen upp, mitten av kartan
+      // Bottenstation nere i byn ca (1050, 1650), toppstation ca (1150, 550). Center:
+      { id: 'N', lat: 61.8846, lng: 12.8403, px: 1100, py: 1100 },
+      // R = Biejjieliften — södra delen, till vänster nere
+      { id: 'R', lat: 61.8801, lng: 12.8358, px: 600, py: 1600 },
+      // S = Dalsliften — lång lift, södra delen, nedåt höger
+      { id: 'S', lat: 61.8801, lng: 12.8497, px: 1200, py: 1700 },
     ];
 
     // Thin Plate Spline (TPS) — exakt interpolation genom alla referenspunkter.
@@ -2125,6 +2342,225 @@
       if (imgEl.naturalWidth) {
         setTimeout(drawDebugGrid, 200);
       }
+    }
+
+    // ============================
+    // CALIBRATION MODE
+    // ============================
+    // Aktiveras med ?calibrate=1 i URL:en
+    const urlParams = new URLSearchParams(window.location.search);
+    const calibrationMode = urlParams.get('calibrate') === '1';
+
+    if (calibrationMode) {
+      const calibrationOverlay = document.getElementById('calibration-overlay');
+      const calibrationPanel = document.getElementById('calibration-panel');
+      const calibrationLifts = document.getElementById('calibration-lifts');
+      const calibrationCopyBtn = document.getElementById('calibration-copy');
+      const calibrationResetBtn = document.getElementById('calibration-reset');
+
+      // Store calibration data (copy from REFERENCE_POINTS, but with mutable px/py)
+      const calibrationData = REFERENCE_POINTS.map(ref => ({
+        id: ref.id,
+        lat: ref.lat,
+        lng: ref.lng,
+        px: ref.px,
+        py: ref.py,
+        placed: false
+      }));
+
+      let selectedLiftId = null;
+      const calibrationMarkers = {};
+
+      // Show overlay
+      calibrationOverlay.classList.add('active');
+      container.classList.add('calibration-mode');
+
+      // Render lift list
+      function renderLiftList() {
+        calibrationLifts.innerHTML = '';
+        calibrationData.forEach(lift => {
+          const item = document.createElement('div');
+          item.className = 'calibration-lift-item';
+          if (lift.id === selectedLiftId) item.classList.add('selected');
+          if (lift.placed) item.classList.add('placed');
+
+          item.innerHTML = `
+            <span class="calibration-lift-letter">${lift.id}</span>
+            <span>${getLiftName(lift.id)}</span>
+            <span class="calibration-lift-status">${lift.placed ? '✓' : ''}</span>
+          `;
+
+          item.addEventListener('click', () => {
+            selectedLiftId = lift.id;
+            renderLiftList();
+          });
+
+          calibrationLifts.appendChild(item);
+        });
+      }
+
+      // Get lift name from REFERENCE_POINTS comments
+      function getLiftName(id) {
+        const names = {
+          'A': 'Nord 6:an',
+          'B': 'Nordknappen',
+          'C': 'Askeliften',
+          'H': 'Väst 6:an',
+          'I': 'Tunnelliften',
+          'J': 'Västtransporten',
+          'K': 'Familjeliften',
+          'L': 'Talliften',
+          'N': 'Sydgondolen',
+          'R': 'Biejjieliften',
+          'S': 'Dalsliften',
+          'T': 'Ostknappen',
+          'U': 'Ost 6:an',
+          'V': 'Ost 4:an',
+          'X': 'Chockentransporten',
+          'Y': 'Toppliften'
+        };
+        return names[id] || 'Okänd lift';
+      }
+
+      // Convert screen click coordinates to map image pixel coordinates
+      function screenToImageCoords(screenX, screenY) {
+        // Get the map element's bounding rect
+        const mapRect = mapEl.getBoundingClientRect();
+
+        // Calculate position relative to map element
+        const relX = screenX - mapRect.left;
+        const relY = screenY - mapRect.top;
+
+        // Account for the current scale
+        const imageX = relX / scale;
+        const imageY = relY / scale;
+
+        return { x: imageX, y: imageY };
+      }
+
+      // Place marker on map
+      function placeMarker(liftId, px, py) {
+        // Remove old marker if exists
+        if (calibrationMarkers[liftId]) {
+          calibrationMarkers[liftId].remove();
+        }
+
+        // Create new marker
+        const marker = document.createElement('div');
+        marker.className = 'calibration-marker';
+        marker.style.left = px + 'px';
+        marker.style.top = py + 'px';
+        marker.innerHTML = `
+          <div class="calibration-marker-circle"></div>
+          <div class="calibration-marker-label">${liftId}</div>
+        `;
+
+        // Add to markers overlay (inside map element, will scale with map)
+        const overlay = document.getElementById('markers-overlay');
+        overlay.appendChild(marker);
+        calibrationMarkers[liftId] = marker;
+      }
+
+      // Handle map clicks
+      function handleMapClick(e) {
+        if (!selectedLiftId) {
+          alert('Välj en lift först!');
+          return;
+        }
+
+        // Get click coordinates relative to the image
+        const coords = screenToImageCoords(e.clientX, e.clientY);
+
+        // Clamp to image bounds
+        const px = Math.max(0, Math.min(CALIBRATION_IMAGE_WIDTH, Math.round(coords.x)));
+        const py = Math.max(0, Math.min(CALIBRATION_IMAGE_HEIGHT, Math.round(coords.y)));
+
+        // Update calibration data
+        const lift = calibrationData.find(l => l.id === selectedLiftId);
+        if (lift) {
+          lift.px = px;
+          lift.py = py;
+          lift.placed = true;
+
+          // Place marker
+          placeMarker(selectedLiftId, px, py);
+
+          // Auto-select next unplaced lift
+          const nextUnplaced = calibrationData.find(l => !l.placed);
+          selectedLiftId = nextUnplaced ? nextUnplaced.id : null;
+
+          renderLiftList();
+        }
+      }
+
+      // Add click handler to map
+      mapEl.addEventListener('click', handleMapClick);
+
+      // Copy code button
+      calibrationCopyBtn.addEventListener('click', () => {
+        const code = generateCalibrationCode();
+        navigator.clipboard.writeText(code).then(() => {
+          alert('Kod kopierad till urklipp!');
+        }).catch(() => {
+          // Fallback: show in prompt
+          prompt('Kopiera denna kod:', code);
+        });
+      });
+
+      // Reset button
+      calibrationResetBtn.addEventListener('click', () => {
+        if (confirm('Återställ alla placeringar?')) {
+          calibrationData.forEach(lift => {
+            lift.placed = false;
+            if (calibrationMarkers[lift.id]) {
+              calibrationMarkers[lift.id].remove();
+              delete calibrationMarkers[lift.id];
+            }
+          });
+          selectedLiftId = calibrationData[0]?.id || null;
+          renderLiftList();
+        }
+      });
+
+      // Generate REFERENCE_POINTS code
+      function generateCalibrationCode() {
+        let code = 'const REFERENCE_POINTS = [\n';
+
+        // Group by section
+        const sections = {
+          'NORD': ['A', 'B'],
+          'VÄST': ['H', 'I', 'J'],
+          'MITT/TOPP': ['C', 'K', 'L', 'Y'],
+          'ÖST': ['U', 'V', 'T', 'X'],
+          'SÖDRA': ['N', 'R', 'S']
+        };
+
+        for (const [section, ids] of Object.entries(sections)) {
+          code += `  // === ${section} ===\n`;
+          ids.forEach(id => {
+            const lift = calibrationData.find(l => l.id === id);
+            if (lift) {
+              code += `  { id: '${lift.id}', lat: ${lift.lat}, lng: ${lift.lng}, px: ${lift.px}, py: ${lift.py} }, // ${getLiftName(lift.id)}\n`;
+            }
+          });
+          code += '\n';
+        }
+
+        code += '];\n';
+        return code;
+      }
+
+      // Initial render
+      renderLiftList();
+      selectedLiftId = calibrationData[0]?.id || null;
+      renderLiftList();
+
+      // Show existing positions as markers
+      calibrationData.forEach(lift => {
+        if (lift.px && lift.py) {
+          placeMarker(lift.id, lift.px, lift.py);
+        }
+      });
     }
 
     // ============================
