@@ -2220,49 +2220,32 @@
     // Pixelpositioner (px, py) bestämda genom visuell analys av kartbilden (4000×2700).
     // Liftbokstav enligt Idre Fjälls officiella karta.
     const REFERENCE_POINTS = [
-      // === NORD-SEKTIONEN (övre vänster — "NORD" texten sitter vid ca x=680,y=470) ===
-      // A = Nord 6:an — stolslift med orange linje, går från dalen upp mot NORD-toppen
-      // Bottenstationen vid ca (720, 700), toppstationen vid ca (650, 440). Center:
-      { id: 'A', lat: 61.8936, lng: 12.8537, px: 690, py: 560 },
-      // B = Nordknappen — kort knapplift, högst upp i NORD, ovanför A
-      { id: 'B', lat: 61.8957, lng: 12.8494, px: 580, py: 400 },
+      // === NORD ===
+      { id: 'A', lat: 61.8936, lng: 12.8537, px: 640, py: 702 }, // Nord 6:an
+      { id: 'B', lat: 61.8957, lng: 12.8494, px: 649, py: 727 }, // Nordknappen
 
-      // === VÄST-SEKTIONEN (längst till vänster — "VÄST" under NORD) ===
-      // H = Väst 6:an — stor stolslift, orange linje på västra sidan, går ganska långt upp
-      { id: 'H', lat: 61.8881, lng: 12.8353, px: 280, py: 780 },
-      // I = Tunnelliften — knapplift, längst ner till vänster under VÄST
-      { id: 'I', lat: 61.8878, lng: 12.8254, px: 120, py: 1050 },
-      // J = Västtransporten — kort transportlift, koppling väst till mitt
-      { id: 'J', lat: 61.8903, lng: 12.8348, px: 400, py: 680 },
+      // === VÄST ===
+      { id: 'H', lat: 61.8881, lng: 12.8353, px: 1115, py: 1954 }, // Väst 6:an
+      { id: 'I', lat: 61.8878, lng: 12.8254, px: 1178, py: 1890 }, // Tunnelliften
+      { id: 'J', lat: 61.8903, lng: 12.8348, px: 835, py: 1345 }, // Västtransporten
 
-      // === MITT/TOPP (centrala delen av berget) ===
-      // C = Askeliften — knapplift vid Björnen-området, vänster-mitt, under NORD
-      { id: 'C', lat: 61.8912, lng: 12.8272, px: 350, py: 620 },
-      // K = Familjeliften — knapplift, centralt mellan NORD och dalen
-      { id: 'K', lat: 61.8904, lng: 12.8344, px: 560, py: 750 },
-      // L = Talliften — T-bar, centralt på berget, till höger om K
-      { id: 'L', lat: 61.8907, lng: 12.8455, px: 950, py: 500 },
-      // Y = Toppliften — vid toppen av berget, centralt
-      { id: 'Y', lat: 61.8886, lng: 12.8553, px: 1200, py: 380 },
+      // === MITT/TOPP ===
+      { id: 'C', lat: 61.8912, lng: 12.8272, px: 514, py: 1536 }, // Askeliften
+      { id: 'K', lat: 61.8904, lng: 12.8344, px: 1001, py: 1212 }, // Familjeliften
+      { id: 'L', lat: 61.8907, lng: 12.8455, px: 1194, py: 992 }, // Talliften
+      { id: 'Y', lat: 61.8886, lng: 12.8553, px: 1200, py: 380 }, // Toppliften
 
-      // === ÖST-SEKTIONEN (höger sida — "ÖST" texten vid ca x=1780,y=430) ===
-      // U = Ost 6:an — stor stolslift, orange linje, östra sidan
-      { id: 'U', lat: 61.8848, lng: 12.8671, px: 2050, py: 720 },
-      // V = Ost 4:an — 4-stolslift, bredvid U men lite mer uppåt
-      { id: 'V', lat: 61.8880, lng: 12.8645, px: 1950, py: 550 },
-      // T = Ostknappen — knapplift, nedre delen av ÖST
-      { id: 'T', lat: 61.8821, lng: 12.8692, px: 2200, py: 1050 },
-      // X = Chockentransporten — transport, överst i ÖST, koppling till mitt
-      { id: 'X', lat: 61.8895, lng: 12.8679, px: 1850, py: 420 },
+      // === ÖST ===
+      { id: 'U', lat: 61.8848, lng: 12.8671, px: 2746, py: 887 }, // Ost 6:an
+      { id: 'V', lat: 61.888, lng: 12.8645, px: 2803, py: 884 }, // Ost 4:an
+      { id: 'T', lat: 61.8821, lng: 12.8692, px: 2271, py: 1110 }, // Ostknappen
+      { id: 'X', lat: 61.8895, lng: 12.8679, px: 1722, py: 515 }, // Chockentransporten
 
-      // === SÖDRA/NEDRE (nedre halvan — dalen/byn) ===
-      // N = Sydgondolen — lång gondollinje från dalen upp, mitten av kartan
-      // Bottenstation nere i byn ca (1050, 1650), toppstation ca (1150, 550). Center:
-      { id: 'N', lat: 61.8846, lng: 12.8403, px: 1100, py: 1100 },
-      // R = Biejjieliften — södra delen, till vänster nere
-      { id: 'R', lat: 61.8801, lng: 12.8358, px: 600, py: 1600 },
-      // S = Dalsliften — lång lift, södra delen, nedåt höger
-      { id: 'S', lat: 61.8801, lng: 12.8497, px: 1200, py: 1700 },
+      // === SÖDRA ===
+      { id: 'N', lat: 61.8846, lng: 12.8403, px: 1542, py: 1450 }, // Sydgondolen
+      { id: 'R', lat: 61.8801, lng: 12.8358, px: 2072, py: 1599 }, // Biejjieliften
+      { id: 'S', lat: 61.8801, lng: 12.8497, px: 2236, py: 1111 }, // Dalsliften
+
     ];
 
     // Thin Plate Spline (TPS) — exakt interpolation genom alla referenspunkter.
