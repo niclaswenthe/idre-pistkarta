@@ -1708,6 +1708,10 @@
           fitToScreen();
         };
         imgEl.src = imageCandidates[index];
+        // Handle case where image loads synchronously from cache
+        if (imgEl.complete && imgEl.naturalWidth > 0) {
+          imgEl.onload();
+        }
       };
       testImg.onerror = function() {
         tryLoadImage(index + 1);
