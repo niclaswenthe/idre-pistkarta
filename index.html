@@ -1352,6 +1352,66 @@
       margin: 0;
     }
 
+    .calibration-instructions {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .calibration-step {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .calibration-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .calibration-step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 24px;
+      background: #69F0AE;
+      color: #1a1a2e;
+      font-weight: 700;
+      font-size: 13px;
+      border-radius: 50%;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .calibration-step-text {
+      flex: 1;
+      padding-top: 2px;
+    }
+
+    .calibration-instructions-title {
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .calibration-step {
+        font-size: 15px;
+      }
+
+      .calibration-step-number {
+        min-width: 28px;
+        height: 28px;
+        font-size: 14px;
+      }
+    }
+
     #calibration-lifts {
       flex: 1;
       overflow-y: auto;
@@ -1527,7 +1587,25 @@
         <button class="calibration-minimize-btn" id="calibration-minimize" title="Minimera">▼</button>
       </div>
       <div class="calibration-content">
-        <p>Klicka på en lift nedan, sedan klicka på kartan där liften faktiskt finns.</p>
+        <div class="calibration-instructions">
+          <div class="calibration-instructions-title">Hur det fungerar:</div>
+          <div class="calibration-step">
+            <div class="calibration-step-number">1</div>
+            <div class="calibration-step-text">Zooma och panorera för att hitta liften på kartan</div>
+          </div>
+          <div class="calibration-step">
+            <div class="calibration-step-number">2</div>
+            <div class="calibration-step-text">Välj en lift från listan nedan</div>
+          </div>
+          <div class="calibration-step">
+            <div class="calibration-step-number">3</div>
+            <div class="calibration-step-text">Klicka på kartan där liftens bas-station finns</div>
+          </div>
+          <div class="calibration-step">
+            <div class="calibration-step-number">4</div>
+            <div class="calibration-step-text">Upprepa för alla liftar, sedan kopiera koden</div>
+          </div>
+        </div>
         <div id="calibration-lifts"></div>
         <div id="calibration-actions">
           <button class="calibration-btn calibration-btn-primary" id="calibration-copy">Kopiera kod</button>
@@ -1765,6 +1843,7 @@
     let startX, startY, startPosX, startPosY;
     let zoomTimeout;
     let joystickActive = false;
+    let isCalibrationMode = false; // Global flag for calibration mode
 
     // Pinch-to-zoom variabler
     let isPinching = false;
@@ -2010,6 +2089,8 @@
     container.addEventListener('wheel', (e) => {
       // Tillåt scroll i chatten och medlemspanelen
       if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
+      // Tillåt scroll i kalibreringspanelen
+      if (e.target.closest('#calibration-panel')) return;
       e.preventDefault();
       const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
       zoomAt(delta, e.clientX, e.clientY);
@@ -2461,6 +2542,9 @@
     const calibrationMode = urlParams.get('calibrate') === '1';
 
     if (calibrationMode) {
+      // Set global flag
+      isCalibrationMode = true;
+
       const calibrationOverlay = document.getElementById('calibration-overlay');
       const calibrationPanel = document.getElementById('calibration-panel');
       const calibrationLifts = document.getElementById('calibration-lifts');
