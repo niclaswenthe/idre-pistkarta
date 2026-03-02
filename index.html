@@ -2727,12 +2727,14 @@
           const dx = Math.abs(touch.clientX - touchStartPos.x);
           const dy = Math.abs(touch.clientY - touchStartPos.y);
           if (dx < 10 && dy < 10) {
+            // Prevent the synthetic click event from firing
+            e.preventDefault();
             // Simulate the click event with touch coordinates
             handleMapClick({ clientX: touch.clientX, clientY: touch.clientY });
           }
           touchStartPos = null;
         }
-      });
+      }, { passive: false });
 
       // Copy code button
       calibrationCopyBtn.addEventListener('click', () => {
