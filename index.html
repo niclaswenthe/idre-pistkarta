@@ -2513,7 +2513,7 @@
       return { wx, wy, n, points, SCALE, rbf, gpsDist };
     }
 
-    const tps = computeTPS(REFERENCE_POINTS);
+    const tps = computeTPS(REFERENCE_POINTS.filter(p => p.lat !== 0 && p.lng !== 0));
 
     function gpsToPixel(lat, lng) {
       if (!tps) return { x: 0, y: 0 };
