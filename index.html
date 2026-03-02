@@ -1981,6 +1981,8 @@
       if (joystickActive) return;
       // Tillåt scroll i chatten och medlemspanelen
       if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
+      // I kalibrerings-läge, tillåt inte dragging på kartan (för att clicks ska fungera)
+      if (isCalibrationMode && e.target.closest('#map')) return;
 
       if (e.touches.length === 2) {
         // Starta pinch-to-zoom — alltid prioritera över drag
@@ -2002,6 +2004,8 @@
       if (joystickActive) return;
       // Tillåt scroll i chatten och medlemspanelen
       if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
+      // I kalibrerings-läge, tillåt inte dragging på kartan
+      if (isCalibrationMode && e.target.closest('#map')) return;
 
       if (e.touches.length === 2) {
         e.preventDefault();
@@ -2688,6 +2692,32 @@
 
       // Add click handler to map
       mapEl.addEventListener('click', handleMapClick);
+
+      // Add touch handler for mobile (touch events don't always trigger click)
+      let touchStartPos = null;
+      mapEl.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          touchStartPos = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY
+          };
+        }
+      });
+
+      mapEl.addEventListener('touchend', (e) => {
+        // Only handle single-finger taps (not pinch/zoom)
+        if (e.changedTouches.length === 1 && touchStartPos) {
+          const touch = e.changedTouches[0];
+          // Check if this was a tap (not a drag) - allow small movement
+          const dx = Math.abs(touch.clientX - touchStartPos.x);
+          const dy = Math.abs(touch.clientY - touchStartPos.y);
+          if (dx < 10 && dy < 10) {
+            // Simulate the click event with touch coordinates
+            handleMapClick({ clientX: touch.clientX, clientY: touch.clientY });
+          }
+          touchStartPos = null;
+        }
+      });
 
       // Copy code button
       calibrationCopyBtn.addEventListener('click', () => {
