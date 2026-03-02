@@ -887,6 +887,48 @@
       margin-top: 3px;
     }
 
+    /* Gilla-knapp (likes) */
+    .chat-msg-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .chat-msg.mine .chat-msg-actions {
+      flex-direction: row-reverse;
+    }
+
+    .chat-like-btn {
+      background: none;
+      border: none;
+      padding: 2px 6px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .chat-like-btn:active {
+      transform: scale(1.2);
+    }
+
+    .chat-like-btn.liked {
+      color: #ff4d6a;
+    }
+
+    .chat-like-count {
+      font-size: 11px;
+      font-weight: 600;
+      min-width: 8px;
+      text-align: center;
+    }
+
     /* Bild i chatt */
     .chat-img {
       max-width: 200px;
@@ -3879,12 +3921,89 @@
 
       msgEl.appendChild(bubble);
 
+      // Gilla-knapp + tid-rad
+      const actions = document.createElement('div');
+      actions.className = 'chat-msg-actions';
+
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'chat-like-btn';
+      likeBtn.dataset.msgId = msgId;
+
+      const likeIcon = document.createElement('span');
+      likeIcon.className = 'chat-like-icon';
+      likeIcon.textContent = '♡';
+
+      const likeCount = document.createElement('span');
+      likeCount.className = 'chat-like-count';
+      likeCount.textContent = '';
+
+      likeBtn.appendChild(likeIcon);
+      likeBtn.appendChild(likeCount);
+
+      likeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleLike(msgId);
+      });
+
       const time = document.createElement('div');
       time.className = 'chat-msg-time';
       time.textContent = formatTime(data.timestamp || Date.now());
-      msgEl.appendChild(time);
+
+      actions.appendChild(likeBtn);
+      actions.appendChild(time);
+      msgEl.appendChild(actions);
+
+      // Starta lyssnare för likes på detta meddelande
+      listenToLikes(msgId, likeBtn, likeIcon, likeCount);
 
       return msgEl;
+    }
+
+    // ---- Gilla-funktionalitet ----
+    const likesListeners = {};
+
+    function toggleLike(msgId) {
+      if (!db || !currentRoom || !myUserId) return;
+      const likeRef = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes/${myUserId}`);
+      likeRef.once('value', (snap) => {
+        if (snap.exists()) {
+          likeRef.remove();
+        } else {
+          likeRef.set(true);
+        }
+      });
+    }
+
+    function listenToLikes(msgId, likeBtn, likeIcon, likeCount) {
+      if (!db || !currentRoom) return;
+
+      // Rensa tidigare lyssnare för detta meddelande
+      if (likesListeners[msgId]) {
+        const oldRef = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes`);
+        oldRef.off('value', likesListeners[msgId]);
+      }
+
+      const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes`);
+      const listener = ref.on('value', (snap) => {
+        const likes = snap.val();
+        const count = likes ? Object.keys(likes).length : 0;
+        const iLiked = likes && likes[myUserId];
+
+        likeIcon.textContent = iLiked ? '❤️' : '♡';
+        likeCount.textContent = count > 0 ? count : '';
+        likeBtn.classList.toggle('liked', !!iLiked);
+      });
+
+      likesListeners[msgId] = listener;
+    }
+
+    function cleanupLikesListeners() {
+      if (!db || !currentRoom) return;
+      for (const msgId of Object.keys(likesListeners)) {
+        const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes`);
+        ref.off('value', likesListeners[msgId]);
+        delete likesListeners[msgId];
+      }
     }
 
     function getFileIcon(mime) {
@@ -3992,6 +4111,7 @@
     }
 
     function stopChatListener() {
+      cleanupLikesListeners();
       if (chatListener && currentRoom && db) {
         db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).off('child_added', chatListener);
       }
