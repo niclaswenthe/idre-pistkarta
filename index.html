@@ -1702,8 +1702,12 @@
       const testImg = new Image();
       testImg.onload = function() {
         imageLoaded = true;
-        // Define handler function
+        let hasLoaded = false;
+
+        // Define handler function with guard to prevent double-calling
         const handleImageLoad = function() {
+          if (hasLoaded) return;
+          hasLoaded = true;
           loading.classList.add('hidden');
           fitToScreen();
         };
@@ -1713,12 +1717,20 @@
         imgEl.src = imageCandidates[index];
 
         // Handle case where image loads synchronously from cache
-        // Use a small timeout to ensure the DOM is ready
+        // Check after a small delay to give the browser time to update image state
+        // We check multiple times to handle different browser behaviors
         setTimeout(() => {
           if (imgEl.complete && imgEl.naturalWidth > 0) {
             handleImageLoad();
           }
-        }, 0);
+        }, 10);
+
+        // Fallback: check again after a longer delay
+        setTimeout(() => {
+          if (imgEl.complete && imgEl.naturalWidth > 0) {
+            handleImageLoad();
+          }
+        }, 100);
       };
       testImg.onerror = function() {
         tryLoadImage(index + 1);
