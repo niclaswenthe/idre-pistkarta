@@ -1238,7 +1238,7 @@
 
     #calibration-overlay.active {
       display: block;
-      pointer-events: auto;
+      pointer-events: none; /* Låt touch/click-events passera igenom till kartan */
     }
 
     #calibration-panel {
@@ -1258,6 +1258,7 @@
       gap: 16px;
       overflow: hidden;
       touch-action: auto;
+      pointer-events: auto; /* Panelen måste vara klickbar även när overlay är pointer-events: none */
     }
 
     @media (max-width: 768px) {
@@ -2660,6 +2661,7 @@
 
       // Handle map clicks
       function handleMapClick(e) {
+        console.log('[CAL] handleMapClick triggered', { clientX: e.clientX, clientY: e.clientY, selectedLiftId });
         if (!selectedLiftId) {
           alert('Välj en lift först!');
           return;
@@ -2696,15 +2698,17 @@
       // Add touch handler for mobile (touch events don't always trigger click)
       let touchStartPos = null;
       mapEl.addEventListener('touchstart', (e) => {
+        console.log('[CAL] map touchstart', { touches: e.touches.length });
         if (e.touches.length === 1) {
           touchStartPos = {
             x: e.touches[0].clientX,
             y: e.touches[0].clientY
           };
         }
-      });
+      }, { passive: true });
 
       mapEl.addEventListener('touchend', (e) => {
+        console.log('[CAL] map touchend', { changedTouches: e.changedTouches.length, touchStartPos });
         // Only handle single-finger taps (not pinch/zoom)
         if (e.changedTouches.length === 1 && touchStartPos) {
           const touch = e.changedTouches[0];
