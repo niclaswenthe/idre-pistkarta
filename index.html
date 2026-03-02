@@ -1270,12 +1270,79 @@
       }
     }
 
+    #calibration-panel.minimized {
+      bottom: auto;
+      left: auto;
+      right: 20px;
+      top: 20px;
+      width: auto;
+      height: auto;
+      padding: 0;
+    }
+
+    @media (max-width: 768px) {
+      #calibration-panel.minimized {
+        right: 10px;
+        top: 10px;
+      }
+    }
+
+    .calibration-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #calibration-panel.minimized .calibration-header {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
     #calibration-panel h2 {
       color: white;
       font-size: 18px;
       margin: 0;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex: 1;
+    }
+
+    .calibration-minimize-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.1s;
+      flex-shrink: 0;
+      margin-left: 12px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .calibration-minimize-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .calibration-minimize-btn:active {
+      transform: scale(0.95);
+    }
+
+    #calibration-panel.minimized .calibration-minimize-btn {
+      margin-left: 0;
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+    }
+
+    #calibration-panel.minimized .calibration-content {
+      display: none;
     }
 
     #calibration-panel p {
@@ -1455,12 +1522,17 @@
   <!-- Calibration overlay -->
   <div id="calibration-overlay">
     <div id="calibration-panel">
-      <h2>Kalibreringsläge</h2>
-      <p>Klicka på en lift nedan, sedan klicka på kartan där liften faktiskt finns.</p>
-      <div id="calibration-lifts"></div>
-      <div id="calibration-actions">
-        <button class="calibration-btn calibration-btn-primary" id="calibration-copy">Kopiera kod</button>
-        <button class="calibration-btn calibration-btn-secondary" id="calibration-reset">Återställ</button>
+      <div class="calibration-header">
+        <h2>Kalibreringsläge</h2>
+        <button class="calibration-minimize-btn" id="calibration-minimize" title="Minimera">▼</button>
+      </div>
+      <div class="calibration-content">
+        <p>Klicka på en lift nedan, sedan klicka på kartan där liften faktiskt finns.</p>
+        <div id="calibration-lifts"></div>
+        <div id="calibration-actions">
+          <button class="calibration-btn calibration-btn-primary" id="calibration-copy">Kopiera kod</button>
+          <button class="calibration-btn calibration-btn-secondary" id="calibration-reset">Återställ</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2556,6 +2628,23 @@
           });
           selectedLiftId = calibrationData[0]?.id || null;
           renderLiftList();
+        }
+      });
+
+      // Minimize/maximize button
+      const calibrationMinimizeBtn = document.getElementById('calibration-minimize');
+      let isPanelMinimized = false;
+
+      calibrationMinimizeBtn.addEventListener('click', () => {
+        isPanelMinimized = !isPanelMinimized;
+        if (isPanelMinimized) {
+          calibrationPanel.classList.add('minimized');
+          calibrationMinimizeBtn.textContent = '▲';
+          calibrationMinimizeBtn.title = 'Maximera';
+        } else {
+          calibrationPanel.classList.remove('minimized');
+          calibrationMinimizeBtn.textContent = '▼';
+          calibrationMinimizeBtn.title = 'Minimera';
         }
       });
 
