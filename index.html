@@ -1990,8 +1990,8 @@
 
     container.addEventListener('touchstart', (e) => {
       if (joystickActive) return;
-      // Tillåt scroll i chatten och medlemspanelen
-      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
+      // Tillåt scroll i chatten, medlemspanelen och kalibreringspanelen
+      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel') || e.target.closest('#calibration-panel')) return;
       // I kalibrerings-läge, tillåt inte dragging på kartan (för att clicks ska fungera)
       if (isCalibrationMode && e.target.closest('#map')) return;
 
@@ -2013,8 +2013,8 @@
 
     container.addEventListener('touchmove', (e) => {
       if (joystickActive) return;
-      // Tillåt scroll i chatten och medlemspanelen
-      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
+      // Tillåt scroll i chatten, medlemspanelen och kalibreringspanelen
+      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel') || e.target.closest('#calibration-panel')) return;
       // I kalibrerings-läge, tillåt inte dragging på kartan
       if (isCalibrationMode && e.target.closest('#map')) return;
 
