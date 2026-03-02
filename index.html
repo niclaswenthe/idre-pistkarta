@@ -1702,16 +1702,23 @@
       const testImg = new Image();
       testImg.onload = function() {
         imageLoaded = true;
-        // Set up imgEl's onload handler BEFORE setting src
-        imgEl.onload = function() {
+        // Define handler function
+        const handleImageLoad = function() {
           loading.classList.add('hidden');
           fitToScreen();
         };
+
+        // Set up imgEl's onload handler BEFORE setting src
+        imgEl.onload = handleImageLoad;
         imgEl.src = imageCandidates[index];
+
         // Handle case where image loads synchronously from cache
-        if (imgEl.complete && imgEl.naturalWidth > 0) {
-          imgEl.onload();
-        }
+        // Use a small timeout to ensure the DOM is ready
+        setTimeout(() => {
+          if (imgEl.complete && imgEl.naturalWidth > 0) {
+            handleImageLoad();
+          }
+        }, 0);
       };
       testImg.onerror = function() {
         tryLoadImage(index + 1);
