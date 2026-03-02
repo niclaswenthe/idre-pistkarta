@@ -2246,6 +2246,9 @@
       { id: 'R', lat: 61.8801, lng: 12.8358, px: 2072, py: 1599 }, // Biejjieliften
       { id: 'S', lat: 61.8801, lng: 12.8497, px: 2236, py: 1111 }, // Dalsliften
 
+      // === ÖVRIGT ===
+      { id: 'G', lat: 0, lng: 0, px: 0, py: 0 }, // Stugan
+
     ];
 
     // Thin Plate Spline (TPS) — exakt interpolation genom alla referenspunkter.
@@ -2597,6 +2600,7 @@
           'A': 'Nord 6:an',
           'B': 'Nordknappen',
           'C': 'Askeliften',
+          'G': 'Stugan',
           'H': 'Väst 6:an',
           'I': 'Tunnelliften',
           'J': 'Västtransporten',
@@ -2772,7 +2776,8 @@
           'VÄST': ['H', 'I', 'J'],
           'MITT/TOPP': ['C', 'K', 'L', 'Y'],
           'ÖST': ['U', 'V', 'T', 'X'],
-          'SÖDRA': ['N', 'R', 'S']
+          'SÖDRA': ['N', 'R', 'S'],
+          'ÖVRIGT': ['G']
         };
 
         for (const [section, ids] of Object.entries(sections)) {
