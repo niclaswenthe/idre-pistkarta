@@ -2755,6 +2755,9 @@
       function renderLiftList() {
         calibrationLifts.innerHTML = '';
         calibrationData.forEach(lift => {
+          // Only show uncalibrated points (lat: 0, lng: 0)
+          if (lift.lat !== 0 || lift.lng !== 0) return;
+
           const item = document.createElement('div');
           item.className = 'calibration-lift-item';
           if (lift.id === selectedLiftId) item.classList.add('selected');
