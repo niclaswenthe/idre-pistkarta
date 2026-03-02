@@ -3369,7 +3369,7 @@
     const lastRoom = loadLastRoom();
 
     // Kolla om URL:en har en gruppkod (?group=XJKM)
-    const urlParams = new URLSearchParams(window.location.search);
+    // urlParams redan deklarerad ovan (rad ~2388)
     const urlGroupCode = urlParams.get('group');
 
     if (urlGroupCode) {
