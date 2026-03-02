@@ -2388,29 +2388,45 @@
     const REFERENCE_POINTS = [
       // === NORD ===
       { id: 'A', lat: 61.8936, lng: 12.8537, px: 640, py: 702 }, // Nord 6:an
+      { id: 'A2', lat: 0, lng: 0, px: 0, py: 0 }, // Nord 6:an (topp)
       { id: 'B', lat: 61.8957, lng: 12.8494, px: 649, py: 727 }, // Nordknappen
+      { id: 'B2', lat: 0, lng: 0, px: 0, py: 0 }, // Nordknappen (topp)
 
       // === VÄST ===
       { id: 'H', lat: 61.8881, lng: 12.8353, px: 1115, py: 1954 }, // Väst 6:an
+      { id: 'H2', lat: 0, lng: 0, px: 0, py: 0 }, // Väst 6:an (topp)
       { id: 'I', lat: 61.8878, lng: 12.8254, px: 1178, py: 1890 }, // Tunnelliften
+      { id: 'I2', lat: 0, lng: 0, px: 0, py: 0 }, // Tunnelliften (topp)
       { id: 'J', lat: 61.8903, lng: 12.8348, px: 835, py: 1345 }, // Västtransporten
+      { id: 'J2', lat: 0, lng: 0, px: 0, py: 0 }, // Västtransporten (topp)
 
       // === MITT/TOPP ===
       { id: 'C', lat: 61.8912, lng: 12.8272, px: 514, py: 1536 }, // Askeliften
+      { id: 'C2', lat: 0, lng: 0, px: 0, py: 0 }, // Askeliften (topp)
       { id: 'K', lat: 61.8904, lng: 12.8344, px: 1001, py: 1212 }, // Familjeliften
+      { id: 'K2', lat: 0, lng: 0, px: 0, py: 0 }, // Familjeliften (topp)
       { id: 'L', lat: 61.8907, lng: 12.8455, px: 1194, py: 992 }, // Talliften
+      { id: 'L2', lat: 0, lng: 0, px: 0, py: 0 }, // Talliften (topp)
       { id: 'Y', lat: 61.8886, lng: 12.8553, px: 1200, py: 380 }, // Toppliften
+      { id: 'Y2', lat: 0, lng: 0, px: 0, py: 0 }, // Toppliften (topp)
 
       // === ÖST ===
       { id: 'U', lat: 61.8848, lng: 12.8671, px: 2746, py: 887 }, // Ost 6:an
+      { id: 'U2', lat: 0, lng: 0, px: 0, py: 0 }, // Ost 6:an (topp)
       { id: 'V', lat: 61.888, lng: 12.8645, px: 2803, py: 884 }, // Ost 4:an
+      { id: 'V2', lat: 0, lng: 0, px: 0, py: 0 }, // Ost 4:an (topp)
       { id: 'T', lat: 61.8821, lng: 12.8692, px: 2271, py: 1110 }, // Ostknappen
+      { id: 'T2', lat: 0, lng: 0, px: 0, py: 0 }, // Ostknappen (topp)
       { id: 'X', lat: 61.8895, lng: 12.8679, px: 1722, py: 515 }, // Chockentransporten
+      { id: 'X2', lat: 0, lng: 0, px: 0, py: 0 }, // Chockentransporten (topp)
 
       // === SÖDRA ===
       { id: 'N', lat: 61.8846, lng: 12.8403, px: 1542, py: 1450 }, // Sydgondolen
+      { id: 'N2', lat: 0, lng: 0, px: 0, py: 0 }, // Sydgondolen (topp)
       { id: 'R', lat: 61.8801, lng: 12.8358, px: 2072, py: 1599 }, // Biejjieliften
+      { id: 'R2', lat: 0, lng: 0, px: 0, py: 0 }, // Biejjieliften (topp)
       { id: 'S', lat: 61.8801, lng: 12.8497, px: 2236, py: 1111 }, // Dalsliften
+      { id: 'S2', lat: 0, lng: 0, px: 0, py: 0 }, // Dalsliften (topp)
 
       // === ÖVRIGT ===
       { id: 'G', lat: 61.9009150, lng: 12.8576142, px: 563, py: 600 }, // Stugan
@@ -2764,22 +2780,38 @@
       function getLiftName(id) {
         const names = {
           'A': 'Nord 6:an',
+          'A2': 'Nord 6:an (topp)',
           'B': 'Nordknappen',
+          'B2': 'Nordknappen (topp)',
           'C': 'Askeliften',
+          'C2': 'Askeliften (topp)',
           'G': 'Stugan',
           'H': 'Väst 6:an',
+          'H2': 'Väst 6:an (topp)',
           'I': 'Tunnelliften',
+          'I2': 'Tunnelliften (topp)',
           'J': 'Västtransporten',
+          'J2': 'Västtransporten (topp)',
           'K': 'Familjeliften',
+          'K2': 'Familjeliften (topp)',
           'L': 'Talliften',
+          'L2': 'Talliften (topp)',
           'N': 'Sydgondolen',
+          'N2': 'Sydgondolen (topp)',
           'R': 'Biejjieliften',
+          'R2': 'Biejjieliften (topp)',
           'S': 'Dalsliften',
+          'S2': 'Dalsliften (topp)',
           'T': 'Ostknappen',
+          'T2': 'Ostknappen (topp)',
           'U': 'Ost 6:an',
+          'U2': 'Ost 6:an (topp)',
           'V': 'Ost 4:an',
+          'V2': 'Ost 4:an (topp)',
           'X': 'Chockentransporten',
-          'Y': 'Toppliften'
+          'X2': 'Chockentransporten (topp)',
+          'Y': 'Toppliften',
+          'Y2': 'Toppliften (topp)'
         };
         return names[id] || 'Okänd lift';
       }
@@ -2938,11 +2970,11 @@
 
         // Group by section
         const sections = {
-          'NORD': ['A', 'B'],
-          'VÄST': ['H', 'I', 'J'],
-          'MITT/TOPP': ['C', 'K', 'L', 'Y'],
-          'ÖST': ['U', 'V', 'T', 'X'],
-          'SÖDRA': ['N', 'R', 'S'],
+          'NORD': ['A', 'A2', 'B', 'B2'],
+          'VÄST': ['H', 'H2', 'I', 'I2', 'J', 'J2'],
+          'MITT/TOPP': ['C', 'C2', 'K', 'K2', 'L', 'L2', 'Y', 'Y2'],
+          'ÖST': ['U', 'U2', 'V', 'V2', 'T', 'T2', 'X', 'X2'],
+          'SÖDRA': ['N', 'N2', 'R', 'R2', 'S', 'S2'],
           'ÖVRIGT': ['G']
         };
 
