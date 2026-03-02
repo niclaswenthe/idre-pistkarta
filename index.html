@@ -1654,16 +1654,27 @@
     // ============================
     // Firebase config (bilbingo-v2 projekt)
     // ============================
-    firebase.initializeApp({
-      apiKey: "AIzaSyB2N7mFoJ83oOniMtfF3ZkzccnK4FyvfDM",
-      authDomain: "bilbingo-b8999.firebaseapp.com",
-      databaseURL: "https://bilbingo-b8999-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "bilbingo-b8999",
-      storageBucket: "bilbingo-b8999.firebasestorage.app",
-      messagingSenderId: "8371565415",
-      appId: "1:8371565415:web:3b02df7376cee8c88235c2",
-    });
-    const db = firebase.database();
+    let db = null;
+
+    // Initialize Firebase only if the library is loaded
+    if (typeof firebase !== 'undefined') {
+      try {
+        firebase.initializeApp({
+          apiKey: "AIzaSyB2N7mFoJ83oOniMtfF3ZkzccnK4FyvfDM",
+          authDomain: "bilbingo-b8999.firebaseapp.com",
+          databaseURL: "https://bilbingo-b8999-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "bilbingo-b8999",
+          storageBucket: "bilbingo-b8999.firebasestorage.app",
+          messagingSenderId: "8371565415",
+          appId: "1:8371565415:web:3b02df7376cee8c88235c2",
+        });
+        db = firebase.database();
+      } catch (error) {
+        console.error('Firebase initialization failed:', error);
+      }
+    } else {
+      console.warn('Firebase library not loaded - map will work without real-time features');
+    }
 
     // ============================
     // KART-KONTROLLER (befintlig kod)
@@ -2671,10 +2682,12 @@
     // FIREBASE-OPERATIONER
     // ============================
     function roomRef(code) {
+      if (!db) throw new Error('Firebase not initialized');
       return db.ref(`pistkarta/rooms/${code}`);
     }
 
     function memberRef(code, userId) {
+      if (!db) throw new Error('Firebase not initialized');
       return db.ref(`pistkarta/rooms/${code}/members/${userId}`);
     }
 
@@ -2735,26 +2748,38 @@
     }
 
     function updateMyPosition(lat, lng) {
-      if (!currentRoom) return;
-      memberRef(currentRoom.code, myUserId).update({
-        lat: lat,
-        lng: lng,
-        lastUpdate: Date.now(),
-        online: true,
-      });
+      if (!currentRoom || !db) return;
+      try {
+        memberRef(currentRoom.code, myUserId).update({
+          lat: lat,
+          lng: lng,
+          lastUpdate: Date.now(),
+          online: true,
+        });
+      } catch (e) {
+        console.error('Failed to update position:', e);
+      }
     }
 
     function listenToMembers(code) {
-      if (membersListener) {
-        roomRef(code).child('members').off('value', membersListener);
+      if (!db) {
+        console.warn('Firebase not available, member tracking disabled');
+        return;
       }
-      membersListener = roomRef(code).child('members').on('value', (snap) => {
-        const members = snap.val() || {};
-        lastMembersData = members;
-        updateMarkers(members);
-        updateSessionBar(members);
-        if (membersPanelOpen) renderMembersList(members);
-      });
+      try {
+        if (membersListener) {
+          roomRef(code).child('members').off('value', membersListener);
+        }
+        membersListener = roomRef(code).child('members').on('value', (snap) => {
+          const members = snap.val() || {};
+          lastMembersData = members;
+          updateMarkers(members);
+          updateSessionBar(members);
+          if (membersPanelOpen) renderMembersList(members);
+        });
+      } catch (e) {
+        console.error('Failed to listen to members:', e);
+      }
     }
 
     // ============================
@@ -3689,6 +3714,10 @@
 
     // ---- Firebase-lyssnare för chatt ----
     function startChatListener(code) {
+      if (!db) {
+        console.warn('Firebase not available, chat disabled');
+        return;
+      }
       stopChatListener();
       isFirstLoad = true;
       chatMessages.innerHTML = '';
@@ -3755,7 +3784,7 @@
     }
 
     function stopChatListener() {
-      if (chatListener && currentRoom) {
+      if (chatListener && currentRoom && db) {
         db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).off('child_added', chatListener);
       }
       chatListener = null;
@@ -3796,7 +3825,7 @@
 
     // ---- Skicka textmeddelande ----
     function sendTextMessage(text) {
-      if (!currentRoom || !text.trim()) return;
+      if (!currentRoom || !text.trim() || !db) return;
       const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).push();
       ref.set({
         type: 'text',
@@ -3904,7 +3933,7 @@
 
     // ---- Skicka bild ----
     async function sendImageFile(file) {
-      if (!currentRoom) return;
+      if (!currentRoom || !db) return;
       try {
         const dataUrl = await compressImage(file, 800, 800, 0.6);
         // ~1.5 MB gräns på base64 (ca 2MB rå data)
@@ -3931,7 +3960,7 @@
 
     // ---- Skicka fil ----
     async function sendGenericFile(file) {
-      if (!currentRoom) return;
+      if (!currentRoom || !db) return;
       const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
       if (file.size > MAX_SIZE) {
         alert(`Filen är för stor (max 2 MB). Filens storlek: ${formatBytes(file.size)}`);
@@ -4040,7 +4069,7 @@
     }
 
     function sendVoiceMessage(blob, mimeType) {
-      if (!currentRoom) return;
+      if (!currentRoom || !db) return;
       const reader = new FileReader();
       reader.onload = (e) => {
         const dataUrl = e.target.result;
