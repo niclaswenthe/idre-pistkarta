@@ -3441,14 +3441,20 @@
       const pisteCalResetBtn = document.getElementById('piste-calibration-reset');
 
       // Mutable copy of PISTE_DATA for calibration
-      const pisteCalData = PISTE_DATA.map(p => ({
-        num: p.num,
-        name: p.name,
-        difficulty: p.difficulty,
-        px: p.px,
-        py: p.py,
-        placed: false
-      }));
+      const pisteCalData = PISTE_DATA.map(p => {
+        // Pistes 1-41 are calibrated
+        const pisteNum = typeof p.num === 'string' ? parseInt(p.num) : p.num;
+        const isCalibrated = (pisteNum >= 1 && pisteNum <= 41) || p.num === '1b';
+
+        return {
+          num: p.num,
+          name: p.name,
+          difficulty: p.difficulty,
+          px: p.px,
+          py: p.py,
+          placed: isCalibrated
+        };
+      });
 
       let selectedPisteNum = null;
       const pisteCalMarkers = {};
