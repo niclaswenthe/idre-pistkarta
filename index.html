@@ -3442,9 +3442,9 @@
 
       // Mutable copy of PISTE_DATA for calibration
       const pisteCalData = PISTE_DATA.map(p => {
-        // Pistes 1-41 are calibrated
-        const pisteNum = typeof p.num === 'string' ? parseInt(p.num) : p.num;
-        const isCalibrated = (pisteNum >= 1 && pisteNum <= 41) || p.num === '1b';
+        // Only Väst section pistes (1, 1b, 2, 3, 4, 5, 6) are calibrated
+        const vastPistes = [1, '1b', 2, 3, 4, 5, 6];
+        const isCalibrated = vastPistes.includes(p.num);
 
         return {
           num: p.num,
