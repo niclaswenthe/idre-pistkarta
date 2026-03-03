@@ -3478,6 +3478,15 @@
         pisteCalList.innerHTML = '';
 
         pisteSections.forEach(section => {
+          // Check if section has any uncalibrated pistes
+          const uncalibratedInSection = section.nums.filter(num => {
+            const piste = pisteCalData.find(p => p.num === num);
+            return piste && !piste.placed;
+          });
+
+          // Skip section if all pistes are calibrated
+          if (uncalibratedInSection.length === 0) return;
+
           // Section header
           const header = document.createElement('div');
           header.className = 'piste-cal-section';
@@ -3487,6 +3496,9 @@
           section.nums.forEach(num => {
             const piste = pisteCalData.find(p => p.num === num);
             if (!piste) return;
+
+            // Skip already calibrated pistes
+            if (piste.placed) return;
 
             const item = document.createElement('div');
             item.className = 'piste-cal-item';
