@@ -3568,8 +3568,14 @@
         }
       }
 
-      // Desktop click
-      mapEl.addEventListener('click', handlePisteCalClick);
+      // Desktop click (with debounce to prevent double-firing from touch events)
+      let lastPisteCalClickTime = 0;
+      mapEl.addEventListener('click', (e) => {
+        const now = Date.now();
+        if (now - lastPisteCalClickTime < 300) return; // Ignore clicks within 300ms of last click
+        lastPisteCalClickTime = now;
+        handlePisteCalClick(e);
+      });
 
       // Mobile touch
       let pistCalTouchStart = null;
@@ -3589,6 +3595,7 @@
           const dy = Math.abs(touch.clientY - pistCalTouchStart.y);
           if (dx < 10 && dy < 10) {
             e.preventDefault();
+            lastPisteCalClickTime = Date.now(); // Record timestamp to prevent double-click
             handlePisteCalClick({ clientX: touch.clientX, clientY: touch.clientY });
           }
           pistCalTouchStart = null;
