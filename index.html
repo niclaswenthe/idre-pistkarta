@@ -2795,7 +2795,8 @@
     // Difficulty: 'green' = mycket lätt, 'blue' = lätt, 'red' = medelsvår, 'black' = svår
     const PISTE_DATA = [
       // === VÄST ===
-      { num: 1,  name: 'Västbacken',              difficulty: 'green', px: 1040, py: 1075 },
+      { num: '1',  name: 'Västbacken (grön)',       difficulty: 'green', px: 1040, py: 1075 },
+      { num: '1b', name: 'Västbacken (blå)',        difficulty: 'blue',  px: 1060, py: 1095 },
       { num: 2,  name: 'Familjebacken',            difficulty: 'blue',  px: 710,  py: 1185 },
       { num: 3,  name: 'Askes skidområde',         difficulty: 'green', px: 905,  py: 1080 },
       { num: 4,  name: 'Ostpassagen',              difficulty: 'green', px: 1170, py: 1120 },
@@ -3454,7 +3455,7 @@
 
       // Sections for grouping in the UI list
       const pisteSections = [
-        { label: 'VÄST', nums: [1, 2, 3, 4, 5, 6] },
+        { label: 'VÄST', nums: ['1', '1b', 2, 3, 4, 5, 6] },
         { label: 'SNOWPARK', nums: [7, 8] },
         { label: 'ASKESTIGEN', nums: [9] },
         { label: 'SYD', nums: [10, 11, 12, 13, 14, 15] },
