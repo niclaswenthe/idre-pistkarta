@@ -2804,17 +2804,17 @@
       { num:  6, name: 'Tunnelbacken (Drömbacken)',   difficulty: 'blue',    px: 1039, py: 1611 },
 
       // === SNOWPARK ===
-      { num:  7, name: 'Snowpark röd',                difficulty: 'red',     px: 370, py: 1845 },
-      { num:  8, name: 'Snowpark (grön)',             difficulty: 'green',   px: 640, py: 1930 },
-      { num: '8b', name: 'Snowpark (blå)',              difficulty: 'blue',    px: 640, py: 1930 },
+      { num:  7, name: 'Snowpark röd',                difficulty: 'red',     px: 402, py: 1905 },
+      { num:  8, name: 'Snowpark (grön)',             difficulty: 'green',   px: 624, py: 2023 },
+      { num: '8b', name: 'Snowpark (blå)',              difficulty: 'blue',    px: 579, py: 1983 },
 
       // === ASKESTIGEN ===
-      { num:  9, name: 'Askestigen',                  difficulty: 'green',   px: 780, py: 1725 },
+      { num:  9, name: 'Askestigen',                  difficulty: 'green',   px: 736, py: 1771 },
 
       // === SYD ===
-      { num: 10, name: 'Stugbybacken',                difficulty: 'green',   px: 1350, py: 1650 },
-      { num: 11, name: 'Dalsbranten',                 difficulty: 'black',   px: 1870, py: 730 },
-      { num: 12, name: 'Skicenter Syd',               difficulty: 'green',   px: 1540, py: 1395 },
+      { num: 10, name: 'Stugbybacken',                difficulty: 'green',   px: 1546, py: 1108 },
+      { num: 11, name: 'Dalsbranten',                 difficulty: 'black',   px: 1897, py: 726 },
+      { num: 12, name: 'Skicenter Syd',               difficulty: 'green',   px: 1562, py: 1402 },
       { num: 13, name: 'Dalarnas längsta',            difficulty: 'green',   px: 1490, py: 1730 },
       { num: 14, name: 'Dalen 1',                     difficulty: 'green',   px: 1870, py: 1185 },
       { num: 15, name: 'Dalen 2',                     difficulty: 'green',   px: 2080, py: 1330 },
@@ -3443,9 +3443,9 @@
 
       // Mutable copy of PISTE_DATA for calibration
       const pisteCalData = PISTE_DATA.map(p => {
-        // Only Väst section pistes (1, 1b, 2, 3, 4, 5, 6) are calibrated
-        const vastPistes = [1, '1b', 2, 3, 4, 5, 6];
-        const isCalibrated = vastPistes.includes(p.num);
+        // All pistes except 39, 40, 41 have been calibrated
+        const calibratedPistes = [1, '1b', 2, 3, 4, 5, 6, 7, 8, '8b', 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38];
+        const isCalibrated = calibratedPistes.includes(p.num);
 
         return {
           num: p.num,
