@@ -886,10 +886,20 @@
       align-items: flex-start;
     }
 
+    .chat-msg-header {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+
+    .chat-msg.mine .chat-msg-header {
+      flex-direction: row-reverse;
+    }
+
     .chat-msg-sender {
       font-size: 11px;
       font-weight: 600;
-      margin-bottom: 3px;
       opacity: 0.85;
     }
 
@@ -911,10 +921,10 @@
     }
 
     .chat-msg-time {
-      font-size: 11px;
-      opacity: 0.6;
-      margin-top: 3px;
+      font-size: 10px;
+      opacity: 0.5;
       letter-spacing: 0.3px;
+      white-space: nowrap;
     }
 
     /* Gilla-knapp (likes) */
@@ -4122,13 +4132,24 @@
       msgEl.className = 'chat-msg ' + (isMine ? 'mine' : 'theirs');
       msgEl.dataset.msgId = msgId;
 
+      // Header-rad med avsändarnamn + tidsstämpel
+      const header = document.createElement('div');
+      header.className = 'chat-msg-header';
+
       if (!isMine) {
         const sender = document.createElement('div');
         sender.className = 'chat-msg-sender';
         sender.style.color = data.senderColor || '#aaa';
         sender.textContent = data.senderName || 'Okänd';
-        msgEl.appendChild(sender);
+        header.appendChild(sender);
       }
+
+      const headerTime = document.createElement('div');
+      headerTime.className = 'chat-msg-time';
+      headerTime.textContent = formatTime(data.timestamp || Date.now());
+      header.appendChild(headerTime);
+
+      msgEl.appendChild(header);
 
       const bubble = document.createElement('div');
       bubble.className = 'chat-msg-bubble';
@@ -4215,12 +4236,7 @@
         }
       });
 
-      const time = document.createElement('div');
-      time.className = 'chat-msg-time';
-      time.textContent = formatTime(data.timestamp || Date.now());
-
       actions.appendChild(likeBtn);
-      actions.appendChild(time);
       msgEl.appendChild(actions);
 
       // Starta lyssnare för likes på detta meddelande
