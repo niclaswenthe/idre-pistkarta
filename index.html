@@ -922,7 +922,7 @@
 
     .chat-msg-time {
       font-size: 10px;
-      opacity: 0.5;
+      opacity: 0.85;
       letter-spacing: 0.3px;
       white-space: nowrap;
     }
@@ -4146,6 +4146,7 @@
 
       const headerTime = document.createElement('div');
       headerTime.className = 'chat-msg-time';
+      headerTime.style.color = data.senderColor || '#aaa';
       headerTime.textContent = formatTime(data.timestamp || Date.now());
       header.appendChild(headerTime);
 
