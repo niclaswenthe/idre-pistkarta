@@ -1758,6 +1758,67 @@
     .like-modal-close:active {
       background: rgba(255, 255, 255, 0.15);
     }
+
+    /* Pist-namn tooltip */
+    .piste-tooltip {
+      position: fixed;
+      background: rgba(30, 30, 50, 0.94);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 10px 16px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+      z-index: 500;
+      display: none;
+      pointer-events: none;
+      white-space: nowrap;
+      transform: translateX(-50%);
+      transition: opacity 0.15s ease;
+    }
+
+    .piste-tooltip.visible {
+      display: block;
+      animation: piste-tooltip-in 0.2s ease-out;
+    }
+
+    @keyframes piste-tooltip-in {
+      from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    .piste-tooltip-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 800;
+      color: white;
+      margin-right: 10px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .piste-tooltip-content {
+      display: flex;
+      align-items: center;
+    }
+
+    .piste-tooltip-name {
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    .piste-tooltip-difficulty {
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 11px;
+      margin-top: 3px;
+      letter-spacing: 0.3px;
+    }
   </style>
 </head>
 <body>
@@ -1836,6 +1897,17 @@
     <div class="marker-popup-time" id="popup-time"></div>
     <div class="marker-popup-status" id="popup-status"></div>
     <button class="marker-popup-button" id="popup-show-position">Visa position</button>
+  </div>
+
+  <!-- Pist-namn tooltip -->
+  <div class="piste-tooltip" id="piste-tooltip">
+    <div class="piste-tooltip-content">
+      <div class="piste-tooltip-number" id="piste-tooltip-number"></div>
+      <div>
+        <div class="piste-tooltip-name" id="piste-tooltip-name"></div>
+        <div class="piste-tooltip-difficulty" id="piste-tooltip-difficulty"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Grupp-knapp (nere till vänster) -->
@@ -2475,6 +2547,68 @@
       { id: 'G', lat: 61.900915, lng: 12.8576142, px: 570, py: 601 }, // Stugan
     ];
 
+    // ============================
+    // PISTDATA — nummer, namn, svårighetsgrad & pixelposition
+    // ============================
+    // Koordinater i pixlar på 4000×2700-bilden (pistkarta.jpg/webp).
+    // Difficulty: 'green' = mycket lätt, 'blue' = lätt, 'red' = medelsvår, 'black' = svår
+    const PISTE_DATA = [
+      // === VÄST ===
+      { num: 1,  name: 'Västbacken',              difficulty: 'green', px: 855,  py: 1335 },
+      { num: 2,  name: 'Familjebacken',            difficulty: 'blue',  px: 730,  py: 1200 },
+      { num: 3,  name: 'Askes skidområde',         difficulty: 'green', px: 650,  py: 1275 },
+      { num: 4,  name: 'Ostpassagen',              difficulty: 'green', px: 1135, py: 1245 },
+      { num: 5,  name: 'Toppbacken',               difficulty: 'blue',  px: 1300, py: 1210 },
+      { num: 6,  name: 'Tunnelbacken (Drömbacken)',difficulty: 'blue',  px: 1095, py: 1540 },
+
+      // === SNOWPARK ===
+      { num: 7,  name: 'Snowpark röd',             difficulty: 'red',   px: 365,  py: 1870 },
+      { num: 8,  name: 'Snowpark grön/blå',        difficulty: 'blue',  px: 535,  py: 1970 },
+
+      // === ASKESTIGEN ===
+      { num: 9,  name: 'Askestigen',               difficulty: 'green', px: 750,  py: 1770 },
+
+      // === SYD ===
+      { num: 10, name: 'Stugbybacken',             difficulty: 'green', px: 1500, py: 1750 },
+      { num: 11, name: 'Dalsbranten',              difficulty: 'black', px: 1475, py: 1390 },
+      { num: 12, name: 'Skicenter Syd',            difficulty: 'green', px: 1490, py: 1560 },
+      { num: 13, name: 'Dalarnas längsta',         difficulty: 'green', px: 1475, py: 1890 },
+      { num: 14, name: 'Dalen 1',                  difficulty: 'green', px: 1900, py: 1810 },
+      { num: 15, name: 'Dalen 2',                  difficulty: 'green', px: 2005, py: 2000 },
+
+      // === OST ===
+      { num: 16, name: 'Ostbacken',                difficulty: 'green', px: 2185, py: 1100 },
+      { num: 17, name: 'Ostkroken',                difficulty: 'green', px: 2130, py: 985  },
+      { num: 18, name: 'Lämmeln',                  difficulty: 'green', px: 2095, py: 1095 },
+      { num: 19, name: 'Solbacken',                difficulty: 'blue',  px: 2135, py: 1035 },
+      { num: 20, name: 'Rödingen',                 difficulty: 'red',   px: 2210, py: 920  },
+      { num: 21, name: 'Snobbrännan',              difficulty: 'black', px: 2345, py: 875  },
+      { num: 22, name: 'Djärven',                  difficulty: 'black', px: 2375, py: 780  },
+      { num: 23, name: 'Tävlingsbacken',           difficulty: 'black', px: 2465, py: 720  },
+      { num: 24, name: 'Chocken (extrem nedfart)', difficulty: 'black', px: 2465, py: 600  },
+
+      // === NORD ===
+      { num: 25, name: 'Svarten 1',                difficulty: 'black', px: 890,  py: 565  },
+      { num: 26, name: 'Svarten 2',                difficulty: 'black', px: 945,  py: 555  },
+      { num: 27, name: 'Specialen',                difficulty: 'black', px: 855,  py: 635  },
+      { num: 28, name: 'Carvingssvängen',          difficulty: 'red',   px: 1010, py: 620  },
+      { num: 29, name: 'Mellanbacken',             difficulty: 'red',   px: 970,  py: 665  },
+      { num: 30, name: 'Palmbacken',               difficulty: 'red',   px: 910,  py: 705  },
+      { num: 31, name: 'Turisten 1',               difficulty: 'blue',  px: 1020, py: 695  },
+      { num: 32, name: 'Turisten 2',               difficulty: 'blue',  px: 960,  py: 740  },
+      { num: 33, name: 'Gröngölingen 1',           difficulty: 'green', px: 960,  py: 810  },
+      { num: 34, name: 'Gröngölingen 2',           difficulty: 'green', px: 940,  py: 850  },
+
+      // === SKICROSS / ÖVRIGT ===
+      { num: 35, name: 'Blåbärsslingan',           difficulty: 'green', px: 1100, py: 920  },
+      { num: 36, name: 'Fäbodssvängen',            difficulty: 'green', px: 820,  py: 1000 },
+      { num: 37, name: 'Ravinen (skicross)',        difficulty: 'blue',  px: 1160, py: 650  },
+      { num: 38, name: 'Tallbacken (skicross)',     difficulty: 'red',   px: 1060, py: 1540 },
+      { num: 39, name: 'Glidaren',                 difficulty: 'green', px: 1310, py: 590  },
+      { num: 40, name: 'Gondolsvängen',            difficulty: 'green', px: 1590, py: 2020 },
+      { num: 41, name: 'Pernillabacken',           difficulty: 'green', px: 1670, py: 1910 },
+    ];
+
     // Thin Plate Spline (TPS) — exakt interpolation genom alla referenspunkter.
     // En affin transform fungerar dåligt på en 3D-perspektivkarta eftersom
     // relationen GPS→pixel är icke-linjär. TPS hanterar detta genom att
@@ -2761,6 +2895,19 @@
     }
 
     // ============================
+    // GEMENSAM HJÄLPFUNKTION — skärmkoordinater → bildpixlar
+    // ============================
+    // Används av både pist-tap och kalibrering.
+    function screenToImageCoords(screenX, screenY) {
+      const mapRect = mapEl.getBoundingClientRect();
+      const relX = screenX - mapRect.left;
+      const relY = screenY - mapRect.top;
+      const imageX = relX / scale;
+      const imageY = relY / scale;
+      return { x: imageX, y: imageY };
+    }
+
+    // ============================
     // CALIBRATION MODE
     // ============================
     // Aktiveras med ?calibrate=1 i URL:en
@@ -2861,21 +3008,7 @@
         return names[id] || 'Okänd lift';
       }
 
-      // Convert screen click coordinates to map image pixel coordinates
-      function screenToImageCoords(screenX, screenY) {
-        // Get the map element's bounding rect
-        const mapRect = mapEl.getBoundingClientRect();
-
-        // Calculate position relative to map element
-        const relX = screenX - mapRect.left;
-        const relY = screenY - mapRect.top;
-
-        // Account for the current scale
-        const imageX = relX / scale;
-        const imageY = relY / scale;
-
-        return { x: imageX, y: imageY };
-      }
+      // screenToImageCoords() definierad globalt ovanför — används här också
 
       // Place marker on map
       function placeMarker(liftId, px, py) {
@@ -3544,6 +3677,197 @@
     const origFitToScreen = fitToScreen;
     // Koppla overlay-storlek till bildladdning
     imgEl.addEventListener('load', updateOverlaySize);
+
+    // ============================
+    // PIST-TAP — tryck på siffra för att se backnamn
+    // ============================
+    const pisteTooltip = document.getElementById('piste-tooltip');
+    const pisteTooltipNumber = document.getElementById('piste-tooltip-number');
+    const pisteTooltipName = document.getElementById('piste-tooltip-name');
+    const pisteTooltipDifficulty = document.getElementById('piste-tooltip-difficulty');
+    let pisteTooltipTimeout = null;
+
+    const DIFFICULTY_COLORS = {
+      green: '#4CAF50',
+      blue:  '#2196F3',
+      red:   '#E91E63',
+      black: '#333333'
+    };
+
+    const DIFFICULTY_LABELS = {
+      green: 'Mycket lätt',
+      blue:  'Lätt',
+      red:   'Medelsvår',
+      black: 'Svår'
+    };
+
+    // Tap radius in image pixels — how close you need to tap to a piste number
+    const PISTE_TAP_RADIUS = 60;
+
+    function findNearestPiste(imageX, imageY) {
+      // Scale coordinates to match CALIBRATION dimensions if image differs
+      const scaleX = imgEl.naturalWidth ? CALIBRATION_IMAGE_WIDTH / imgEl.naturalWidth : 1;
+      const scaleY = imgEl.naturalHeight ? CALIBRATION_IMAGE_HEIGHT / imgEl.naturalHeight : 1;
+      const calX = imageX * scaleX;
+      const calY = imageY * scaleY;
+
+      let closest = null;
+      let closestDist = Infinity;
+
+      for (const piste of PISTE_DATA) {
+        const dx = calX - piste.px;
+        const dy = calY - piste.py;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closest = piste;
+        }
+      }
+
+      // Adjust tap radius based on zoom level — at higher zoom, be more precise
+      const effectiveRadius = PISTE_TAP_RADIUS / Math.max(1, scale * 0.5);
+
+      return closestDist <= Math.max(PISTE_TAP_RADIUS, effectiveRadius) ? closest : null;
+    }
+
+    function showPisteTooltip(piste, screenX, screenY) {
+      // Set content
+      pisteTooltipNumber.textContent = piste.num;
+      pisteTooltipNumber.style.backgroundColor = DIFFICULTY_COLORS[piste.difficulty] || '#666';
+      // Black pistes: use white border for visibility
+      if (piste.difficulty === 'black') {
+        pisteTooltipNumber.style.borderRadius = '4px';
+        pisteTooltipNumber.style.transform = 'rotate(45deg)';
+        pisteTooltipNumber.querySelector && (pisteTooltipNumber.innerHTML = `<span style="transform:rotate(-45deg);display:block">${piste.num}</span>`);
+      } else {
+        pisteTooltipNumber.style.borderRadius = piste.difficulty === 'red' ? '6px' : '50%';
+        pisteTooltipNumber.style.transform = 'none';
+        pisteTooltipNumber.innerHTML = piste.num;
+      }
+
+      pisteTooltipName.textContent = piste.name;
+      pisteTooltipDifficulty.textContent = DIFFICULTY_LABELS[piste.difficulty] || '';
+
+      // Position tooltip above the tap point (fixed position, doesn't scale)
+      let left = screenX;
+      let top = screenY - 70;
+
+      // Keep within viewport
+      const tooltipWidth = 250; // approximate
+      if (left < tooltipWidth / 2 + 10) left = tooltipWidth / 2 + 10;
+      if (left > window.innerWidth - tooltipWidth / 2 - 10) left = window.innerWidth - tooltipWidth / 2 - 10;
+      if (top < 10) top = screenY + 30; // show below if too close to top
+
+      pisteTooltip.style.left = left + 'px';
+      pisteTooltip.style.top = top + 'px';
+      pisteTooltip.classList.add('visible');
+
+      // Auto-hide after 3 seconds
+      clearTimeout(pisteTooltipTimeout);
+      pisteTooltipTimeout = setTimeout(hidePisteTooltip, 3000);
+    }
+
+    function hidePisteTooltip() {
+      pisteTooltip.classList.remove('visible');
+      clearTimeout(pisteTooltipTimeout);
+    }
+
+    // Track touch start for tap detection
+    let pisteTouchStart = null;
+    let pisteTouchStartTime = 0;
+
+    container.addEventListener('touchstart', (e) => {
+      // Don't interfere with UI elements
+      if (e.target.closest('.chat-panel') ||
+          e.target.closest('.members-panel') ||
+          e.target.closest('#calibration-panel') ||
+          e.target.closest('.modal-overlay') ||
+          e.target.closest('.zoom-controls') ||
+          e.target.closest('.group-btn') ||
+          e.target.closest('.session-bar') ||
+          e.target.closest('#joystick-base') ||
+          e.target.closest('.marker-popup') ||
+          e.target.closest('.piste-tooltip') ||
+          e.target.closest('.user-marker-clickable')) return;
+
+      if (e.touches.length === 1) {
+        pisteTouchStart = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY
+        };
+        pisteTouchStartTime = Date.now();
+      } else {
+        pisteTouchStart = null; // Multi-touch = not a tap
+      }
+    }, { passive: true });
+
+    container.addEventListener('touchend', (e) => {
+      if (!pisteTouchStart) return;
+      if (isCalibrationMode) { pisteTouchStart = null; return; }
+      if (e.changedTouches.length !== 1) { pisteTouchStart = null; return; }
+
+      const touch = e.changedTouches[0];
+      const dx = Math.abs(touch.clientX - pisteTouchStart.x);
+      const dy = Math.abs(touch.clientY - pisteTouchStart.y);
+      const elapsed = Date.now() - pisteTouchStartTime;
+
+      // Only count as tap if: minimal movement AND quick tap (< 300ms)
+      if (dx < 15 && dy < 15 && elapsed < 300) {
+        const coords = screenToImageCoords(touch.clientX, touch.clientY);
+        const piste = findNearestPiste(coords.x, coords.y);
+        if (piste) {
+          showPisteTooltip(piste, touch.clientX, touch.clientY);
+        } else {
+          hidePisteTooltip();
+        }
+      }
+
+      pisteTouchStart = null;
+    }, { passive: true });
+
+    // Mouse click support (desktop)
+    container.addEventListener('click', (e) => {
+      // Don't interfere with UI elements
+      if (e.target.closest('.chat-panel') ||
+          e.target.closest('.members-panel') ||
+          e.target.closest('#calibration-panel') ||
+          e.target.closest('.modal-overlay') ||
+          e.target.closest('.zoom-controls') ||
+          e.target.closest('.group-btn') ||
+          e.target.closest('.session-bar') ||
+          e.target.closest('#joystick-base') ||
+          e.target.closest('.marker-popup') ||
+          e.target.closest('.piste-tooltip') ||
+          e.target.closest('.user-marker-clickable')) return;
+
+      if (isCalibrationMode) return;
+
+      // Check if this was actually a drag (not a click)
+      const movedX = Math.abs(e.clientX - startX);
+      const movedY = Math.abs(e.clientY - startY);
+      if (movedX > 5 || movedY > 5) return; // was a drag, not a click
+
+      const coords = screenToImageCoords(e.clientX, e.clientY);
+      const piste = findNearestPiste(coords.x, coords.y);
+      if (piste) {
+        showPisteTooltip(piste, e.clientX, e.clientY);
+      } else {
+        hidePisteTooltip();
+      }
+    });
+
+    // Hide tooltip when starting to drag/zoom
+    container.addEventListener('touchmove', () => {
+      hidePisteTooltip();
+      pisteTouchStart = null; // Cancel tap detection
+    }, { passive: true });
+
+    // Hide when clicking elsewhere
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.piste-tooltip') && !e.target.closest('#map-container')) {
+        hidePisteTooltip();
+      }
+    });
 
     // ============================
     // UI-HANTERING
