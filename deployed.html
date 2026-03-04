@@ -813,35 +813,6 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    .chat-header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .chat-sound-toggle {
-      background: rgba(255, 255, 255, 0.12);
-      border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-      transition: background 0.2s, opacity 0.2s;
-    }
-
-    .chat-sound-toggle:active {
-      background: rgba(255, 255, 255, 0.25);
-    }
-
-    .chat-sound-toggle.muted {
-      opacity: 0.4;
-    }
-
     /* Meddelandelista */
     .chat-messages {
       flex: 1;
@@ -886,20 +857,10 @@
       align-items: flex-start;
     }
 
-    .chat-msg-header {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      margin-bottom: 3px;
-    }
-
-    .chat-msg.mine .chat-msg-header {
-      flex-direction: row-reverse;
-    }
-
     .chat-msg-sender {
       font-size: 11px;
       font-weight: 600;
+      margin-bottom: 3px;
       opacity: 0.85;
     }
 
@@ -922,51 +883,8 @@
 
     .chat-msg-time {
       font-size: 10px;
-      opacity: 0.85;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-    }
-
-    /* Gilla-knapp (likes) */
-    .chat-msg-actions {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 2px;
-    }
-
-    .chat-msg.mine .chat-msg-actions {
-      flex-direction: row-reverse;
-    }
-
-    .chat-like-btn {
-      background: none;
-      border: none;
-      padding: 2px 6px;
-      cursor: pointer;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      border-radius: 12px;
-      color: rgba(255, 255, 255, 0.4);
-      transition: all 0.2s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .chat-like-btn:active {
-      transform: scale(1.2);
-    }
-
-    .chat-like-btn.liked {
-      color: #ff4d6a;
-    }
-
-    .chat-like-count {
-      font-size: 11px;
-      font-weight: 600;
-      min-width: 8px;
-      text-align: center;
+      opacity: 0.45;
+      margin-top: 3px;
     }
 
     /* Bild i chatt */
@@ -1320,7 +1238,7 @@
 
     #calibration-overlay.active {
       display: block;
-      pointer-events: none; /* Låt touch/click-events passera igenom till kartan */
+      pointer-events: auto;
     }
 
     #calibration-panel {
@@ -1340,7 +1258,6 @@
       gap: 16px;
       overflow: hidden;
       touch-action: auto;
-      pointer-events: auto; /* Panelen måste vara klickbar även när overlay är pointer-events: none */
     }
 
     @media (max-width: 768px) {
@@ -1349,92 +1266,16 @@
         right: 10px;
         width: auto;
         bottom: auto;
-        max-height: 75vh;
+        max-height: 60vh;
       }
-    }
-
-    #calibration-panel.minimized {
-      bottom: auto;
-      left: auto;
-      right: 20px;
-      top: 20px;
-      width: auto;
-      height: auto;
-      padding: 0;
-    }
-
-    @media (max-width: 768px) {
-      #calibration-panel.minimized {
-        right: 10px;
-        top: 10px;
-      }
-    }
-
-    .calibration-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 0;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      flex-shrink: 0;
-    }
-
-    #calibration-panel.minimized .calibration-header {
-      border-bottom: none;
-      padding-bottom: 0;
     }
 
     #calibration-panel h2 {
       color: white;
       font-size: 18px;
       margin: 0;
-      flex: 1;
-    }
-
-    .calibration-minimize-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: white;
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s, transform 0.1s;
-      flex-shrink: 0;
-      margin-left: 12px;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .calibration-minimize-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .calibration-minimize-btn:active {
-      transform: scale(0.95);
-    }
-
-    #calibration-panel.minimized .calibration-minimize-btn {
-      margin-left: 0;
-      width: 48px;
-      height: 48px;
-      font-size: 20px;
-    }
-
-    .calibration-content {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      overflow: hidden;
-      min-height: 0;
-    }
-
-    #calibration-panel.minimized .calibration-content {
-      display: none;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     #calibration-panel p {
@@ -1444,69 +1285,8 @@
       margin: 0;
     }
 
-    .calibration-instructions {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 16px;
-      flex-shrink: 0;
-    }
-
-    .calibration-step {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 12px;
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .calibration-step:last-child {
-      margin-bottom: 0;
-    }
-
-    .calibration-step-number {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 24px;
-      height: 24px;
-      background: #69F0AE;
-      color: #1a1a2e;
-      font-weight: 700;
-      font-size: 13px;
-      border-radius: 50%;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-
-    .calibration-step-text {
-      flex: 1;
-      padding-top: 2px;
-    }
-
-    .calibration-instructions-title {
-      color: white;
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
-
-    @media (max-width: 768px) {
-      .calibration-step {
-        font-size: 15px;
-      }
-
-      .calibration-step-number {
-        min-width: 28px;
-        height: 28px;
-        font-size: 14px;
-      }
-    }
-
     #calibration-lifts {
       flex: 1;
-      min-height: 0;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -1574,7 +1354,6 @@
       gap: 8px;
       padding-top: 12px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      flex-shrink: 0;
     }
 
     .calibration-btn {
@@ -1641,260 +1420,6 @@
       white-space: nowrap;
     }
 
-    /* Piste calibration overlay — reuse lift calibration styles */
-    #piste-calibration-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 500;
-      display: none;
-      pointer-events: none;
-    }
-
-    #piste-calibration-overlay.active {
-      display: block;
-      pointer-events: none;
-    }
-
-    #piste-calibration-panel {
-      position: fixed;
-      left: 20px;
-      top: 20px;
-      bottom: 20px;
-      width: 300px;
-      background: rgba(30, 30, 50, 0.95);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      overflow: hidden;
-      touch-action: auto;
-      pointer-events: auto;
-    }
-
-    @media (max-width: 768px) {
-      #piste-calibration-panel {
-        left: 10px;
-        right: 10px;
-        width: auto;
-        bottom: auto;
-        max-height: 75vh;
-      }
-    }
-
-    #piste-calibration-panel.minimized {
-      bottom: auto;
-      left: auto;
-      right: 20px;
-      top: 20px;
-      width: auto;
-      height: auto;
-      padding: 0;
-    }
-
-    @media (max-width: 768px) {
-      #piste-calibration-panel.minimized {
-        right: 10px;
-        top: 10px;
-      }
-    }
-
-    #piste-calibration-panel.minimized .calibration-content {
-      display: none;
-    }
-
-    #piste-calibration-panel.minimized .calibration-header {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-
-    #piste-calibration-panel.minimized .calibration-minimize-btn {
-      margin-left: 0;
-      width: 48px;
-      height: 48px;
-      font-size: 20px;
-    }
-
-    #piste-calibration-list {
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-y;
-    }
-
-    #piste-calibration-list::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    #piste-calibration-list::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 2px;
-    }
-
-    #piste-calibration-list::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
-    }
-
-    .piste-cal-item {
-      padding: 8px 10px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 2px solid transparent;
-      border-radius: 10px;
-      color: white;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .piste-cal-item:hover {
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    .piste-cal-item.selected {
-      border-color: #FF9800;
-      background: rgba(255, 152, 0, 0.15);
-    }
-
-    .piste-cal-item.placed {
-      opacity: 0.5;
-    }
-
-    .piste-cal-item.placed.selected {
-      opacity: 1;
-    }
-
-    .piste-cal-num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 28px;
-      height: 22px;
-      border-radius: 4px;
-      font-weight: 700;
-      font-size: 12px;
-      color: white;
-      flex-shrink: 0;
-    }
-
-    .piste-cal-num.green  { background: #4CAF50; }
-    .piste-cal-num.blue   { background: #2196F3; }
-    .piste-cal-num.red    { background: #f44336; }
-    .piste-cal-num.black  { background: #333; }
-
-    .piste-cal-name {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .piste-cal-status {
-      margin-left: auto;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-
-    .piste-cal-section {
-      color: rgba(255, 255, 255, 0.4);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      padding: 8px 4px 4px;
-    }
-
-    /* Piste calibration markers (orange instead of green) */
-    .piste-cal-marker {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .piste-cal-marker-circle {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #FF9800;
-      border: 2px solid white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    }
-
-    .piste-cal-marker-label {
-      position: absolute;
-      top: -26px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
-      color: #FF9800;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    #calibration-crosshair {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9999;
-      display: none;
-    }
-
-    #calibration-crosshair.active {
-      display: block;
-    }
-
-    .crosshair-lines {
-      position: absolute;
-      transform: translate(-50%, -50%);
-    }
-
-    .crosshair-h, .crosshair-v {
-      position: absolute;
-      background: rgba(255, 152, 0, 0.8);
-    }
-
-    .crosshair-h {
-      width: 20px;
-      height: 2px;
-      left: -10px;
-      top: -1px;
-    }
-
-    .crosshair-v {
-      width: 2px;
-      height: 20px;
-      left: -1px;
-      top: -10px;
-    }
-
-    .crosshair-coords {
-      position: absolute;
-      left: 15px;
-      top: -20px;
-      background: rgba(0, 0, 0, 0.9);
-      color: #FF9800;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-      white-space: nowrap;
-      border: 1px solid #FF9800;
-    }
-
     /* Map cursor in calibration mode */
     #map-container.calibration-mode {
       cursor: crosshair !important;
@@ -1902,176 +1427,6 @@
 
     #map-container.calibration-mode #map {
       cursor: crosshair !important;
-    }
-
-    /* Toast notifications */
-    .toast {
-      position: fixed;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-100px);
-      background: rgba(255, 77, 106, 0.95);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      z-index: 10000;
-      opacity: 0;
-      transition: all 0.3s ease;
-      pointer-events: none;
-      max-width: 80%;
-      text-align: center;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* Like modal */
-    #like-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #like-modal.visible {
-      display: flex;
-    }
-
-    .like-modal-content {
-      background: #2a2a3e;
-      border-radius: 16px;
-      padding: 20px;
-      max-width: 320px;
-      width: 90%;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    .like-modal-header {
-      font-size: 16px;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .like-modal-list {
-      list-style: none;
-    }
-
-    .like-modal-user {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-      margin-bottom: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-    }
-
-    .like-modal-user-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      border: 2px solid white;
-      flex-shrink: 0;
-    }
-
-    .like-modal-user-name {
-      color: white;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .like-modal-close {
-      margin-top: 16px;
-      width: 100%;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      border-radius: 10px;
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .like-modal-close:active {
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    /* Pist-namn tooltip */
-    .piste-tooltip {
-      position: fixed;
-      background: rgba(30, 30, 50, 0.94);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: 12px;
-      padding: 10px 16px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
-      z-index: 500;
-      display: none;
-      pointer-events: none;
-      white-space: nowrap;
-      transform: translateX(-50%);
-      transition: opacity 0.15s ease;
-    }
-
-    .piste-tooltip.visible {
-      display: block;
-      animation: piste-tooltip-in 0.2s ease-out;
-    }
-
-    @keyframes piste-tooltip-in {
-      from { opacity: 0; transform: translateX(-50%) translateY(6px); }
-      to { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-
-    .piste-tooltip-number {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 26px;
-      height: 26px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 800;
-      color: white;
-      margin-right: 10px;
-      vertical-align: middle;
-      flex-shrink: 0;
-    }
-
-    .piste-tooltip-content {
-      display: flex;
-      align-items: center;
-    }
-
-    .piste-tooltip-name {
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-    }
-
-    .piste-tooltip-difficulty {
-      color: rgba(255, 255, 255, 0.55);
-      font-size: 11px;
-      margin-top: 3px;
-      letter-spacing: 0.3px;
     }
   </style>
 </head>
@@ -2095,84 +1450,17 @@
     </div>
   </div>
 
-  <div id="calibration-crosshair">
-    <div class="crosshair-lines">
-      <div class="crosshair-h"></div>
-      <div class="crosshair-v"></div>
-    </div>
-    <div class="crosshair-coords"></div>
-  </div>
-
   <div id="zoom-level"></div>
 
   <!-- Calibration overlay -->
   <div id="calibration-overlay">
     <div id="calibration-panel">
-      <div class="calibration-header">
-        <h2>Kalibreringsläge</h2>
-        <button class="calibration-minimize-btn" id="calibration-minimize" title="Minimera">▼</button>
-      </div>
-      <div class="calibration-content">
-        <div class="calibration-instructions">
-          <div class="calibration-instructions-title">Hur det fungerar:</div>
-          <div class="calibration-step">
-            <div class="calibration-step-number">1</div>
-            <div class="calibration-step-text">Zooma och panorera för att hitta liften på kartan</div>
-          </div>
-          <div class="calibration-step">
-            <div class="calibration-step-number">2</div>
-            <div class="calibration-step-text">Välj en lift från listan nedan</div>
-          </div>
-          <div class="calibration-step">
-            <div class="calibration-step-number">3</div>
-            <div class="calibration-step-text">Klicka på kartan där liftens bas-station finns</div>
-          </div>
-          <div class="calibration-step">
-            <div class="calibration-step-number">4</div>
-            <div class="calibration-step-text">Upprepa för alla liftar, sedan kopiera koden</div>
-          </div>
-        </div>
-        <div id="calibration-lifts"></div>
-        <div id="calibration-actions">
-          <button class="calibration-btn calibration-btn-primary" id="calibration-copy">Kopiera kod</button>
-          <button class="calibration-btn calibration-btn-secondary" id="calibration-reset">Återställ</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pist-kalibrering overlay -->
-  <div id="piste-calibration-overlay">
-    <div id="piste-calibration-panel">
-      <div class="calibration-header">
-        <h2>Pist-kalibrering</h2>
-        <button class="calibration-minimize-btn" id="piste-calibration-minimize" title="Minimera">▼</button>
-      </div>
-      <div class="calibration-content">
-        <div class="calibration-instructions">
-          <div class="calibration-instructions-title">Hur det fungerar:</div>
-          <div class="calibration-step">
-            <div class="calibration-step-number" style="background:#FF9800">1</div>
-            <div class="calibration-step-text">Zooma in och hitta siffran på kartan</div>
-          </div>
-          <div class="calibration-step">
-            <div class="calibration-step-number" style="background:#FF9800">2</div>
-            <div class="calibration-step-text">Välj en pist från listan nedan</div>
-          </div>
-          <div class="calibration-step">
-            <div class="calibration-step-number" style="background:#FF9800">3</div>
-            <div class="calibration-step-text">Klicka exakt på siffran på kartan</div>
-          </div>
-          <div class="calibration-step">
-            <div class="calibration-step-number" style="background:#FF9800">4</div>
-            <div class="calibration-step-text">Upprepa för alla pister, sedan kopiera koden</div>
-          </div>
-        </div>
-        <div id="piste-calibration-list"></div>
-        <div id="calibration-actions">
-          <button class="calibration-btn calibration-btn-primary" id="piste-calibration-copy" style="background:#FF9800">Kopiera PISTE_DATA</button>
-          <button class="calibration-btn calibration-btn-secondary" id="piste-calibration-reset">Återställ</button>
-        </div>
+      <h2>Kalibreringsläge</h2>
+      <p>Klicka på en lift nedan, sedan klicka på kartan där liften faktiskt finns.</p>
+      <div id="calibration-lifts"></div>
+      <div id="calibration-actions">
+        <button class="calibration-btn calibration-btn-primary" id="calibration-copy">Kopiera kod</button>
+        <button class="calibration-btn calibration-btn-secondary" id="calibration-reset">Återställ</button>
       </div>
     </div>
   </div>
@@ -2195,17 +1483,6 @@
     <div class="marker-popup-time" id="popup-time"></div>
     <div class="marker-popup-status" id="popup-status"></div>
     <button class="marker-popup-button" id="popup-show-position">Visa position</button>
-  </div>
-
-  <!-- Pist-namn tooltip -->
-  <div class="piste-tooltip" id="piste-tooltip">
-    <div class="piste-tooltip-content">
-      <div class="piste-tooltip-number" id="piste-tooltip-number"></div>
-      <div>
-        <div class="piste-tooltip-name" id="piste-tooltip-name"></div>
-        <div class="piste-tooltip-difficulty" id="piste-tooltip-difficulty"></div>
-      </div>
-    </div>
   </div>
 
   <!-- Grupp-knapp (nere till vänster) -->
@@ -2249,10 +1526,7 @@
   <div class="chat-panel" id="chat-panel">
     <div class="chat-panel-header">
       <span class="chat-panel-title" id="chat-panel-title">Gruppchatt</span>
-      <div class="chat-header-actions">
-        <button class="chat-sound-toggle" id="chat-sound-toggle" aria-label="Ljud på/av" title="Ljud på/av">🔔</button>
-        <button class="chat-close-btn" id="chat-close-btn" aria-label="Stäng chatt">✕</button>
-      </div>
+      <button class="chat-close-btn" id="chat-close-btn" aria-label="Stäng chatt">✕</button>
     </div>
     <div class="chat-messages" id="chat-messages"></div>
     <!-- Bifoga-meny (popup) -->
@@ -2278,21 +1552,6 @@
   <!-- Bildvisare (fullscreen) -->
   <div class="img-fullscreen" id="img-fullscreen">
     <img id="img-fullscreen-img" alt="Bild">
-  </div>
-
-  <!-- Toast notifications -->
-  <div id="toast" class="toast"></div>
-
-  <!-- Like modal -->
-  <div id="like-modal">
-    <div class="like-modal-content">
-      <div class="like-modal-header">
-        <span>❤️</span>
-        <span id="like-modal-title">Gillade av</span>
-      </div>
-      <ul class="like-modal-list" id="like-modal-list"></ul>
-      <button class="like-modal-close" id="like-modal-close">Stäng</button>
-    </div>
   </div>
 
   <!-- Dolda fil-inputs -->
@@ -2395,27 +1654,16 @@
     // ============================
     // Firebase config (bilbingo-v2 projekt)
     // ============================
-    let db = null;
-
-    // Initialize Firebase only if the library is loaded
-    if (typeof firebase !== 'undefined') {
-      try {
-        firebase.initializeApp({
-          apiKey: "AIzaSyB2N7mFoJ83oOniMtfF3ZkzccnK4FyvfDM",
-          authDomain: "bilbingo-b8999.firebaseapp.com",
-          databaseURL: "https://bilbingo-b8999-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "bilbingo-b8999",
-          storageBucket: "bilbingo-b8999.firebasestorage.app",
-          messagingSenderId: "8371565415",
-          appId: "1:8371565415:web:3b02df7376cee8c88235c2",
-        });
-        db = firebase.database();
-      } catch (error) {
-        console.error('Firebase initialization failed:', error);
-      }
-    } else {
-      console.warn('Firebase library not loaded - map will work without real-time features');
-    }
+    firebase.initializeApp({
+      apiKey: "AIzaSyB2N7mFoJ83oOniMtfF3ZkzccnK4FyvfDM",
+      authDomain: "bilbingo-b8999.firebaseapp.com",
+      databaseURL: "https://bilbingo-b8999-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "bilbingo-b8999",
+      storageBucket: "bilbingo-b8999.firebasestorage.app",
+      messagingSenderId: "8371565415",
+      appId: "1:8371565415:web:3b02df7376cee8c88235c2",
+    });
+    const db = firebase.database();
 
     // ============================
     // KART-KONTROLLER (befintlig kod)
@@ -2434,7 +1682,6 @@
     let startX, startY, startPosX, startPosY;
     let zoomTimeout;
     let joystickActive = false;
-    let isCalibrationMode = false; // Global flag for calibration mode
 
     // Pinch-to-zoom variabler
     let isPinching = false;
@@ -2455,12 +1702,8 @@
       const testImg = new Image();
       testImg.onload = function() {
         imageLoaded = true;
-        let hasLoaded = false;
-
-        // Define handler function with guard to prevent double-calling
+        // Define handler function
         const handleImageLoad = function() {
-          if (hasLoaded) return;
-          hasLoaded = true;
           loading.classList.add('hidden');
           fitToScreen();
         };
@@ -2470,20 +1713,12 @@
         imgEl.src = imageCandidates[index];
 
         // Handle case where image loads synchronously from cache
-        // Check after a small delay to give the browser time to update image state
-        // We check multiple times to handle different browser behaviors
+        // Use a small timeout to ensure the DOM is ready
         setTimeout(() => {
           if (imgEl.complete && imgEl.naturalWidth > 0) {
             handleImageLoad();
           }
-        }, 10);
-
-        // Fallback: check again after a longer delay
-        setTimeout(() => {
-          if (imgEl.complete && imgEl.naturalWidth > 0) {
-            handleImageLoad();
-          }
-        }, 100);
+        }, 0);
       };
       testImg.onerror = function() {
         tryLoadImage(index + 1);
@@ -2570,10 +1805,8 @@
 
     container.addEventListener('touchstart', (e) => {
       if (joystickActive) return;
-      // Tillåt scroll i chatten, medlemspanelen och kalibreringspanelen
-      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel') || e.target.closest('#calibration-panel') || e.target.closest('#piste-calibration-panel')) return;
-      // I kalibrerings-läge, tillåt inte dragging på kartan (för att clicks ska fungera)
-      if (isCalibrationMode && e.target.closest('#map')) return;
+      // Tillåt scroll i chatten och medlemspanelen
+      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
 
       if (e.touches.length === 2) {
         // Starta pinch-to-zoom — alltid prioritera över drag
@@ -2593,10 +1826,8 @@
 
     container.addEventListener('touchmove', (e) => {
       if (joystickActive) return;
-      // Tillåt scroll i chatten, medlemspanelen och kalibreringspanelen
-      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel') || e.target.closest('#calibration-panel') || e.target.closest('#piste-calibration-panel')) return;
-      // I kalibrerings-läge, tillåt inte dragging på kartan
-      if (isCalibrationMode && e.target.closest('#map')) return;
+      // Tillåt scroll i chatten och medlemspanelen
+      if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
 
       if (e.touches.length === 2) {
         e.preventDefault();
@@ -2684,8 +1915,6 @@
     container.addEventListener('wheel', (e) => {
       // Tillåt scroll i chatten och medlemspanelen
       if (e.target.closest('.chat-panel') || e.target.closest('.members-panel')) return;
-      // Tillåt scroll i kalibreringspanelen
-      if (e.target.closest('#calibration-panel') || e.target.closest('#piste-calibration-panel')) return;
       e.preventDefault();
       const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
       zoomAt(delta, e.clientX, e.clientY);
@@ -2799,214 +2028,49 @@
     // Pixelpositioner (px, py) bestämda genom visuell analys av kartbilden (4000×2700).
     // Liftbokstav enligt Idre Fjälls officiella karta.
     const REFERENCE_POINTS = [
-      // === NORD ===
-      { id: 'A', lat: 61.8936, lng: 12.8537, px: 657, py: 698 }, // Nord 6:an
-      { id: 'A2', lat: 61.88819969217284, lng: 12.858381323761694, px: 2093, py: 374 }, // Nord 6:an (topp)
-      { id: 'B', lat: 61.8957, lng: 12.8494, px: 649, py: 727 }, // Nordknappen
-      { id: 'B2', lat: 61.89281810381592, lng: 12.848986755807564, px: 1283, py: 480 }, // Nordknappen (topp)
+      // === NORD-SEKTIONEN (övre vänster — "NORD" texten sitter vid ca x=680,y=470) ===
+      // A = Nord 6:an — stolslift med orange linje, går från dalen upp mot NORD-toppen
+      // Bottenstationen vid ca (720, 700), toppstationen vid ca (650, 440). Center:
+      { id: 'A', lat: 61.8936, lng: 12.8537, px: 690, py: 560 },
+      // B = Nordknappen — kort knapplift, högst upp i NORD, ovanför A
+      { id: 'B', lat: 61.8957, lng: 12.8494, px: 580, py: 400 },
 
-      // === VÄST ===
-      { id: 'H', lat: 61.8881, lng: 12.8353, px: 1115, py: 1954 }, // Väst 6:an
-      { id: 'H2', lat: 61.8889698910007, lng: 12.850940512001573, px: 1733, py: 563 }, // Väst 6:an (topp)
-      { id: 'I', lat: 61.8878, lng: 12.8254, px: 1178, py: 1890 }, // Tunnelliften
-      { id: 'I2', lat: 61.89064559230205, lng: 12.829687690123679, px: 819, py: 1375 }, // Tunnelliften (topp)
-      { id: 'J', lat: 61.8903, lng: 12.8348, px: 835, py: 1345 }, // Västtransporten
-      { id: 'J2', lat: 61.89073993030514, lng: 12.83792241875456, px: 1305, py: 1000 }, // Västtransporten (topp)
+      // === VÄST-SEKTIONEN (längst till vänster — "VÄST" under NORD) ===
+      // H = Väst 6:an — stor stolslift, orange linje på västra sidan, går ganska långt upp
+      { id: 'H', lat: 61.8881, lng: 12.8353, px: 280, py: 780 },
+      // I = Tunnelliften — knapplift, längst ner till vänster under VÄST
+      { id: 'I', lat: 61.8878, lng: 12.8254, px: 120, py: 1050 },
+      // J = Västtransporten — kort transportlift, koppling väst till mitt
+      { id: 'J', lat: 61.8903, lng: 12.8348, px: 400, py: 680 },
 
-      // === MITT/TOPP ===
-      { id: 'C', lat: 61.8912, lng: 12.8272, px: 514, py: 1536 }, // Askeliften
-      { id: 'C2', lat: 61.89172547533769, lng: 12.82859563938945, px: 547, py: 1381 }, // Askeliften (topp)
-      { id: 'K', lat: 61.8904, lng: 12.8344, px: 1001, py: 1212 }, // Familjeliften
-      { id: 'K2', lat: 0, lng: 0, px: 1145, py: 1102 }, // Familjeliften (topp) — EXCLUDED from TPS (missing GPS)
-      { id: 'L', lat: 61.8907, lng: 12.8455, px: 1194, py: 992 }, // Talliften
-      { id: 'L2', lat: 0, lng: 0, px: 1674, py: 538 }, // Talliften (topp) — EXCLUDED from TPS (missing GPS)
-      { id: 'Y', lat: 61.8886, lng: 12.8553, px: 1200, py: 380 }, // Toppliften
-      // Y2 EXCLUDED - not calibrated (px: 0, py: 0)
+      // === MITT/TOPP (centrala delen av berget) ===
+      // C = Askeliften — knapplift vid Björnen-området, vänster-mitt, under NORD
+      { id: 'C', lat: 61.8912, lng: 12.8272, px: 350, py: 620 },
+      // K = Familjeliften — knapplift, centralt mellan NORD och dalen
+      { id: 'K', lat: 61.8904, lng: 12.8344, px: 560, py: 750 },
+      // L = Talliften — T-bar, centralt på berget, till höger om K
+      { id: 'L', lat: 61.8907, lng: 12.8455, px: 950, py: 500 },
+      // Y = Toppliften — vid toppen av berget, centralt
+      { id: 'Y', lat: 61.8886, lng: 12.8553, px: 1200, py: 380 },
 
-      // === ÖST ===
-      { id: 'U', lat: 61.8848, lng: 12.8671, px: 2746, py: 887 }, // Ost 6:an
-      { id: 'U2', lat: 61.88214719389036, lng: 12.875735221388194, px: 2174, py: 381 }, // Ost 6:an (topp)
-      { id: 'V', lat: 61.888, lng: 12.8645, px: 2803, py: 884 }, // Ost 4:an
-      { id: 'V2', lat: 61.888116910234594, lng: 12.869743169490802, px: 2913, py: 815 }, // Ost 4:an (topp)
-      { id: 'T', lat: 61.8821, lng: 12.8692, px: 2271, py: 1110 }, // Ostknappen
-      { id: 'T2', lat: 61.881830388696606, lng: 12.876146731985141, px: 2157, py: 386 }, // Ostknappen (topp)
-      { id: 'X', lat: 61.8895, lng: 12.8679, px: 1722, py: 515 }, // Chockentransporten
-      { id: 'X2', lat: 61.89080178956883, lng: 12.866851676230798, px: 2063, py: 396 }, // Chockentransporten (topp)
+      // === ÖST-SEKTIONEN (höger sida — "ÖST" texten vid ca x=1780,y=430) ===
+      // U = Ost 6:an — stor stolslift, orange linje, östra sidan
+      { id: 'U', lat: 61.8848, lng: 12.8671, px: 2050, py: 720 },
+      // V = Ost 4:an — 4-stolslift, bredvid U men lite mer uppåt
+      { id: 'V', lat: 61.8880, lng: 12.8645, px: 1950, py: 550 },
+      // T = Ostknappen — knapplift, nedre delen av ÖST
+      { id: 'T', lat: 61.8821, lng: 12.8692, px: 2200, py: 1050 },
+      // X = Chockentransporten — transport, överst i ÖST, koppling till mitt
+      { id: 'X', lat: 61.8895, lng: 12.8679, px: 1850, py: 420 },
 
-      // === SÖDRA ===
-      { id: 'N', lat: 61.8846, lng: 12.8403, px: 1542, py: 1450 }, // Sydgondolen
-      { id: 'N2', lat: 61.887647216933274, lng: 12.8569743536489, px: 1549, py: 1417 }, // Sydgondolen (topp)
-      { id: 'R', lat: 61.8801, lng: 12.8358, px: 2072, py: 1599 }, // Biejjieliften
-      { id: 'R2', lat: 61.88352819115693, lng: 12.834220877937309, px: 2014, py: 875 }, // Biejjieliften (topp)
-      { id: 'S', lat: 61.8801, lng: 12.8497, px: 2236, py: 1111 }, // Dalsliften
-      { id: 'S2', lat: 61.876532861554246, lng: 12.838071645585574, px: 2067, py: 888 }, // Dalsliften (topp)
-
-      // === ÖVRIGT ===
-      { id: 'G', lat: 61.900915, lng: 12.8576142, px: 570, py: 601 }, // Stugan
-    ];
-
-    // ============================
-    // PISTDATA — nummer, namn, svårighetsgrad & pixelposition
-    // ============================
-    // Koordinater i pixlar på 4000×2700-bilden (pistkarta.jpg/webp).
-    // Difficulty: 'green' = mycket lätt, 'blue' = lätt, 'red' = medelsvår, 'black' = svår
-    const PISTE_DATA = [
-      // === VÄST ===
-      { num:  1, name: 'Västbacken (grön)',           difficulty: 'green',   px: 1072, py: 1071 },
-      { num: '1b', name: 'Västbacken (blå)',            difficulty: 'blue',    px: 1046, py: 1761 },
-      { num: '1c', name: 'Västbacken (röd)',            difficulty: 'red',     px: 1562, py: 693 },
-      { num:  2, name: 'Familjebacken',               difficulty: 'blue',    px: 1008, py: 1154 },
-      { num:  3, name: 'Askes skidområde',            difficulty: 'green',   px: 552, py: 1467 },
-      { num:  4, name: 'Ostpassagen',                 difficulty: 'green',   px: 1872, py: 565 },
-      { num:  5, name: 'Toppbacken',                  difficulty: 'blue',    px: 1957, py: 445 },
-      { num:  6, name: 'Tunnelbacken (Drömbacken)',   difficulty: 'blue',    px: 1039, py: 1611 },
-
-      // === SNOWPARK ===
-      { num:  7, name: 'Snowpark röd',                difficulty: 'red',     px: 402, py: 1905 },
-      { num:  8, name: 'Snowpark (grön)',             difficulty: 'green',   px: 624, py: 2023 },
-      { num: '8b', name: 'Snowpark (blå)',              difficulty: 'blue',    px: 579, py: 1983 },
-
-      // === ASKESTIGEN ===
-      { num:  9, name: 'Askestigen',                  difficulty: 'green',   px: 736, py: 1771 },
-
-      // === SYD ===
-      { num: 10, name: 'Stugbybacken',                difficulty: 'green',   px: 1546, py: 1108 },
-      { num: 11, name: 'Dalsbranten',                 difficulty: 'black',   px: 1897, py: 726 },
-      { num: 12, name: 'Skicenter Syd',               difficulty: 'green',   px: 1562, py: 1402 },
-      { num: 13, name: 'Dalarnas längsta',            difficulty: 'green',   px: 1490, py: 1730 },
-      { num: '13b', name: 'Dalarnas längsta (2)',       difficulty: 'green',   px: 1933, py: 962 },
-      { num: 14, name: 'Dalen 1',                     difficulty: 'green',   px: 1936, py: 1170 },
-      { num: 15, name: 'Dalen 2',                     difficulty: 'green',   px: 2106, py: 1321 },
-
-      // === OST ===
-      { num: 16, name: 'Ostbacken',                   difficulty: 'green',   px: 1975, py: 505 },
-      { num: '16a', name: 'Ostbacken (grön 2)',         difficulty: 'green',   px: 2007, py: 656 },
-      { num: '16b', name: 'Ostbacken (grön 3)',         difficulty: 'green',   px: 2170, py: 994 },
-      { num: 17, name: 'Ostkroken',                   difficulty: 'green',   px: 2070, py: 767 },
-      { num: 18, name: 'Lämmeln',                     difficulty: 'green',   px: 2091, py: 995 },
-      { num: 19, name: 'Solbacken',                   difficulty: 'blue',    px: 2155, py: 925 },
-      { num: 20, name: 'Rödingen',                    difficulty: 'red',     px: 2093, py: 565 },
-      { num: 21, name: 'Snobbrännan',                 difficulty: 'black',   px: 2350, py: 880 },
-      { num: 22, name: 'Djärven',                     difficulty: 'black',   px: 2380, py: 780 },
-      { num: 23, name: 'Tävlingsbacken',              difficulty: 'black',   px: 2450, py: 700 },
-      { num: 24, name: 'Chocken (extrem nedfart)',    difficulty: 'black',   px: 2390, py: 570 },
-
-      // === NORD ===
-      { num: 25, name: 'Svarten 1',                   difficulty: 'black',   px: 952, py: 568 },
-      { num: 26, name: 'Svarten 2',                   difficulty: 'black',   px: 1009, py: 566 },
-      { num: 27, name: 'Specialen',                   difficulty: 'black',   px: 860, py: 645 },
-      { num: 28, name: 'Carvingssvängen',             difficulty: 'red',     px: 1007, py: 644 },
-      { num: 29, name: 'Mellanbacken',                difficulty: 'red',     px: 985, py: 701 },
-      { num: 30, name: 'Palmbacken',                  difficulty: 'red',     px: 865, py: 735 },
-      { num: 31, name: 'Turisten 1',                  difficulty: 'blue',    px: 1022, py: 740 },
-      { num: 32, name: 'Turisten 2',                  difficulty: 'blue',    px: 985, py: 774 },
-      { num: 33, name: 'Gröngölingen 1',              difficulty: 'green',   px: 957, py: 805 },
-      { num: 34, name: 'Gröngölingen 2',              difficulty: 'green',   px: 922, py: 844 },
-
-      // === SKICROSS / ÖVRIGT ===
-      { num: 35, name: 'Blåbärsslingan',              difficulty: 'green',   px: 1072, py: 919 },
-      { num: '35b', name: 'Blåbärsslingan (2)',         difficulty: 'green',   px: 1486, py: 521 },
-      { num: 36, name: 'Fäbodssvängen',               difficulty: 'green',   px: 975, py: 982 },
-      { num: 37, name: 'Ravinen (skicross)',          difficulty: 'blue',    px: 1225, py: 640 },
-      { num: 38, name: 'Tallbacken (skicross)',       difficulty: 'red',     px: 1280, py: 790 },
-      { num: 39, name: 'Glidaren',                 difficulty: 'green', px: 1675, py: 440  },
-      { num: 40, name: 'Gondolsvängen',            difficulty: 'green', px: 1906, py: 233 },
-      { num: 41, name: 'Pernillabacken',           difficulty: 'green', px: 1593, py: 773 },
-    ];
-
-    // ============================
-    // LIFT_PAIRS — par av bas/topp per lift för interpolering
-    // ============================
-    // Varje lift definieras med sin bokstav. Bas = X, Topp = X2.
-    // K och L hoppas över (saknar GPS på toppen, lat/lng = 0).
-    // Y hoppas över (saknar Y2-punkt).
-    // Punkterna kan justeras individuellt med URL-param ?adjustLift=A
-    //
-    // pointsPerPx: ~1 punkt per 250px avstånd (adaptivt).
-    const LIFT_PAIRS = [
-      // NORD
-      { letter: 'A', name: 'Nord 6:an',          base: 'A',  top: 'A2' },
-      { letter: 'B', name: 'Nordknappen',         base: 'B',  top: 'B2' },
-      // VÄST
-      { letter: 'H', name: 'Väst 6:an',           base: 'H',  top: 'H2' },
-      { letter: 'I', name: 'Tunnelliften',        base: 'I',  top: 'I2' },
-      { letter: 'J', name: 'Västtransporten',     base: 'J',  top: 'J2' },
-      // MITT/TOPP
-      { letter: 'C', name: 'Askeliften',          base: 'C',  top: 'C2' },
-      // ÖST
-      { letter: 'U', name: 'Ost 6:an',            base: 'U',  top: 'U2' },
-      { letter: 'V', name: 'Ost 4:an',            base: 'V',  top: 'V2' },
-      { letter: 'T', name: 'Ostknappen',          base: 'T',  top: 'T2' },
-      { letter: 'X', name: 'Chockentransporten',  base: 'X',  top: 'X2' },
-      // SÖDRA
-      { letter: 'N', name: 'Sydgondolen',         base: 'N',  top: 'N2' },
-      { letter: 'R', name: 'Biejjieliften',       base: 'R',  top: 'R2' },
-      { letter: 'S', name: 'Dalsliften',          base: 'S',  top: 'S2' },
-    ];
-
-    // ============================
-    // INTERPOLERING — generera mellanpunkter längs liftlinjer
-    // ============================
-    // Liftar är raka i verkligheten → linjär interpolering av GPS + pixel
-    // ger korrekta mellanpunkter som förbättrar TPS-precisionen.
-    //
-    // ?adjustLift=A exkluderar lift A:s interpolerade punkter
-    // så man kan se effekten av att justera den liften.
-
-    const adjustLiftParam = new URLSearchParams(window.location.search).get('adjustLift');
-
-    function generateLiftInterpolations() {
-      const refMap = {};
-      REFERENCE_POINTS.forEach(p => { refMap[p.id] = p; });
-
-      const interpolated = [];
-
-      LIFT_PAIRS.forEach(pair => {
-        // Om ?adjustLift=X matchar denna lift, hoppa över interpolering
-        if (adjustLiftParam && adjustLiftParam.toUpperCase() === pair.letter.toUpperCase()) {
-          console.log(`[Interpolation] Hoppar över lift ${pair.letter} (${pair.name}) — adjustLift aktiv`);
-          return;
-        }
-
-        const base = refMap[pair.base];
-        const top = refMap[pair.top];
-        if (!base || !top) return;
-        if (base.lat === 0 || top.lat === 0) return; // Saknar GPS
-
-        // Beräkna pixelavstånd bas → topp
-        const dPx = top.px - base.px;
-        const dPy = top.py - base.py;
-        const pixelDist = Math.sqrt(dPx * dPx + dPy * dPy);
-
-        // Adaptiv täthet: ~1 punkt per 250px, minst 1 mellanpunkt
-        const numPoints = Math.max(1, Math.round(pixelDist / 250));
-
-        for (let i = 1; i <= numPoints; i++) {
-          const t = i / (numPoints + 1); // Jämnt fördelat (exkl. bas & topp)
-          interpolated.push({
-            id: `${pair.letter}_i${i}`,
-            liftLetter: pair.letter,
-            lat: base.lat + t * (top.lat - base.lat),
-            lng: base.lng + t * (top.lng - base.lng),
-            px:  Math.round(base.px + t * (top.px - base.px)),
-            py:  Math.round(base.py + t * (top.py - base.py)),
-            interpolated: true // Flagga för debug
-          });
-        }
-
-        console.log(`[Interpolation] Lift ${pair.letter} (${pair.name}): ${numPoints} mellanpunkter, ${Math.round(pixelDist)}px avstånd`);
-      });
-
-      console.log(`[Interpolation] Totalt ${interpolated.length} interpolerade punkter genererade`);
-      return interpolated;
-    }
-
-    const INTERPOLATED_POINTS = generateLiftInterpolations();
-
-    // Kombinera original-referenspunkter med interpolerade för TPS
-    const ALL_TPS_POINTS = [
-      ...REFERENCE_POINTS.filter(p => p.lat !== 0 && p.lng !== 0),
-      ...INTERPOLATED_POINTS
+      // === SÖDRA/NEDRE (nedre halvan — dalen/byn) ===
+      // N = Sydgondolen — lång gondollinje från dalen upp, mitten av kartan
+      // Bottenstation nere i byn ca (1050, 1650), toppstation ca (1150, 550). Center:
+      { id: 'N', lat: 61.8846, lng: 12.8403, px: 1100, py: 1100 },
+      // R = Biejjieliften — södra delen, till vänster nere
+      { id: 'R', lat: 61.8801, lng: 12.8358, px: 600, py: 1600 },
+      // S = Dalsliften — lång lift, södra delen, nedåt höger
+      { id: 'S', lat: 61.8801, lng: 12.8497, px: 1200, py: 1700 },
     ];
 
     // Thin Plate Spline (TPS) — exakt interpolation genom alla referenspunkter.
@@ -3017,8 +2081,6 @@
     //
     // Systemet löser:  [K P; P' 0] * [w; a] = [v; 0]
     // där K_ij = r²·ln(r), P = [1, lat, lng]
-    //
-    // Nu med ~56 punkter (28 original + ~28 interpolerade längs liftlinjer)
 
     function computeTPS(points) {
       const n = points.length;
@@ -3092,8 +2154,7 @@
       return { wx, wy, n, points, SCALE, rbf, gpsDist };
     }
 
-    const tps = computeTPS(ALL_TPS_POINTS);
-    console.log(`[TPS] Initierad med ${ALL_TPS_POINTS.length} punkter (${REFERENCE_POINTS.filter(p => p.lat !== 0 && p.lng !== 0).length} original + ${INTERPOLATED_POINTS.length} interpolerade)`);
+    const tps = computeTPS(REFERENCE_POINTS);
 
     function gpsToPixel(lat, lng) {
       if (!tps) return { x: 0, y: 0 };
@@ -3192,6 +2253,8 @@
       const smallFont = Math.round(11 * scaleX);
 
       REFERENCE_POINTS.forEach((ref, i) => {
+        // Beräkna pixel via TPS (bör matcha ref.px/py exakt)
+        const computed = gpsToPixel(ref.lat, ref.lng);
         // Referenspunktens pixelposition (skalad till bildens storlek)
         const refPx = ref.px * scaleX;
         const refPy = ref.py * scaleY;
@@ -3203,28 +2266,23 @@
         ctx.lineWidth = 3 * scaleX;
         ctx.stroke();
 
-        // Beräkna pixel via TPS (bör matcha ref.px/py exakt) — hoppa över punkter utan GPS
-        if (ref.lat !== 0 && ref.lng !== 0) {
-          const computed = gpsToPixel(ref.lat, ref.lng);
+        // Rita TPS-beräknad position (röd fylld prick)
+        ctx.beginPath();
+        ctx.arc(computed.x, computed.y, dotRadius * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = '#FF5252';
+        ctx.fill();
 
-          // Rita TPS-beräknad position (röd fylld prick)
+        // Linje mellan ref och TPS (om det finns skillnad)
+        const dx = computed.x - refPx;
+        const dy = computed.y - refPy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 2) {
           ctx.beginPath();
-          ctx.arc(computed.x, computed.y, dotRadius * 0.6, 0, Math.PI * 2);
-          ctx.fillStyle = '#FF5252';
-          ctx.fill();
-
-          // Linje mellan ref och TPS (om det finns skillnad)
-          const dx = computed.x - refPx;
-          const dy = computed.y - refPy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist > 2) {
-            ctx.beginPath();
-            ctx.moveTo(refPx, refPy);
-            ctx.lineTo(computed.x, computed.y);
-            ctx.strokeStyle = '#FF5252';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-          }
+          ctx.moveTo(refPx, refPy);
+          ctx.lineTo(computed.x, computed.y);
+          ctx.strokeStyle = '#FF5252';
+          ctx.lineWidth = 2;
+          ctx.stroke();
         }
 
         // Etikett med namn
@@ -3242,17 +2300,13 @@
         ctx.fillStyle = '#FFD740';
         ctx.fillText(label, labelX + 2, labelY);
 
-        // GPS-koordinater under etiketten (eller "NO GPS" om lat/lng är 0)
+        // GPS-koordinater under etiketten
         ctx.font = `${smallFont}px monospace`;
-        const gpsLabel = (ref.lat === 0 && ref.lng === 0)
-          ? 'NO GPS'
-          : `${ref.lat.toFixed(4)}, ${ref.lng.toFixed(4)}`;
+        const gpsLabel = `${ref.lat.toFixed(4)}, ${ref.lng.toFixed(4)}`;
         const gpsW = ctx.measureText(gpsLabel).width;
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(labelX - 2, labelY + 2, gpsW + 8, smallFont + 4);
-        ctx.fillStyle = (ref.lat === 0 && ref.lng === 0)
-          ? 'rgba(255, 100, 100, 0.8)'  // Röd för saknad GPS
-          : 'rgba(255, 255, 255, 0.8)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
         ctx.fillText(gpsLabel, labelX + 2, labelY + smallFont + 2);
 
         // Pixelkoordinater
@@ -3264,124 +2318,14 @@
         ctx.fillText(pxLabel, labelX + 2, labelY + smallFont * 2 + 8);
       });
 
-      // --- Liftlinjer och interpolerade punkter ---
-      if (LIFT_PAIRS && INTERPOLATED_POINTS) {
-        const refMap = {};
-        REFERENCE_POINTS.forEach(p => { refMap[p.id] = p; });
-
-        // Rita linjer mellan bas och topp för varje lift
-        LIFT_PAIRS.forEach(pair => {
-          const base = refMap[pair.base];
-          const top = refMap[pair.top];
-          if (!base || !top) return;
-
-          const basePx = base.px * scaleX;
-          const basePy = base.py * scaleY;
-          const topPx = top.px * scaleX;
-          const topPy = top.py * scaleY;
-
-          // Cyanfärgad linje mellan bas och topp
-          ctx.beginPath();
-          ctx.moveTo(basePx, basePy);
-          ctx.lineTo(topPx, topPy);
-          ctx.strokeStyle = adjustLiftParam && adjustLiftParam.toUpperCase() === pair.letter.toUpperCase()
-            ? 'rgba(255, 100, 100, 0.6)' // Röd om justeras
-            : 'rgba(0, 255, 255, 0.4)';   // Cyan normalt
-          ctx.lineWidth = 2 * scaleX;
-          ctx.setLineDash([8 * scaleX, 4 * scaleX]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          // Liftbokstav vid mitten av linjen
-          const midX = (basePx + topPx) / 2;
-          const midY = (basePy + topPy) / 2;
-          ctx.font = `bold ${Math.round(14 * scaleX)}px sans-serif`;
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-          const letterW = ctx.measureText(pair.letter).width;
-          ctx.fillRect(midX - letterW / 2 - 4, midY - 10 * scaleY, letterW + 8, 16 * scaleY);
-          ctx.fillStyle = 'cyan';
-          ctx.textAlign = 'center';
-          ctx.fillText(pair.letter, midX, midY + 2 * scaleY);
-          ctx.textAlign = 'left';
-        });
-
-        // Rita interpolerade punkter som diamanter
-        const diamondSize = Math.round(6 * scaleX);
-        INTERPOLATED_POINTS.forEach(ip => {
-          const ipPx = ip.px * scaleX;
-          const ipPy = ip.py * scaleY;
-
-          // Diamant-form
-          ctx.beginPath();
-          ctx.moveTo(ipPx, ipPy - diamondSize);
-          ctx.lineTo(ipPx + diamondSize, ipPy);
-          ctx.lineTo(ipPx, ipPy + diamondSize);
-          ctx.lineTo(ipPx - diamondSize, ipPy);
-          ctx.closePath();
-          ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
-          ctx.fill();
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-          ctx.lineWidth = 1 * scaleX;
-          ctx.stroke();
-
-          // Liten etikett
-          ctx.font = `${Math.round(9 * scaleX)}px monospace`;
-          ctx.fillStyle = 'rgba(0, 255, 255, 0.7)';
-          ctx.fillText(ip.id, ipPx + diamondSize + 3, ipPy + 3);
-        });
-
-        console.log(`[Debug Grid] Ritade ${LIFT_PAIRS.length} liftlinjer och ${INTERPOLATED_POINTS.length} interpolerade punkter`);
-      }
-
-      // --- Pist-markörer (debug-läge) ---
-      if (PISTE_DATA && PISTE_DATA.length > 0) {
-        const pistDotRadius = Math.round(8 * scaleX);
-        const pistFontSize = Math.round(12 * scaleX);
-
-        const difficultyColors = {
-          green: '#4CAF50',
-          blue: '#2196F3',
-          red: '#E91E63',
-          black: '#333'
-        };
-
-        PISTE_DATA.forEach(piste => {
-          if (!piste.px || !piste.py) return;
-
-          const pistPx = piste.px * scaleX;
-          const pistPy = piste.py * scaleY;
-          const color = difficultyColors[piste.difficulty] || '#999';
-
-          // Rita pistcirkel
-          ctx.beginPath();
-          ctx.arc(pistPx, pistPy, pistDotRadius, 0, Math.PI * 2);
-          ctx.fillStyle = color;
-          ctx.fill();
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-          ctx.lineWidth = 2 * scaleX;
-          ctx.stroke();
-
-          // Rita pistnummer
-          ctx.font = `bold ${pistFontSize}px sans-serif`;
-          ctx.fillStyle = 'white';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(String(piste.num), pistPx, pistPy);
-        });
-
-        // Återställ textinställningar
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-      }
-
       // --- Legend ---
       const legendX = 20 * scaleX;
-      const legendY = h - 160 * scaleY;
+      const legendY = h - 120 * scaleY;
       ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      ctx.fillRect(legendX, legendY, 380 * scaleX, 145 * scaleY);
+      ctx.fillRect(legendX, legendY, 320 * scaleX, 100 * scaleY);
       ctx.strokeStyle = '#FFD740';
       ctx.lineWidth = 2;
-      ctx.strokeRect(legendX, legendY, 380 * scaleX, 145 * scaleY);
+      ctx.strokeRect(legendX, legendY, 320 * scaleX, 100 * scaleY);
 
       ctx.font = `bold ${fontSize}px sans-serif`;
       ctx.fillStyle = '#FFD740';
@@ -3392,12 +2336,8 @@
       ctx.fillText('⭕ = Referenspunkt (manuellt satt px/py)', legendX + 10, legendY + 48 * scaleY);
       ctx.fillStyle = '#FF5252';
       ctx.fillText('🔴 = TPS-beräknad position (bör matcha)', legendX + 10, legendY + 68 * scaleY);
-      ctx.fillStyle = 'cyan';
-      ctx.fillText('◆ = Interpolerad punkt (liftlinje)', legendX + 10, legendY + 88 * scaleY);
-      ctx.fillStyle = 'cyan';
-      ctx.fillText('--- = Liftlinje (bas → topp)', legendX + 10, legendY + 108 * scaleY);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.fillText(`TPS: ${ALL_TPS_POINTS.length} punkter | Bild: ${w}x${h}`, legendX + 10, legendY + 128 * scaleY);
+      ctx.fillText(`Rutnät: ${gridSpacing}px | Bild: ${w}x${h}`, legendX + 10, legendY + 88 * scaleY);
 
       gridCanvas.classList.add('visible');
       console.log('[Debug Grid] Ritade fisknät med', REFERENCE_POINTS.length, 'referenspunkter');
@@ -3407,9 +2347,8 @@
       gridCanvas.classList.remove('visible');
     }
 
-    // Aktivera debug-läge via URL-parameter ?debug=1 eller ?debug=pist
-    const debugParam = new URLSearchParams(window.location.search).get('debug');
-    if (debugParam === '1' || debugParam === 'pist') {
+    // Aktivera debug-läge via URL-parameter ?debug=1
+    if (new URLSearchParams(window.location.search).get('debug') === '1') {
       imgEl.addEventListener('load', () => {
         setTimeout(drawDebugGrid, 200); // Vänta lite så bilden renderat klart
       });
@@ -3420,30 +2359,13 @@
     }
 
     // ============================
-    // GEMENSAM HJÄLPFUNKTION — skärmkoordinater → bildpixlar
-    // ============================
-    // Används av både pist-tap och kalibrering.
-    function screenToImageCoords(screenX, screenY) {
-      const mapRect = mapEl.getBoundingClientRect();
-      const relX = screenX - mapRect.left;
-      const relY = screenY - mapRect.top;
-      const imageX = relX / scale;
-      const imageY = relY / scale;
-      return { x: imageX, y: imageY };
-    }
-
-    // ============================
     // CALIBRATION MODE
     // ============================
-    // Aktiveras med ?calibrate=1 (liftar) eller ?calibrate=pist (pister) i URL:en
+    // Aktiveras med ?calibrate=1 i URL:en
     const urlParams = new URLSearchParams(window.location.search);
     const calibrationMode = urlParams.get('calibrate') === '1';
-    const pisteCalibrationMode = urlParams.get('calibrate') === 'pist';
 
     if (calibrationMode) {
-      // Set global flag
-      isCalibrationMode = true;
-
       const calibrationOverlay = document.getElementById('calibration-overlay');
       const calibrationPanel = document.getElementById('calibration-panel');
       const calibrationLifts = document.getElementById('calibration-lifts');
@@ -3471,9 +2393,6 @@
       function renderLiftList() {
         calibrationLifts.innerHTML = '';
         calibrationData.forEach(lift => {
-          // Only show uncalibrated points (lat: 0, lng: 0), except 'G' (Stugan) which needs re-calibration
-          if ((lift.lat !== 0 || lift.lng !== 0) && lift.id !== 'G') return;
-
           const item = document.createElement('div');
           item.className = 'calibration-lift-item';
           if (lift.id === selectedLiftId) item.classList.add('selected');
@@ -3498,43 +2417,40 @@
       function getLiftName(id) {
         const names = {
           'A': 'Nord 6:an',
-          'A2': 'Nord 6:an (topp)',
           'B': 'Nordknappen',
-          'B2': 'Nordknappen (topp)',
           'C': 'Askeliften',
-          'C2': 'Askeliften (topp)',
-          'G': 'Stugan',
           'H': 'Väst 6:an',
-          'H2': 'Väst 6:an (topp)',
           'I': 'Tunnelliften',
-          'I2': 'Tunnelliften (topp)',
           'J': 'Västtransporten',
-          'J2': 'Västtransporten (topp)',
           'K': 'Familjeliften',
-          'K2': 'Familjeliften (topp)',
           'L': 'Talliften',
-          'L2': 'Talliften (topp)',
           'N': 'Sydgondolen',
-          'N2': 'Sydgondolen (topp)',
           'R': 'Biejjieliften',
-          'R2': 'Biejjieliften (topp)',
           'S': 'Dalsliften',
-          'S2': 'Dalsliften (topp)',
           'T': 'Ostknappen',
-          'T2': 'Ostknappen (topp)',
           'U': 'Ost 6:an',
-          'U2': 'Ost 6:an (topp)',
           'V': 'Ost 4:an',
-          'V2': 'Ost 4:an (topp)',
           'X': 'Chockentransporten',
-          'X2': 'Chockentransporten (topp)',
-          'Y': 'Toppliften',
-          'Y2': 'Toppliften (topp)'
+          'Y': 'Toppliften'
         };
         return names[id] || 'Okänd lift';
       }
 
-      // screenToImageCoords() definierad globalt ovanför — används här också
+      // Convert screen click coordinates to map image pixel coordinates
+      function screenToImageCoords(screenX, screenY) {
+        // Get the map element's bounding rect
+        const mapRect = mapEl.getBoundingClientRect();
+
+        // Calculate position relative to map element
+        const relX = screenX - mapRect.left;
+        const relY = screenY - mapRect.top;
+
+        // Account for the current scale
+        const imageX = relX / scale;
+        const imageY = relY / scale;
+
+        return { x: imageX, y: imageY };
+      }
 
       // Place marker on map
       function placeMarker(liftId, px, py) {
@@ -3561,7 +2477,6 @@
 
       // Handle map clicks
       function handleMapClick(e) {
-        console.log('[CAL] handleMapClick triggered', { clientX: e.clientX, clientY: e.clientY, selectedLiftId });
         if (!selectedLiftId) {
           alert('Välj en lift först!');
           return;
@@ -3595,36 +2510,6 @@
       // Add click handler to map
       mapEl.addEventListener('click', handleMapClick);
 
-      // Add touch handler for mobile (touch events don't always trigger click)
-      let touchStartPos = null;
-      mapEl.addEventListener('touchstart', (e) => {
-        console.log('[CAL] map touchstart', { touches: e.touches.length });
-        if (e.touches.length === 1) {
-          touchStartPos = {
-            x: e.touches[0].clientX,
-            y: e.touches[0].clientY
-          };
-        }
-      }, { passive: true });
-
-      mapEl.addEventListener('touchend', (e) => {
-        console.log('[CAL] map touchend', { changedTouches: e.changedTouches.length, touchStartPos });
-        // Only handle single-finger taps (not pinch/zoom)
-        if (e.changedTouches.length === 1 && touchStartPos) {
-          const touch = e.changedTouches[0];
-          // Check if this was a tap (not a drag) - allow small movement
-          const dx = Math.abs(touch.clientX - touchStartPos.x);
-          const dy = Math.abs(touch.clientY - touchStartPos.y);
-          if (dx < 10 && dy < 10) {
-            // Prevent the synthetic click event from firing
-            e.preventDefault();
-            // Simulate the click event with touch coordinates
-            handleMapClick({ clientX: touch.clientX, clientY: touch.clientY });
-          }
-          touchStartPos = null;
-        }
-      }, { passive: false });
-
       // Copy code button
       calibrationCopyBtn.addEventListener('click', () => {
         const code = generateCalibrationCode();
@@ -3651,35 +2536,17 @@
         }
       });
 
-      // Minimize/maximize button
-      const calibrationMinimizeBtn = document.getElementById('calibration-minimize');
-      let isPanelMinimized = false;
-
-      calibrationMinimizeBtn.addEventListener('click', () => {
-        isPanelMinimized = !isPanelMinimized;
-        if (isPanelMinimized) {
-          calibrationPanel.classList.add('minimized');
-          calibrationMinimizeBtn.textContent = '▲';
-          calibrationMinimizeBtn.title = 'Maximera';
-        } else {
-          calibrationPanel.classList.remove('minimized');
-          calibrationMinimizeBtn.textContent = '▼';
-          calibrationMinimizeBtn.title = 'Minimera';
-        }
-      });
-
       // Generate REFERENCE_POINTS code
       function generateCalibrationCode() {
         let code = 'const REFERENCE_POINTS = [\n';
 
         // Group by section
         const sections = {
-          'NORD': ['A', 'A2', 'B', 'B2'],
-          'VÄST': ['H', 'H2', 'I', 'I2', 'J', 'J2'],
-          'MITT/TOPP': ['C', 'C2', 'K', 'K2', 'L', 'L2', 'Y', 'Y2'],
-          'ÖST': ['U', 'U2', 'V', 'V2', 'T', 'T2', 'X', 'X2'],
-          'SÖDRA': ['N', 'N2', 'R', 'R2', 'S', 'S2'],
-          'ÖVRIGT': ['G']
+          'NORD': ['A', 'B'],
+          'VÄST': ['H', 'I', 'J'],
+          'MITT/TOPP': ['C', 'K', 'L', 'Y'],
+          'ÖST': ['U', 'V', 'T', 'X'],
+          'SÖDRA': ['N', 'R', 'S']
         };
 
         for (const [section, ids] of Object.entries(sections)) {
@@ -3706,331 +2573,6 @@
       calibrationData.forEach(lift => {
         if (lift.px && lift.py) {
           placeMarker(lift.id, lift.px, lift.py);
-        }
-      });
-    }
-
-    // ============================
-    // PISTE CALIBRATION MODE
-    // ============================
-    // Aktiveras med ?calibrate=pist i URL:en
-    if (pisteCalibrationMode) {
-      isCalibrationMode = true; // Reuse global flag to block piste tap & drag
-
-      const pisteCalOverlay = document.getElementById('piste-calibration-overlay');
-      const pisteCalPanel = document.getElementById('piste-calibration-panel');
-      const pisteCalList = document.getElementById('piste-calibration-list');
-      const pisteCalCopyBtn = document.getElementById('piste-calibration-copy');
-      const pisteCalResetBtn = document.getElementById('piste-calibration-reset');
-
-      // Mutable copy of PISTE_DATA for calibration
-      const pisteCalData = PISTE_DATA.map(p => {
-        // Calibrated pistes
-        const calibratedPistes = [1, '1b', '1c', 2, 3, 4, 5, 6, 7, 8, '8b', 9, 10, 11, 12, 13, '13b', 14, 15, 16, '16a', '16b', 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, '35b', 36, 37, 38, 39, 40, 41];
-        const isCalibrated = calibratedPistes.includes(p.num);
-
-        return {
-          num: p.num,
-          name: p.name,
-          difficulty: p.difficulty,
-          px: p.px,
-          py: p.py,
-          placed: isCalibrated
-        };
-      });
-
-      let selectedPisteNum = null;
-      const pisteCalMarkers = {};
-
-      // Sections for grouping in the UI list
-      const pisteSections = [
-        { label: 'VÄST', nums: ['1', '1b', '1c', 2, 3, 4, 5, 6] },
-        { label: 'SNOWPARK', nums: [7, 8, '8b'] },
-        { label: 'ASKESTIGEN', nums: [9] },
-        { label: 'SYD', nums: [10, 11, 12, 13, '13b', 14, 15] },
-        { label: 'OST', nums: [16, '16a', '16b', 17, 18, 19, 20, 21, 22, 23, 24] },
-        { label: 'NORD', nums: [25, 26, 27, 28, 29, 30, 31, 32, 33, 34] },
-        { label: 'SKICROSS / ÖVRIGT', nums: [35, '35b', 36, 37, 38, 39, 40, 41] }
-      ];
-
-      // Show overlay + crosshair cursor
-      pisteCalOverlay.classList.add('active');
-      container.classList.add('calibration-mode');
-
-      function renderPisteList() {
-        pisteCalList.innerHTML = '';
-
-        pisteSections.forEach(section => {
-          // Check if section has any uncalibrated pistes
-          const uncalibratedInSection = section.nums.filter(num => {
-            const piste = pisteCalData.find(p => p.num === num);
-            return piste && !piste.placed;
-          });
-
-          // Skip section if all pistes are calibrated
-          if (uncalibratedInSection.length === 0) return;
-
-          // Section header
-          const header = document.createElement('div');
-          header.className = 'piste-cal-section';
-          header.textContent = section.label;
-          pisteCalList.appendChild(header);
-
-          section.nums.forEach(num => {
-            const piste = pisteCalData.find(p => p.num === num);
-            if (!piste) return;
-
-            // Skip already calibrated pistes
-            if (piste.placed) return;
-
-            const item = document.createElement('div');
-            item.className = 'piste-cal-item';
-            if (piste.num === selectedPisteNum) item.classList.add('selected');
-            if (piste.placed) item.classList.add('placed');
-
-            item.innerHTML = `
-              <span class="piste-cal-num ${piste.difficulty}">${piste.num}</span>
-              <span class="piste-cal-name">${piste.name}</span>
-              <span class="piste-cal-status">${piste.placed ? '✓' : ''}</span>
-            `;
-
-            item.addEventListener('click', () => {
-              selectedPisteNum = piste.num;
-              renderPisteList();
-            });
-
-            pisteCalList.appendChild(item);
-          });
-        });
-      }
-
-      // Place marker on map
-      function placePisteMarker(num, px, py) {
-        if (pisteCalMarkers[num]) {
-          pisteCalMarkers[num].remove();
-        }
-
-        const marker = document.createElement('div');
-        marker.className = 'piste-cal-marker';
-        marker.style.left = px + 'px';
-        marker.style.top = py + 'px';
-        marker.innerHTML = `
-          <div class="piste-cal-marker-circle"></div>
-          <div class="piste-cal-marker-label">${num}</div>
-        `;
-
-        // Make marker clickable to re-select that piste
-        marker.style.pointerEvents = 'auto';
-        marker.style.cursor = 'pointer';
-        marker.addEventListener('click', (e) => {
-          e.stopPropagation();
-          selectedPisteNum = num;
-          renderPisteList();
-
-          // Scroll selected into view
-          setTimeout(() => {
-            const sel = pisteCalList.querySelector('.piste-cal-item.selected');
-            if (sel) sel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }, 50);
-        });
-
-        const overlay = document.getElementById('markers-overlay');
-        overlay.appendChild(marker);
-        pisteCalMarkers[num] = marker;
-      }
-
-      // Handle map clicks for piste placement
-      function handlePisteCalClick(e) {
-        if (!selectedPisteNum) {
-          alert('Välj en pist först!');
-          return;
-        }
-
-        const coords = screenToImageCoords(e.clientX, e.clientY);
-        const px = Math.max(0, Math.min(CALIBRATION_IMAGE_WIDTH, Math.round(coords.x)));
-        const py = Math.max(0, Math.min(CALIBRATION_IMAGE_HEIGHT, Math.round(coords.y)));
-
-        const piste = pisteCalData.find(p => p.num === selectedPisteNum);
-        if (piste) {
-          piste.px = px;
-          piste.py = py;
-          piste.placed = true;
-
-          placePisteMarker(selectedPisteNum, px, py);
-
-          // Auto-select next unplaced piste
-          const allNums = pisteSections.flatMap(s => s.nums);
-          const currentIdx = allNums.indexOf(selectedPisteNum);
-          let nextNum = null;
-          // Look forward from current position
-          for (let i = currentIdx + 1; i < allNums.length; i++) {
-            const p = pisteCalData.find(pd => pd.num === allNums[i]);
-            if (p && !p.placed) { nextNum = allNums[i]; break; }
-          }
-          // If nothing found forward, look from start
-          if (!nextNum) {
-            for (let i = 0; i < currentIdx; i++) {
-              const p = pisteCalData.find(pd => pd.num === allNums[i]);
-              if (p && !p.placed) { nextNum = allNums[i]; break; }
-            }
-          }
-          selectedPisteNum = nextNum;
-          renderPisteList();
-
-          // Scroll selected into view
-          setTimeout(() => {
-            const sel = pisteCalList.querySelector('.piste-cal-item.selected');
-            if (sel) sel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }, 50);
-        }
-      }
-
-      // Desktop click (with debounce to prevent double-firing from touch events)
-      let lastPisteCalClickTime = 0;
-      mapEl.addEventListener('click', (e) => {
-        const now = Date.now();
-        if (now - lastPisteCalClickTime < 300) return; // Ignore clicks within 300ms of last click
-        lastPisteCalClickTime = now;
-        handlePisteCalClick(e);
-      });
-
-      // Mobile touch
-      let pistCalTouchStart = null;
-      mapEl.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
-          pistCalTouchStart = {
-            x: e.touches[0].clientX,
-            y: e.touches[0].clientY
-          };
-        }
-      }, { passive: true });
-
-      mapEl.addEventListener('touchend', (e) => {
-        if (e.changedTouches.length === 1 && pistCalTouchStart) {
-          const touch = e.changedTouches[0];
-          const dx = Math.abs(touch.clientX - pistCalTouchStart.x);
-          const dy = Math.abs(touch.clientY - pistCalTouchStart.y);
-          if (dx < 10 && dy < 10) {
-            e.preventDefault();
-            lastPisteCalClickTime = Date.now(); // Record timestamp to prevent double-click
-            handlePisteCalClick({ clientX: touch.clientX, clientY: touch.clientY });
-          }
-          pistCalTouchStart = null;
-        }
-      }, { passive: false });
-
-      // Crosshair cursor with coordinate display
-      const crosshair = document.getElementById('calibration-crosshair');
-      const crosshairCoords = crosshair.querySelector('.crosshair-coords');
-      const crosshairLines = crosshair.querySelector('.crosshair-lines');
-
-      function updateCrosshair(clientX, clientY) {
-        const coords = screenToImageCoords(clientX, clientY);
-        const px = Math.max(0, Math.min(CALIBRATION_IMAGE_WIDTH, Math.round(coords.x)));
-        const py = Math.max(0, Math.min(CALIBRATION_IMAGE_HEIGHT, Math.round(coords.y)));
-
-        crosshair.style.left = clientX + 'px';
-        crosshair.style.top = clientY + 'px';
-        crosshairCoords.textContent = `px: ${px}, py: ${py}`;
-      }
-
-      mapEl.addEventListener('mousemove', (e) => {
-        crosshair.classList.add('active');
-        updateCrosshair(e.clientX, e.clientY);
-      });
-
-      mapEl.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 1) {
-          const touch = e.touches[0];
-          crosshair.classList.add('active');
-          updateCrosshair(touch.clientX, touch.clientY);
-        }
-      }, { passive: true });
-
-      mapEl.addEventListener('mouseleave', () => {
-        crosshair.classList.remove('active');
-      });
-
-      mapEl.addEventListener('touchend', () => {
-        setTimeout(() => {
-          crosshair.classList.remove('active');
-        }, 100);
-      }, { passive: true });
-
-      // Copy PISTE_DATA code
-      pisteCalCopyBtn.addEventListener('click', () => {
-        const code = generatePisteCode();
-        navigator.clipboard.writeText(code).then(() => {
-          alert('PISTE_DATA kopierad till urklipp! ✅');
-        }).catch(() => {
-          prompt('Kopiera denna kod:', code);
-        });
-      });
-
-      // Reset
-      pisteCalResetBtn.addEventListener('click', () => {
-        if (confirm('Återställ alla pist-placeringar?')) {
-          pisteCalData.forEach(p => {
-            p.placed = false;
-            // Restore original coordinates
-            const orig = PISTE_DATA.find(o => o.num === p.num);
-            if (orig) { p.px = orig.px; p.py = orig.py; }
-            if (pisteCalMarkers[p.num]) {
-              pisteCalMarkers[p.num].remove();
-              delete pisteCalMarkers[p.num];
-            }
-          });
-          selectedPisteNum = pisteSections[0].nums[0];
-          renderPisteList();
-        }
-      });
-
-      // Minimize/maximize
-      const pisteCalMinBtn = document.getElementById('piste-calibration-minimize');
-      let isPisteCalMinimized = false;
-
-      pisteCalMinBtn.addEventListener('click', () => {
-        isPisteCalMinimized = !isPisteCalMinimized;
-        if (isPisteCalMinimized) {
-          pisteCalPanel.classList.add('minimized');
-          pisteCalMinBtn.textContent = '▲';
-          pisteCalMinBtn.title = 'Maximera';
-        } else {
-          pisteCalPanel.classList.remove('minimized');
-          pisteCalMinBtn.textContent = '▼';
-          pisteCalMinBtn.title = 'Minimera';
-        }
-      });
-
-      // Generate PISTE_DATA code
-      function generatePisteCode() {
-        let code = '    const PISTE_DATA = [\n';
-
-        pisteSections.forEach(section => {
-          code += `      // === ${section.label} ===\n`;
-          section.nums.forEach(num => {
-            const piste = pisteCalData.find(p => p.num === num);
-            if (!piste) return;
-            const numStr = String(piste.num).padStart(2, ' ');
-            const nameStr = ("'" + piste.name + "',").padEnd(30, ' ');
-            const diffStr = ("'" + piste.difficulty + "',").padEnd(10, ' ');
-            code += `      { num: ${numStr}, name: ${nameStr} difficulty: ${diffStr} px: ${piste.px}, py: ${piste.py} },\n`;
-          });
-          code += '\n';
-        });
-
-        code += '    ];\n';
-        return code;
-      }
-
-      // Initial render
-      selectedPisteNum = pisteSections[0].nums[0]; // Select first piste
-      renderPisteList();
-
-      // Show existing positions as markers for ALL pistes (including calibrated ones)
-      pisteCalData.forEach(p => {
-        if (p.px && p.py) {
-          placePisteMarker(p.num, p.px, p.py);
         }
       });
     }
@@ -4117,12 +2659,10 @@
     // FIREBASE-OPERATIONER
     // ============================
     function roomRef(code) {
-      if (!db) throw new Error('Firebase not initialized');
       return db.ref(`pistkarta/rooms/${code}`);
     }
 
     function memberRef(code, userId) {
-      if (!db) throw new Error('Firebase not initialized');
       return db.ref(`pistkarta/rooms/${code}/members/${userId}`);
     }
 
@@ -4183,38 +2723,26 @@
     }
 
     function updateMyPosition(lat, lng) {
-      if (!currentRoom || !db) return;
-      try {
-        memberRef(currentRoom.code, myUserId).update({
-          lat: lat,
-          lng: lng,
-          lastUpdate: Date.now(),
-          online: true,
-        });
-      } catch (e) {
-        console.error('Failed to update position:', e);
-      }
+      if (!currentRoom) return;
+      memberRef(currentRoom.code, myUserId).update({
+        lat: lat,
+        lng: lng,
+        lastUpdate: Date.now(),
+        online: true,
+      });
     }
 
     function listenToMembers(code) {
-      if (!db) {
-        console.warn('Firebase not available, member tracking disabled');
-        return;
+      if (membersListener) {
+        roomRef(code).child('members').off('value', membersListener);
       }
-      try {
-        if (membersListener) {
-          roomRef(code).child('members').off('value', membersListener);
-        }
-        membersListener = roomRef(code).child('members').on('value', (snap) => {
-          const members = snap.val() || {};
-          lastMembersData = members;
-          updateMarkers(members);
-          updateSessionBar(members);
-          if (membersPanelOpen) renderMembersList(members);
-        });
-      } catch (e) {
-        console.error('Failed to listen to members:', e);
-      }
+      membersListener = roomRef(code).child('members').on('value', (snap) => {
+        const members = snap.val() || {};
+        lastMembersData = members;
+        updateMarkers(members);
+        updateSessionBar(members);
+        if (membersPanelOpen) renderMembersList(members);
+      });
     }
 
     // ============================
@@ -4530,199 +3058,6 @@
     imgEl.addEventListener('load', updateOverlaySize);
 
     // ============================
-    // PIST-TAP — tryck på siffra för att se backnamn
-    // ============================
-    const pisteTooltip = document.getElementById('piste-tooltip');
-    const pisteTooltipNumber = document.getElementById('piste-tooltip-number');
-    const pisteTooltipName = document.getElementById('piste-tooltip-name');
-    const pisteTooltipDifficulty = document.getElementById('piste-tooltip-difficulty');
-    let pisteTooltipTimeout = null;
-
-    const DIFFICULTY_COLORS = {
-      green: '#4CAF50',
-      blue:  '#2196F3',
-      red:   '#E91E63',
-      black: '#333333'
-    };
-
-    const DIFFICULTY_LABELS = {
-      green: 'Mycket lätt',
-      blue:  'Lätt',
-      red:   'Medelsvår',
-      black: 'Svår'
-    };
-
-    // Tap radius in image pixels — how close you need to tap to a piste number
-    const PISTE_TAP_RADIUS = 60;
-
-    function findNearestPiste(imageX, imageY) {
-      // Scale coordinates to match CALIBRATION dimensions if image differs
-      const scaleX = imgEl.naturalWidth ? CALIBRATION_IMAGE_WIDTH / imgEl.naturalWidth : 1;
-      const scaleY = imgEl.naturalHeight ? CALIBRATION_IMAGE_HEIGHT / imgEl.naturalHeight : 1;
-      const calX = imageX * scaleX;
-      const calY = imageY * scaleY;
-
-      let closest = null;
-      let closestDist = Infinity;
-
-      for (const piste of PISTE_DATA) {
-        const dx = calX - piste.px;
-        const dy = calY - piste.py;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < closestDist) {
-          closestDist = dist;
-          closest = piste;
-        }
-      }
-
-      // Adjust tap radius based on zoom level — at higher zoom, be more precise
-      const effectiveRadius = PISTE_TAP_RADIUS / Math.max(1, scale * 0.5);
-
-      return closestDist <= Math.max(PISTE_TAP_RADIUS, effectiveRadius) ? closest : null;
-    }
-
-    function showPisteTooltip(piste, screenX, screenY) {
-      // Set content
-      pisteTooltipNumber.textContent = piste.num;
-      pisteTooltipNumber.style.backgroundColor = DIFFICULTY_COLORS[piste.difficulty] || '#666';
-      // Black pistes: use white border for visibility
-      if (piste.difficulty === 'black') {
-        pisteTooltipNumber.style.borderRadius = '4px';
-        pisteTooltipNumber.style.transform = 'rotate(45deg)';
-        pisteTooltipNumber.querySelector && (pisteTooltipNumber.innerHTML = `<span style="transform:rotate(-45deg);display:block">${piste.num}</span>`);
-      } else {
-        pisteTooltipNumber.style.borderRadius = piste.difficulty === 'red' ? '6px' : '50%';
-        pisteTooltipNumber.style.transform = 'none';
-        pisteTooltipNumber.innerHTML = piste.num;
-      }
-
-      pisteTooltipName.textContent = piste.name;
-      pisteTooltipDifficulty.textContent = DIFFICULTY_LABELS[piste.difficulty] || '';
-
-      // Position tooltip above the tap point (fixed position, doesn't scale)
-      let left = screenX;
-      let top = screenY - 70;
-
-      // Keep within viewport
-      const tooltipWidth = 250; // approximate
-      if (left < tooltipWidth / 2 + 10) left = tooltipWidth / 2 + 10;
-      if (left > window.innerWidth - tooltipWidth / 2 - 10) left = window.innerWidth - tooltipWidth / 2 - 10;
-      if (top < 10) top = screenY + 30; // show below if too close to top
-
-      pisteTooltip.style.left = left + 'px';
-      pisteTooltip.style.top = top + 'px';
-      pisteTooltip.classList.add('visible');
-
-      // Auto-hide after 3 seconds
-      clearTimeout(pisteTooltipTimeout);
-      pisteTooltipTimeout = setTimeout(hidePisteTooltip, 3000);
-    }
-
-    function hidePisteTooltip() {
-      pisteTooltip.classList.remove('visible');
-      clearTimeout(pisteTooltipTimeout);
-    }
-
-    // Track touch start for tap detection
-    let pisteTouchStart = null;
-    let pisteTouchStartTime = 0;
-
-    container.addEventListener('touchstart', (e) => {
-      // Don't interfere with UI elements
-      if (e.target.closest('.chat-panel') ||
-          e.target.closest('.members-panel') ||
-          e.target.closest('#calibration-panel') ||
-          e.target.closest('#piste-calibration-panel') ||
-          e.target.closest('.modal-overlay') ||
-          e.target.closest('.zoom-controls') ||
-          e.target.closest('.group-btn') ||
-          e.target.closest('.session-bar') ||
-          e.target.closest('#joystick-base') ||
-          e.target.closest('.marker-popup') ||
-          e.target.closest('.piste-tooltip') ||
-          e.target.closest('.user-marker-clickable')) return;
-
-      if (e.touches.length === 1) {
-        pisteTouchStart = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY
-        };
-        pisteTouchStartTime = Date.now();
-      } else {
-        pisteTouchStart = null; // Multi-touch = not a tap
-      }
-    }, { passive: true });
-
-    container.addEventListener('touchend', (e) => {
-      if (!pisteTouchStart) return;
-      if (isCalibrationMode) { pisteTouchStart = null; return; }
-      if (e.changedTouches.length !== 1) { pisteTouchStart = null; return; }
-
-      const touch = e.changedTouches[0];
-      const dx = Math.abs(touch.clientX - pisteTouchStart.x);
-      const dy = Math.abs(touch.clientY - pisteTouchStart.y);
-      const elapsed = Date.now() - pisteTouchStartTime;
-
-      // Only count as tap if: minimal movement AND quick tap (< 300ms)
-      if (dx < 15 && dy < 15 && elapsed < 300) {
-        const coords = screenToImageCoords(touch.clientX, touch.clientY);
-        const piste = findNearestPiste(coords.x, coords.y);
-        if (piste) {
-          showPisteTooltip(piste, touch.clientX, touch.clientY);
-        } else {
-          hidePisteTooltip();
-        }
-      }
-
-      pisteTouchStart = null;
-    }, { passive: true });
-
-    // Mouse click support (desktop)
-    container.addEventListener('click', (e) => {
-      // Don't interfere with UI elements
-      if (e.target.closest('.chat-panel') ||
-          e.target.closest('.members-panel') ||
-          e.target.closest('#calibration-panel') ||
-          e.target.closest('#piste-calibration-panel') ||
-          e.target.closest('.modal-overlay') ||
-          e.target.closest('.zoom-controls') ||
-          e.target.closest('.group-btn') ||
-          e.target.closest('.session-bar') ||
-          e.target.closest('#joystick-base') ||
-          e.target.closest('.marker-popup') ||
-          e.target.closest('.piste-tooltip') ||
-          e.target.closest('.user-marker-clickable')) return;
-
-      if (isCalibrationMode) return;
-
-      // Check if this was actually a drag (not a click)
-      const movedX = Math.abs(e.clientX - startX);
-      const movedY = Math.abs(e.clientY - startY);
-      if (movedX > 5 || movedY > 5) return; // was a drag, not a click
-
-      const coords = screenToImageCoords(e.clientX, e.clientY);
-      const piste = findNearestPiste(coords.x, coords.y);
-      if (piste) {
-        showPisteTooltip(piste, e.clientX, e.clientY);
-      } else {
-        hidePisteTooltip();
-      }
-    });
-
-    // Hide tooltip when starting to drag/zoom
-    container.addEventListener('touchmove', () => {
-      hidePisteTooltip();
-      pisteTouchStart = null; // Cancel tap detection
-    }, { passive: true });
-
-    // Hide when clicking elsewhere
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.piste-tooltip') && !e.target.closest('#map-container')) {
-        hidePisteTooltip();
-      }
-    });
-
-    // ============================
     // UI-HANTERING
     // ============================
     function updateUI() {
@@ -4997,7 +3332,7 @@
     const lastRoom = loadLastRoom();
 
     // Kolla om URL:en har en gruppkod (?group=XJKM)
-    // urlParams redan deklarerad ovan (rad ~2388)
+    const urlParams = new URLSearchParams(window.location.search);
     const urlGroupCode = urlParams.get('group');
 
     if (urlGroupCode) {
@@ -5136,7 +3471,6 @@
     const voiceBtn       = document.getElementById('voice-btn');
     const imgFullscreen  = document.getElementById('img-fullscreen');
     const imgFullscreenImg = document.getElementById('img-fullscreen-img');
-    const chatSoundToggle = document.getElementById('chat-sound-toggle');
 
     let chatOpen = false;
     let unreadCount = 0;
@@ -5144,83 +3478,10 @@
     let lastRenderedMsgId = null;
     let isFirstLoad = true;
 
-    // ---- Notifikationsljud (singleton AudioContext + iOS unlock) ----
-    let audioCtx = null;
-    let audioUnlocked = false;
-    let soundEnabled = true;
-
-    // Ladda ljud-inställning från localStorage
-    function loadSoundSetting() {
-      try {
-        const saved = localStorage.getItem('pistkarta-sound');
-        if (saved !== null) soundEnabled = saved === 'true';
-      } catch(e) {}
-    }
-    loadSoundSetting();
-
-    function saveSoundSetting() {
-      try { localStorage.setItem('pistkarta-sound', soundEnabled); } catch(e) {}
-    }
-
-    // Uppdatera ljud-togglens utseende
-    function updateSoundToggleUI() {
-      if (chatSoundToggle) {
-        chatSoundToggle.textContent = soundEnabled ? '🔔' : '🔕';
-        chatSoundToggle.classList.toggle('muted', !soundEnabled);
-        chatSoundToggle.title = soundEnabled ? 'Ljud på — tryck för att stänga av' : 'Ljud av — tryck för att slå på';
-      }
-    }
-    updateSoundToggleUI();
-
-    // Ljud-toggle klick
-    if (chatSoundToggle) {
-      chatSoundToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        soundEnabled = !soundEnabled;
-        saveSoundSetting();
-        updateSoundToggleUI();
-      });
-    }
-
-    function getAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      return audioCtx;
-    }
-
-    // Lås upp AudioContext vid första användarinteraktion (krävs för iOS Safari)
-    function unlockAudio() {
-      if (audioUnlocked) return;
-      try {
-        const ctx = getAudioContext();
-        if (ctx.state === 'suspended') {
-          ctx.resume().then(() => { audioUnlocked = true; });
-        } else {
-          audioUnlocked = true;
-        }
-        // Spela tyst ljud för att "värma upp" AudioContext
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        gain.gain.value = 0; // Tyst
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.01);
-      } catch(e) {}
-    }
-
-    // Koppla unlock till användarinteraktioner
-    ['touchstart', 'touchend', 'click', 'keydown'].forEach(evt => {
-      document.addEventListener(evt, unlockAudio, { once: false, passive: true });
-    });
-
+    // ---- Notifikationsljud ----
     function playNotificationSound() {
-      if (!soundEnabled) return;
-
       try {
-        const ctx = getAudioContext();
-        if (ctx.state === 'suspended') ctx.resume();
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const now = ctx.currentTime;
 
         // Första ding
@@ -5309,25 +3570,13 @@
       msgEl.className = 'chat-msg ' + (isMine ? 'mine' : 'theirs');
       msgEl.dataset.msgId = msgId;
 
-      // Header-rad med avsändarnamn + tidsstämpel
-      const header = document.createElement('div');
-      header.className = 'chat-msg-header';
-
       if (!isMine) {
         const sender = document.createElement('div');
         sender.className = 'chat-msg-sender';
         sender.style.color = data.senderColor || '#aaa';
         sender.textContent = data.senderName || 'Okänd';
-        header.appendChild(sender);
+        msgEl.appendChild(sender);
       }
-
-      const headerTime = document.createElement('div');
-      headerTime.className = 'chat-msg-time';
-      headerTime.style.color = data.senderColor || '#aaa';
-      headerTime.textContent = formatTime(data.timestamp || Date.now());
-      header.appendChild(headerTime);
-
-      msgEl.appendChild(header);
 
       const bubble = document.createElement('div');
       bubble.className = 'chat-msg-bubble';
@@ -5385,194 +3634,12 @@
 
       msgEl.appendChild(bubble);
 
-      // Gilla-knapp + tid-rad
-      const actions = document.createElement('div');
-      actions.className = 'chat-msg-actions';
-
-      const likeBtn = document.createElement('button');
-      likeBtn.className = 'chat-like-btn';
-      likeBtn.dataset.msgId = msgId;
-
-      const likeIcon = document.createElement('span');
-      likeIcon.className = 'chat-like-icon';
-      likeIcon.textContent = '♡';
-
-      const likeCount = document.createElement('span');
-      likeCount.className = 'chat-like-count';
-      likeCount.textContent = '';
-
-      likeBtn.appendChild(likeIcon);
-      likeBtn.appendChild(likeCount);
-
-      likeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Om man klickar på räknaren, visa vilka som gillat
-        if (e.target === likeCount && likeCount.textContent) {
-          showLikesModal(msgId);
-        } else {
-          toggleLike(msgId);
-        }
-      });
-
-      actions.appendChild(likeBtn);
-      msgEl.appendChild(actions);
-
-      // Starta lyssnare för likes på detta meddelande
-      listenToLikes(msgId, likeBtn, likeIcon, likeCount, data);
+      const time = document.createElement('div');
+      time.className = 'chat-msg-time';
+      time.textContent = formatTime(data.timestamp || Date.now());
+      msgEl.appendChild(time);
 
       return msgEl;
-    }
-
-    // ---- Gilla-funktionalitet ----
-    const likesListeners = {};
-    const likesData = {}; // Store likes data for each message
-
-    function toggleLike(msgId) {
-      if (!db || !currentRoom || !myUserId) return;
-      const likeRef = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes/${myUserId}`);
-      likeRef.once('value', (snap) => {
-        if (snap.exists()) {
-          likeRef.remove();
-        } else {
-          likeRef.set(true);
-        }
-      });
-    }
-
-    function listenToLikes(msgId, likeBtn, likeIcon, likeCount, msgData) {
-      if (!db || !currentRoom) return;
-
-      // Rensa tidigare lyssnare för detta meddelande
-      if (likesListeners[msgId]) {
-        const oldRef = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes`);
-        oldRef.off('value', likesListeners[msgId]);
-      }
-
-      let previousLikes = null;
-
-      const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes`);
-      const listener = ref.on('value', (snap) => {
-        const likes = snap.val();
-        const count = likes ? Object.keys(likes).length : 0;
-        const iLiked = likes && likes[myUserId];
-
-        // Store likes data for modal
-        likesData[msgId] = likes;
-
-        // Check if someone new liked my message (notification)
-        if (previousLikes && likes && msgData.sender === myUserId) {
-          const newLikers = Object.keys(likes).filter(uid => !previousLikes[uid] && uid !== myUserId);
-          if (newLikers.length > 0) {
-            // Get the first new liker's name
-            const newLikerId = newLikers[0];
-            getMemberName(newLikerId).then(name => {
-              showToast(`${name} gillade ditt meddelande`);
-            });
-          }
-        }
-
-        previousLikes = likes ? { ...likes } : null;
-
-        likeIcon.textContent = iLiked ? '❤️' : '♡';
-        likeCount.textContent = count > 0 ? count : '';
-        likeBtn.classList.toggle('liked', !!iLiked);
-      });
-
-      likesListeners[msgId] = listener;
-    }
-
-    function cleanupLikesListeners() {
-      if (!db || !currentRoom) return;
-      for (const msgId of Object.keys(likesListeners)) {
-        const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages/${msgId}/likes`);
-        ref.off('value', likesListeners[msgId]);
-        delete likesListeners[msgId];
-      }
-    }
-
-    // ---- Toast notification ----
-    const toastEl = document.getElementById('toast');
-    let toastTimeout = null;
-
-    function showToast(message) {
-      toastEl.textContent = message;
-      toastEl.classList.add('show');
-
-      if (toastTimeout) clearTimeout(toastTimeout);
-
-      toastTimeout = setTimeout(() => {
-        toastEl.classList.remove('show');
-      }, 3000);
-    }
-
-    // ---- Like modal (show who liked) ----
-    const likeModal = document.getElementById('like-modal');
-    const likeModalList = document.getElementById('like-modal-list');
-    const likeModalClose = document.getElementById('like-modal-close');
-
-    likeModalClose.addEventListener('click', () => {
-      likeModal.classList.remove('visible');
-    });
-
-    likeModal.addEventListener('click', (e) => {
-      if (e.target === likeModal) {
-        likeModal.classList.remove('visible');
-      }
-    });
-
-    async function showLikesModal(msgId) {
-      const likes = likesData[msgId];
-      if (!likes) return;
-
-      likeModalList.innerHTML = '';
-
-      const userIds = Object.keys(likes);
-      for (const userId of userIds) {
-        const li = document.createElement('li');
-        li.className = 'like-modal-user';
-
-        const dot = document.createElement('div');
-        dot.className = 'like-modal-user-dot';
-
-        const name = document.createElement('div');
-        name.className = 'like-modal-user-name';
-
-        // Get member data
-        const memberName = await getMemberName(userId);
-        const memberColor = await getMemberColor(userId);
-
-        dot.style.backgroundColor = memberColor;
-        name.textContent = userId === myUserId ? `${memberName} (du)` : memberName;
-
-        li.appendChild(dot);
-        li.appendChild(name);
-        likeModalList.appendChild(li);
-      }
-
-      likeModal.classList.add('visible');
-    }
-
-    // ---- Get member info ----
-    async function getMemberName(userId) {
-      if (!db || !currentRoom) return 'Okänd';
-      try {
-        const snap = await memberRef(currentRoom.code, userId).once('value');
-        const data = snap.val();
-        return data?.name || 'Okänd';
-      } catch (e) {
-        return 'Okänd';
-      }
-    }
-
-    async function getMemberColor(userId) {
-      if (!db || !currentRoom) return '#aaa';
-      try {
-        const snap = await memberRef(currentRoom.code, userId).once('value');
-        const data = snap.val();
-        return data?.color || '#aaa';
-      } catch (e) {
-        return '#aaa';
-      }
     }
 
     function getFileIcon(mime) {
@@ -5610,10 +3677,6 @@
 
     // ---- Firebase-lyssnare för chatt ----
     function startChatListener(code) {
-      if (!db) {
-        console.warn('Firebase not available, chat disabled');
-        return;
-      }
       stopChatListener();
       isFirstLoad = true;
       chatMessages.innerHTML = '';
@@ -5680,8 +3743,7 @@
     }
 
     function stopChatListener() {
-      cleanupLikesListeners();
-      if (chatListener && currentRoom && db) {
+      if (chatListener && currentRoom) {
         db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).off('child_added', chatListener);
       }
       chatListener = null;
@@ -5722,7 +3784,7 @@
 
     // ---- Skicka textmeddelande ----
     function sendTextMessage(text) {
-      if (!currentRoom || !text.trim() || !db) return;
+      if (!currentRoom || !text.trim()) return;
       const ref = db.ref(`pistkarta/rooms/${currentRoom.code}/messages`).push();
       ref.set({
         type: 'text',
@@ -5830,7 +3892,7 @@
 
     // ---- Skicka bild ----
     async function sendImageFile(file) {
-      if (!currentRoom || !db) return;
+      if (!currentRoom) return;
       try {
         const dataUrl = await compressImage(file, 800, 800, 0.6);
         // ~1.5 MB gräns på base64 (ca 2MB rå data)
@@ -5857,7 +3919,7 @@
 
     // ---- Skicka fil ----
     async function sendGenericFile(file) {
-      if (!currentRoom || !db) return;
+      if (!currentRoom) return;
       const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
       if (file.size > MAX_SIZE) {
         alert(`Filen är för stor (max 2 MB). Filens storlek: ${formatBytes(file.size)}`);
@@ -5966,7 +4028,7 @@
     }
 
     function sendVoiceMessage(blob, mimeType) {
-      if (!currentRoom || !db) return;
+      if (!currentRoom) return;
       const reader = new FileReader();
       reader.onload = (e) => {
         const dataUrl = e.target.result;
