@@ -69,6 +69,38 @@
     #grid-overlay.visible {
       display: block;
     }
+    #grid-overlay.hidden {
+      display: none !important;
+    }
+
+    /* Debug toggle button */
+    .debug-toggle-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 200;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255, 215, 64, 0.95);
+      color: #1a1a2e;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: transform 0.1s ease, background 0.15s ease;
+      touch-action: auto;
+      display: none;
+    }
+    .debug-toggle-btn.active {
+      display: block;
+    }
+    .debug-toggle-btn:active {
+      transform: scale(0.95);
+      background: rgba(255, 215, 64, 1);
+    }
 
     .user-marker {
       position: absolute;
@@ -2225,6 +2257,9 @@
     </div>
   </div>
 
+  <!-- Debug toggle button (only visible when ?debug=1) -->
+  <button class="debug-toggle-btn" id="debug-toggle-btn">Dölj debug</button>
+
   <!-- Chatt-knapp (ovanför grupp-knappen) -->
   <button class="chat-btn" id="chat-btn" aria-label="Gruppchatt">
     <span>💬</span>
@@ -3417,6 +3452,26 @@
       if (imgEl.naturalWidth) {
         setTimeout(drawDebugGrid, 200);
       }
+
+      // Show debug toggle button and set up toggle functionality
+      const debugToggleBtn = document.getElementById('debug-toggle-btn');
+      let debugVisible = true;
+
+      debugToggleBtn.classList.add('active');
+
+      debugToggleBtn.addEventListener('click', () => {
+        debugVisible = !debugVisible;
+
+        if (debugVisible) {
+          gridCanvas.classList.remove('hidden');
+          gridCanvas.classList.add('visible');
+          debugToggleBtn.textContent = 'Dölj debug';
+        } else {
+          gridCanvas.classList.add('hidden');
+          gridCanvas.classList.remove('visible');
+          debugToggleBtn.textContent = 'Visa debug';
+        }
+      });
     }
 
     // ============================
