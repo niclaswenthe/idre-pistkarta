@@ -2321,7 +2321,7 @@
 
   <!-- GPS Debug Tool (only visible when ?debug=1) -->
   <div class="gps-debug-tool" id="gps-debug-tool">
-    <input type="text" id="gps-input" placeholder="Klistra in GPS (61.8886, 12.8557)" />
+    <input type="text" id="gps-input" placeholder="GPS eller Google Maps-länk" />
     <button id="gps-mark-btn">Markera</button>
     <div class="gps-status" id="gps-status"></div>
   </div>
@@ -3636,10 +3636,79 @@
       // Store GPS marker reference
       let gpsMarkerElement = null;
 
+      // Check if input looks like a URL
+      function isURL(input) {
+        return /^https?:\/\//i.test(input.trim()) || /^maps\.app\.goo\.gl/i.test(input.trim());
+      }
+
+      // Parse GPS coordinates from Google Maps URL
+      function parseGoogleMapsURL(url) {
+        // Format: ?q=61.8877969,12.8572571
+        const qMatch = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (qMatch) return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+
+        // Format: @61.8877969,12.8572571
+        const atMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (atMatch) return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+
+        // Format: /place/61.8877969,12.8572571
+        const placeMatch = url.match(/\/place\/(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (placeMatch) return { lat: parseFloat(placeMatch[1]), lng: parseFloat(placeMatch[2]) };
+
+        // Format: ll=61.8877969,12.8572571
+        const llMatch = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        if (llMatch) return { lat: parseFloat(llMatch[1]), lng: parseFloat(llMatch[2]) };
+
+        return null;
+      }
+
+      // Resolve short Google Maps URL via CORS proxy
+      async function resolveGoogleMapsShortURL(shortUrl) {
+        const url = shortUrl.trim();
+        // Use corsproxy.io to follow the redirect
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+
+        gpsStatus.textContent = 'Resolvar Google Maps-länk...';
+        gpsStatus.style.color = 'rgba(255, 215, 64, 0.8)';
+
+        try {
+          const response = await fetch(proxyUrl, { redirect: 'follow' });
+          const html = await response.text();
+
+          // Try to find coordinates in the response HTML/URL
+          // Google Maps embeds coords in various ways in the HTML
+          const urlMatch = html.match(/google\.com\/maps[^"']*?[?&@](?:q=|ll=)?(-?\d+\.?\d*)[,/](-?\d+\.?\d*)/);
+          if (urlMatch) return { lat: parseFloat(urlMatch[1]), lng: parseFloat(urlMatch[2]) };
+
+          // Try window.APP_INITIALIZATION_STATE or similar embedded data
+          const coordMatch = html.match(/\[(?:null,)?(-?\d+\.\d{4,}),(-?\d+\.\d{4,})\]/);
+          if (coordMatch) return { lat: parseFloat(coordMatch[1]), lng: parseFloat(coordMatch[2]) };
+
+          // Try response URL itself (proxy may expose final URL)
+          const respUrl = response.url || '';
+          const fromRespUrl = parseGoogleMapsURL(respUrl);
+          if (fromRespUrl) return fromRespUrl;
+
+          // Last resort: scan for coordinate-like patterns near "center" or "q"
+          const broadMatch = html.match(/(-?(?:5[0-9]|6[0-9])\.\d{4,})[,\s]+(-?(?:1[0-2]|[0-9])\.\d{4,})/);
+          if (broadMatch) return { lat: parseFloat(broadMatch[1]), lng: parseFloat(broadMatch[2]) };
+
+          return null;
+        } catch (err) {
+          console.error('[GPS Debug] Failed to resolve short URL:', err);
+          return null;
+        }
+      }
+
       // Parse GPS coordinates from various formats
       function parseGPS(input) {
         // Remove whitespace and normalize
         const cleaned = input.trim();
+
+        // If it's a full Google Maps URL, try to parse coords directly
+        if (isURL(cleaned)) {
+          return parseGoogleMapsURL(cleaned);
+        }
 
         // Try formats: "61.8886, 12.8557" or "61.8886 12.8557"
         const match = cleaned.match(/(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)/);
@@ -3710,15 +3779,23 @@
         console.log('[GPS Debug] Plotted marker:', { lat, lng, pixel: pixelPos });
       }
 
-      // Handle mark button click
-      gpsMarkBtn.addEventListener('click', () => {
-        const input = gpsInput.value;
-        const coords = parseGPS(input);
+      // Handle mark button click (async to support URL resolving)
+      gpsMarkBtn.addEventListener('click', async () => {
+        const input = gpsInput.value.trim();
+        if (!input) return;
+
+        // First try direct parsing (coordinates or full Google Maps URL)
+        let coords = parseGPS(input);
+
+        // If it's a short Google Maps URL that couldn't be parsed directly, resolve it
+        if (!coords && isURL(input)) {
+          coords = await resolveGoogleMapsShortURL(input);
+        }
 
         if (coords) {
           plotGPSMarker(coords.lat, coords.lng);
         } else {
-          gpsStatus.textContent = 'Ogiltigt format! Använd: 61.8886, 12.8557';
+          gpsStatus.textContent = 'Kunde inte hitta koordinater. Prova: 61.8886, 12.8557';
           gpsStatus.style.color = 'rgba(255, 0, 0, 0.8)';
         }
       });
