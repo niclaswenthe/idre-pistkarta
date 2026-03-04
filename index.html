@@ -2842,6 +2842,7 @@
 
       // === VÄST ===
       { id: 'H', lat: 61.8881, lng: 12.8353, px: 1115, py: 1954 }, // Väst 6:an
+      { id: 'H_mid', lat: 61.88853, lng: 12.8431, px: 1380, py: 1280 }, // Väst 6:an (mittpunkt för vinklad lift)
       { id: 'H2', lat: 61.8889698910007, lng: 12.850940512001573, px: 1733, py: 563 }, // Väst 6:an (topp)
       { id: 'I', lat: 61.8878, lng: 12.8254, px: 1178, py: 1890 }, // Tunnelliften
       { id: 'I2', lat: 61.89064559230205, lng: 12.829687690123679, px: 819, py: 1375 }, // Tunnelliften (topp)
@@ -2957,13 +2958,14 @@
     // Y hoppas över (saknar Y2-punkt).
     // Punkterna kan justeras individuellt med URL-param ?adjustLift=A
     //
+    // via: array med mellanpunkter för liftar som inte går rakt (t.ex. lift H)
     // pointsPerPx: ~1 punkt per 250px avstånd (adaptivt).
     const LIFT_PAIRS = [
       // NORD
       { letter: 'A', name: 'Nord 6:an',          base: 'A',  top: 'A2' },
       { letter: 'B', name: 'Nordknappen',         base: 'B',  top: 'B2' },
       // VÄST
-      { letter: 'H', name: 'Väst 6:an',           base: 'H',  top: 'H2' },
+      { letter: 'H', name: 'Väst 6:an',           base: 'H',  top: 'H2', via: ['H_mid'] },
       { letter: 'I', name: 'Tunnelliften',        base: 'I',  top: 'I2' },
       { letter: 'J', name: 'Västtransporten',     base: 'J',  top: 'J2' },
       // MITT/TOPP
@@ -3008,28 +3010,50 @@
         if (!base || !top) return;
         if (base.lat === 0 || top.lat === 0) return; // Saknar GPS
 
-        // Beräkna pixelavstånd bas → topp
-        const dPx = top.px - base.px;
-        const dPy = top.py - base.py;
-        const pixelDist = Math.sqrt(dPx * dPx + dPy * dPy);
-
-        // Adaptiv täthet: ~1 punkt per 250px, minst 1 mellanpunkt
-        const numPoints = Math.max(1, Math.round(pixelDist / 250));
-
-        for (let i = 1; i <= numPoints; i++) {
-          const t = i / (numPoints + 1); // Jämnt fördelat (exkl. bas & topp)
-          interpolated.push({
-            id: `${pair.letter}_i${i}`,
-            liftLetter: pair.letter,
-            lat: base.lat + t * (top.lat - base.lat),
-            lng: base.lng + t * (top.lng - base.lng),
-            px:  Math.round(base.px + t * (top.px - base.px)),
-            py:  Math.round(base.py + t * (top.py - base.py)),
-            interpolated: true // Flagga för debug
+        // Bygg waypoint-array: [base, via1, via2, ..., top]
+        const waypoints = [base];
+        if (pair.via && pair.via.length > 0) {
+          pair.via.forEach(viaId => {
+            const viaPoint = refMap[viaId];
+            if (viaPoint && viaPoint.lat !== 0) {
+              waypoints.push(viaPoint);
+            }
           });
         }
+        waypoints.push(top);
 
-        console.log(`[Interpolation] Lift ${pair.letter} (${pair.name}): ${numPoints} mellanpunkter, ${Math.round(pixelDist)}px avstånd`);
+        // Interpolera längs varje segment mellan waypoints
+        let totalPoints = 0;
+        for (let seg = 0; seg < waypoints.length - 1; seg++) {
+          const start = waypoints[seg];
+          const end = waypoints[seg + 1];
+
+          // Beräkna pixelavstånd för detta segment
+          const dPx = end.px - start.px;
+          const dPy = end.py - start.py;
+          const pixelDist = Math.sqrt(dPx * dPx + dPy * dPy);
+
+          // Adaptiv täthet: ~1 punkt per 250px, minst 1 mellanpunkt
+          const numPoints = Math.max(1, Math.round(pixelDist / 250));
+
+          for (let i = 1; i <= numPoints; i++) {
+            const t = i / (numPoints + 1); // Jämnt fördelat (exkl. start & end)
+            interpolated.push({
+              id: `${pair.letter}_seg${seg}_i${i}`,
+              liftLetter: pair.letter,
+              lat: start.lat + t * (end.lat - start.lat),
+              lng: start.lng + t * (end.lng - start.lng),
+              px:  Math.round(start.px + t * (end.px - start.px)),
+              py:  Math.round(start.py + t * (end.py - start.py)),
+              interpolated: true // Flagga för debug
+            });
+          }
+
+          totalPoints += numPoints;
+        }
+
+        const segmentInfo = waypoints.length > 2 ? ` (${waypoints.length} waypoints, ${waypoints.length - 1} segment)` : '';
+        console.log(`[Interpolation] Lift ${pair.letter} (${pair.name}): ${totalPoints} mellanpunkter${segmentInfo}`);
       });
 
       console.log(`[Interpolation] Totalt ${interpolated.length} interpolerade punkter genererade`);
@@ -3304,21 +3328,28 @@
         const refMap = {};
         REFERENCE_POINTS.forEach(p => { refMap[p.id] = p; });
 
-        // Rita linjer mellan bas och topp för varje lift
+        // Rita linjer mellan bas och topp för varje lift (multi-segment för liftar med via-punkter)
         LIFT_PAIRS.forEach(pair => {
           const base = refMap[pair.base];
           const top = refMap[pair.top];
           if (!base || !top) return;
 
-          const basePx = base.px * scaleX;
-          const basePy = base.py * scaleY;
-          const topPx = top.px * scaleX;
-          const topPy = top.py * scaleY;
+          // Bygg waypoint-array: [base, via1, via2, ..., top]
+          const waypoints = [base];
+          if (pair.via && pair.via.length > 0) {
+            pair.via.forEach(viaId => {
+              const viaPoint = refMap[viaId];
+              if (viaPoint) waypoints.push(viaPoint);
+            });
+          }
+          waypoints.push(top);
 
-          // Cyanfärgad linje mellan bas och topp
+          // Rita linjer mellan alla waypoints
           ctx.beginPath();
-          ctx.moveTo(basePx, basePy);
-          ctx.lineTo(topPx, topPy);
+          ctx.moveTo(waypoints[0].px * scaleX, waypoints[0].py * scaleY);
+          for (let i = 1; i < waypoints.length; i++) {
+            ctx.lineTo(waypoints[i].px * scaleX, waypoints[i].py * scaleY);
+          }
           ctx.strokeStyle = adjustLiftParam && adjustLiftParam.toUpperCase() === pair.letter.toUpperCase()
             ? 'rgba(255, 100, 100, 0.6)' // Röd om justeras
             : 'rgba(0, 255, 255, 0.4)';   // Cyan normalt
@@ -3327,9 +3358,13 @@
           ctx.stroke();
           ctx.setLineDash([]);
 
-          // Liftbokstav vid mitten av linjen
-          const midX = (basePx + topPx) / 2;
-          const midY = (basePy + topPy) / 2;
+          // Liftbokstav vid mitten av hela lift-linjen (använd första och sista waypoint)
+          const firstPx = waypoints[0].px * scaleX;
+          const firstPy = waypoints[0].py * scaleY;
+          const lastPx = waypoints[waypoints.length - 1].px * scaleX;
+          const lastPy = waypoints[waypoints.length - 1].py * scaleY;
+          const midX = (firstPx + lastPx) / 2;
+          const midY = (firstPy + lastPy) / 2;
           ctx.font = `bold ${Math.round(14 * scaleX)}px sans-serif`;
           ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
           const letterW = ctx.measureText(pair.letter).width;
