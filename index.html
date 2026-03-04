@@ -3339,10 +3339,19 @@
           if (pair.via && pair.via.length > 0) {
             pair.via.forEach(viaId => {
               const viaPoint = refMap[viaId];
-              if (viaPoint) waypoints.push(viaPoint);
+              if (viaPoint) {
+                waypoints.push(viaPoint);
+              } else {
+                console.warn(`[Debug Grid] Via point "${viaId}" not found for lift ${pair.letter}`);
+              }
             });
           }
           waypoints.push(top);
+
+          // Debug log for lift H
+          if (pair.letter === 'H') {
+            console.log(`[Debug Grid] Lift H waypoints:`, waypoints.map(w => `${w.id}(${w.px},${w.py})`));
+          }
 
           // Rita linjer mellan alla waypoints
           ctx.beginPath();
