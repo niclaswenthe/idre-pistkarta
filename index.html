@@ -102,6 +102,65 @@
       background: rgba(255, 215, 64, 1);
     }
 
+    /* GPS Debug Tool */
+    .gps-debug-tool {
+      position: fixed;
+      top: 70px;
+      left: 20px;
+      z-index: 200;
+      background: rgba(26, 26, 46, 0.95);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 280px;
+    }
+    .gps-debug-tool.active {
+      display: flex;
+    }
+    .gps-debug-tool input {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 215, 64, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 14px;
+      font-family: monospace;
+      outline: none;
+    }
+    .gps-debug-tool input:focus {
+      border-color: rgba(255, 215, 64, 0.8);
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .gps-debug-tool input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .gps-debug-tool button {
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: none;
+      background: rgba(255, 215, 64, 0.95);
+      color: #1a1a2e;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .gps-debug-tool button:active {
+      transform: scale(0.95);
+      background: rgba(255, 215, 64, 1);
+    }
+    .gps-debug-tool .gps-status {
+      font-size: 12px;
+      color: rgba(255, 215, 64, 0.8);
+      font-family: monospace;
+      min-height: 16px;
+    }
+
     .user-marker {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -2260,6 +2319,13 @@
   <!-- Debug toggle button (only visible when ?debug=1) -->
   <button class="debug-toggle-btn" id="debug-toggle-btn">Dölj debug</button>
 
+  <!-- GPS Debug Tool (only visible when ?debug=1) -->
+  <div class="gps-debug-tool" id="gps-debug-tool">
+    <input type="text" id="gps-input" placeholder="Klistra in GPS (61.8886, 12.8557)" />
+    <button id="gps-mark-btn">Markera</button>
+    <div class="gps-status" id="gps-status"></div>
+  </div>
+
   <!-- Chatt-knapp (ovanför grupp-knappen) -->
   <button class="chat-btn" id="chat-btn" aria-label="Gruppchatt">
     <span>💬</span>
@@ -3553,6 +3619,114 @@
           gridCanvas.classList.add('hidden');
           gridCanvas.classList.remove('visible');
           debugToggleBtn.textContent = 'Visa debug';
+        }
+      });
+
+      // ============================
+      // GPS DEBUG TOOL
+      // ============================
+      // Show GPS debug tool
+      const gpsDebugTool = document.getElementById('gps-debug-tool');
+      const gpsInput = document.getElementById('gps-input');
+      const gpsMarkBtn = document.getElementById('gps-mark-btn');
+      const gpsStatus = document.getElementById('gps-status');
+
+      gpsDebugTool.classList.add('active');
+
+      // Store GPS marker reference
+      let gpsMarkerElement = null;
+
+      // Parse GPS coordinates from various formats
+      function parseGPS(input) {
+        // Remove whitespace and normalize
+        const cleaned = input.trim();
+
+        // Try formats: "61.8886, 12.8557" or "61.8886 12.8557"
+        const match = cleaned.match(/(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)/);
+        if (match) {
+          return {
+            lat: parseFloat(match[1]),
+            lng: parseFloat(match[2])
+          };
+        }
+        return null;
+      }
+
+      // Plot GPS marker on map
+      function plotGPSMarker(lat, lng) {
+        // Remove existing marker if any
+        if (gpsMarkerElement) {
+          gpsMarkerElement.remove();
+        }
+
+        // Convert GPS to pixel coordinates using TPS
+        const pixelPos = gpsToPixel(lat, lng);
+
+        // Create marker element
+        gpsMarkerElement = document.createElement('div');
+        gpsMarkerElement.style.position = 'absolute';
+        gpsMarkerElement.style.left = pixelPos.x + 'px';
+        gpsMarkerElement.style.top = pixelPos.y + 'px';
+        gpsMarkerElement.style.transform = 'translate(-50%, -50%)';
+        gpsMarkerElement.style.pointerEvents = 'none';
+        gpsMarkerElement.style.zIndex = '10';
+
+        // Create red circle
+        const circle = document.createElement('div');
+        circle.style.width = '30px';
+        circle.style.height = '30px';
+        circle.style.borderRadius = '50%';
+        circle.style.background = 'rgba(255, 0, 0, 0.7)';
+        circle.style.border = '4px solid #fff';
+        circle.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.6)';
+
+        // Create label
+        const label = document.createElement('div');
+        label.style.position = 'absolute';
+        label.style.top = '40px';
+        label.style.left = '50%';
+        label.style.transform = 'translateX(-50%)';
+        label.style.background = 'rgba(0, 0, 0, 0.9)';
+        label.style.color = '#fff';
+        label.style.padding = '4px 8px';
+        label.style.borderRadius = '4px';
+        label.style.fontSize = '12px';
+        label.style.fontFamily = 'monospace';
+        label.style.whiteSpace = 'nowrap';
+        label.style.border = '1px solid rgba(255, 0, 0, 0.8)';
+        label.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+        gpsMarkerElement.appendChild(circle);
+        gpsMarkerElement.appendChild(label);
+
+        // Add to markers overlay
+        const markersOverlay = document.getElementById('markers-overlay');
+        markersOverlay.appendChild(gpsMarkerElement);
+
+        // Update status
+        gpsStatus.textContent = `Plottat: ${lat.toFixed(5)}, ${lng.toFixed(5)} → (${Math.round(pixelPos.x)}, ${Math.round(pixelPos.y)})px`;
+        gpsStatus.style.color = 'rgba(0, 255, 0, 0.8)';
+
+        console.log('[GPS Debug] Plotted marker:', { lat, lng, pixel: pixelPos });
+      }
+
+      // Handle mark button click
+      gpsMarkBtn.addEventListener('click', () => {
+        const input = gpsInput.value;
+        const coords = parseGPS(input);
+
+        if (coords) {
+          plotGPSMarker(coords.lat, coords.lng);
+        } else {
+          gpsStatus.textContent = 'Ogiltigt format! Använd: 61.8886, 12.8557';
+          gpsStatus.style.color = 'rgba(255, 0, 0, 0.8)';
+        }
+      });
+
+      // Handle Enter key in input
+      gpsInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          gpsMarkBtn.click();
         }
       });
     }
