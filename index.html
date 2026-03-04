@@ -2914,6 +2914,101 @@
       { num: 41, name: 'Pernillabacken',           difficulty: 'green', px: 1593, py: 773 },
     ];
 
+    // ============================
+    // LIFT_PAIRS — par av bas/topp per lift för interpolering
+    // ============================
+    // Varje lift definieras med sin bokstav. Bas = X, Topp = X2.
+    // K och L hoppas över (saknar GPS på toppen, lat/lng = 0).
+    // Y hoppas över (saknar Y2-punkt).
+    // Punkterna kan justeras individuellt med URL-param ?adjustLift=A
+    //
+    // pointsPerPx: ~1 punkt per 250px avstånd (adaptivt).
+    const LIFT_PAIRS = [
+      // NORD
+      { letter: 'A', name: 'Nord 6:an',          base: 'A',  top: 'A2' },
+      { letter: 'B', name: 'Nordknappen',         base: 'B',  top: 'B2' },
+      // VÄST
+      { letter: 'H', name: 'Väst 6:an',           base: 'H',  top: 'H2' },
+      { letter: 'I', name: 'Tunnelliften',        base: 'I',  top: 'I2' },
+      { letter: 'J', name: 'Västtransporten',     base: 'J',  top: 'J2' },
+      // MITT/TOPP
+      { letter: 'C', name: 'Askeliften',          base: 'C',  top: 'C2' },
+      // ÖST
+      { letter: 'U', name: 'Ost 6:an',            base: 'U',  top: 'U2' },
+      { letter: 'V', name: 'Ost 4:an',            base: 'V',  top: 'V2' },
+      { letter: 'T', name: 'Ostknappen',          base: 'T',  top: 'T2' },
+      { letter: 'X', name: 'Chockentransporten',  base: 'X',  top: 'X2' },
+      // SÖDRA
+      { letter: 'N', name: 'Sydgondolen',         base: 'N',  top: 'N2' },
+      { letter: 'R', name: 'Biejjieliften',       base: 'R',  top: 'R2' },
+      { letter: 'S', name: 'Dalsliften',          base: 'S',  top: 'S2' },
+    ];
+
+    // ============================
+    // INTERPOLERING — generera mellanpunkter längs liftlinjer
+    // ============================
+    // Liftar är raka i verkligheten → linjär interpolering av GPS + pixel
+    // ger korrekta mellanpunkter som förbättrar TPS-precisionen.
+    //
+    // ?adjustLift=A exkluderar lift A:s interpolerade punkter
+    // så man kan se effekten av att justera den liften.
+
+    const adjustLiftParam = new URLSearchParams(window.location.search).get('adjustLift');
+
+    function generateLiftInterpolations() {
+      const refMap = {};
+      REFERENCE_POINTS.forEach(p => { refMap[p.id] = p; });
+
+      const interpolated = [];
+
+      LIFT_PAIRS.forEach(pair => {
+        // Om ?adjustLift=X matchar denna lift, hoppa över interpolering
+        if (adjustLiftParam && adjustLiftParam.toUpperCase() === pair.letter.toUpperCase()) {
+          console.log(`[Interpolation] Hoppar över lift ${pair.letter} (${pair.name}) — adjustLift aktiv`);
+          return;
+        }
+
+        const base = refMap[pair.base];
+        const top = refMap[pair.top];
+        if (!base || !top) return;
+        if (base.lat === 0 || top.lat === 0) return; // Saknar GPS
+
+        // Beräkna pixelavstånd bas → topp
+        const dPx = top.px - base.px;
+        const dPy = top.py - base.py;
+        const pixelDist = Math.sqrt(dPx * dPx + dPy * dPy);
+
+        // Adaptiv täthet: ~1 punkt per 250px, minst 1 mellanpunkt
+        const numPoints = Math.max(1, Math.round(pixelDist / 250));
+
+        for (let i = 1; i <= numPoints; i++) {
+          const t = i / (numPoints + 1); // Jämnt fördelat (exkl. bas & topp)
+          interpolated.push({
+            id: `${pair.letter}_i${i}`,
+            liftLetter: pair.letter,
+            lat: base.lat + t * (top.lat - base.lat),
+            lng: base.lng + t * (top.lng - base.lng),
+            px:  Math.round(base.px + t * (top.px - base.px)),
+            py:  Math.round(base.py + t * (top.py - base.py)),
+            interpolated: true // Flagga för debug
+          });
+        }
+
+        console.log(`[Interpolation] Lift ${pair.letter} (${pair.name}): ${numPoints} mellanpunkter, ${Math.round(pixelDist)}px avstånd`);
+      });
+
+      console.log(`[Interpolation] Totalt ${interpolated.length} interpolerade punkter genererade`);
+      return interpolated;
+    }
+
+    const INTERPOLATED_POINTS = generateLiftInterpolations();
+
+    // Kombinera original-referenspunkter med interpolerade för TPS
+    const ALL_TPS_POINTS = [
+      ...REFERENCE_POINTS.filter(p => p.lat !== 0 && p.lng !== 0),
+      ...INTERPOLATED_POINTS
+    ];
+
     // Thin Plate Spline (TPS) — exakt interpolation genom alla referenspunkter.
     // En affin transform fungerar dåligt på en 3D-perspektivkarta eftersom
     // relationen GPS→pixel är icke-linjär. TPS hanterar detta genom att
@@ -2922,6 +3017,8 @@
     //
     // Systemet löser:  [K P; P' 0] * [w; a] = [v; 0]
     // där K_ij = r²·ln(r), P = [1, lat, lng]
+    //
+    // Nu med ~56 punkter (28 original + ~28 interpolerade längs liftlinjer)
 
     function computeTPS(points) {
       const n = points.length;
@@ -2995,7 +3092,8 @@
       return { wx, wy, n, points, SCALE, rbf, gpsDist };
     }
 
-    const tps = computeTPS(REFERENCE_POINTS.filter(p => p.lat !== 0 && p.lng !== 0));
+    const tps = computeTPS(ALL_TPS_POINTS);
+    console.log(`[TPS] Initierad med ${ALL_TPS_POINTS.length} punkter (${REFERENCE_POINTS.filter(p => p.lat !== 0 && p.lng !== 0).length} original + ${INTERPOLATED_POINTS.length} interpolerade)`);
 
     function gpsToPixel(lat, lng) {
       if (!tps) return { x: 0, y: 0 };
@@ -3159,6 +3257,75 @@
         ctx.fillText(pxLabel, labelX + 2, labelY + smallFont * 2 + 8);
       });
 
+      // --- Liftlinjer och interpolerade punkter ---
+      if (LIFT_PAIRS && INTERPOLATED_POINTS) {
+        const refMap = {};
+        REFERENCE_POINTS.forEach(p => { refMap[p.id] = p; });
+
+        // Rita linjer mellan bas och topp för varje lift
+        LIFT_PAIRS.forEach(pair => {
+          const base = refMap[pair.base];
+          const top = refMap[pair.top];
+          if (!base || !top) return;
+
+          const basePx = base.px * scaleX;
+          const basePy = base.py * scaleY;
+          const topPx = top.px * scaleX;
+          const topPy = top.py * scaleY;
+
+          // Cyanfärgad linje mellan bas och topp
+          ctx.beginPath();
+          ctx.moveTo(basePx, basePy);
+          ctx.lineTo(topPx, topPy);
+          ctx.strokeStyle = adjustLiftParam && adjustLiftParam.toUpperCase() === pair.letter.toUpperCase()
+            ? 'rgba(255, 100, 100, 0.6)' // Röd om justeras
+            : 'rgba(0, 255, 255, 0.4)';   // Cyan normalt
+          ctx.lineWidth = 2 * scaleX;
+          ctx.setLineDash([8 * scaleX, 4 * scaleX]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Liftbokstav vid mitten av linjen
+          const midX = (basePx + topPx) / 2;
+          const midY = (basePy + topPy) / 2;
+          ctx.font = `bold ${Math.round(14 * scaleX)}px sans-serif`;
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+          const letterW = ctx.measureText(pair.letter).width;
+          ctx.fillRect(midX - letterW / 2 - 4, midY - 10 * scaleY, letterW + 8, 16 * scaleY);
+          ctx.fillStyle = 'cyan';
+          ctx.textAlign = 'center';
+          ctx.fillText(pair.letter, midX, midY + 2 * scaleY);
+          ctx.textAlign = 'left';
+        });
+
+        // Rita interpolerade punkter som diamanter
+        const diamondSize = Math.round(6 * scaleX);
+        INTERPOLATED_POINTS.forEach(ip => {
+          const ipPx = ip.px * scaleX;
+          const ipPy = ip.py * scaleY;
+
+          // Diamant-form
+          ctx.beginPath();
+          ctx.moveTo(ipPx, ipPy - diamondSize);
+          ctx.lineTo(ipPx + diamondSize, ipPy);
+          ctx.lineTo(ipPx, ipPy + diamondSize);
+          ctx.lineTo(ipPx - diamondSize, ipPy);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.lineWidth = 1 * scaleX;
+          ctx.stroke();
+
+          // Liten etikett
+          ctx.font = `${Math.round(9 * scaleX)}px monospace`;
+          ctx.fillStyle = 'rgba(0, 255, 255, 0.7)';
+          ctx.fillText(ip.id, ipPx + diamondSize + 3, ipPy + 3);
+        });
+
+        console.log(`[Debug Grid] Ritade ${LIFT_PAIRS.length} liftlinjer och ${INTERPOLATED_POINTS.length} interpolerade punkter`);
+      }
+
       // --- Pist-markörer (debug-läge) ---
       if (PISTE_DATA && PISTE_DATA.length > 0) {
         const pistDotRadius = Math.round(8 * scaleX);
@@ -3202,12 +3369,12 @@
 
       // --- Legend ---
       const legendX = 20 * scaleX;
-      const legendY = h - 120 * scaleY;
+      const legendY = h - 160 * scaleY;
       ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      ctx.fillRect(legendX, legendY, 320 * scaleX, 100 * scaleY);
+      ctx.fillRect(legendX, legendY, 380 * scaleX, 145 * scaleY);
       ctx.strokeStyle = '#FFD740';
       ctx.lineWidth = 2;
-      ctx.strokeRect(legendX, legendY, 320 * scaleX, 100 * scaleY);
+      ctx.strokeRect(legendX, legendY, 380 * scaleX, 145 * scaleY);
 
       ctx.font = `bold ${fontSize}px sans-serif`;
       ctx.fillStyle = '#FFD740';
@@ -3218,8 +3385,12 @@
       ctx.fillText('⭕ = Referenspunkt (manuellt satt px/py)', legendX + 10, legendY + 48 * scaleY);
       ctx.fillStyle = '#FF5252';
       ctx.fillText('🔴 = TPS-beräknad position (bör matcha)', legendX + 10, legendY + 68 * scaleY);
+      ctx.fillStyle = 'cyan';
+      ctx.fillText('◆ = Interpolerad punkt (liftlinje)', legendX + 10, legendY + 88 * scaleY);
+      ctx.fillStyle = 'cyan';
+      ctx.fillText('--- = Liftlinje (bas → topp)', legendX + 10, legendY + 108 * scaleY);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.fillText(`Rutnät: ${gridSpacing}px | Bild: ${w}x${h}`, legendX + 10, legendY + 88 * scaleY);
+      ctx.fillText(`TPS: ${ALL_TPS_POINTS.length} punkter | Bild: ${w}x${h}`, legendX + 10, legendY + 128 * scaleY);
 
       gridCanvas.classList.add('visible');
       console.log('[Debug Grid] Ritade fisknät med', REFERENCE_POINTS.length, 'referenspunkter');
