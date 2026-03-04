@@ -161,6 +161,99 @@
       min-height: 16px;
     }
 
+    /* GPS Marker - Mycket tydlig pulsande markör */
+    .gps-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .gps-marker-dot {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 0, 0, 0.9);
+      border: 5px solid white;
+      box-shadow: 0 4px 20px rgba(255, 0, 0, 0.8), 0 0 0 3px rgba(255, 0, 0, 0.4);
+      position: relative;
+      animation: gps-pulse-dot 1.2s ease-in-out infinite;
+    }
+
+    @keyframes gps-pulse-dot {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 20px rgba(255, 0, 0, 0.8), 0 0 0 3px rgba(255, 0, 0, 0.4);
+      }
+      50% {
+        transform: scale(1.15);
+        box-shadow: 0 6px 30px rgba(255, 0, 0, 1), 0 0 0 5px rgba(255, 0, 0, 0.6);
+      }
+    }
+
+    /* Yttre pulsande ringar */
+    .gps-marker-dot::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 0, 0, 0.8);
+      opacity: 0;
+      animation: gps-pulse-ring-1 1.5s ease-out infinite;
+    }
+
+    .gps-marker-dot::after {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 0, 0, 0.6);
+      opacity: 0;
+      animation: gps-pulse-ring-2 1.5s ease-out 0.75s infinite;
+    }
+
+    @keyframes gps-pulse-ring-1 {
+      0%   { transform: scale(1);   opacity: 0.9; }
+      100% { transform: scale(3); opacity: 0; }
+    }
+
+    @keyframes gps-pulse-ring-2 {
+      0%   { transform: scale(1);   opacity: 0.7; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    .gps-marker-label {
+      position: absolute;
+      top: 62px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 0, 0, 0.95);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: monospace;
+      font-weight: bold;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+      border: 2px solid white;
+      animation: gps-label-bounce 0.5s ease-out;
+    }
+
+    @keyframes gps-label-bounce {
+      0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+      }
+      60% {
+        transform: translateX(-50%) translateY(3px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
     .user-marker {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -3731,52 +3824,70 @@
         // Convert GPS to pixel coordinates using TPS
         const pixelPos = gpsToPixel(lat, lng);
 
-        // Create marker element
+        // Create marker element with new styling
         gpsMarkerElement = document.createElement('div');
-        gpsMarkerElement.style.position = 'absolute';
+        gpsMarkerElement.className = 'gps-marker';
         gpsMarkerElement.style.left = pixelPos.x + 'px';
         gpsMarkerElement.style.top = pixelPos.y + 'px';
-        gpsMarkerElement.style.transform = 'translate(-50%, -50%)';
-        gpsMarkerElement.style.pointerEvents = 'none';
-        gpsMarkerElement.style.zIndex = '10';
 
-        // Create red circle
-        const circle = document.createElement('div');
-        circle.style.width = '30px';
-        circle.style.height = '30px';
-        circle.style.borderRadius = '50%';
-        circle.style.background = 'rgba(255, 0, 0, 0.7)';
-        circle.style.border = '4px solid #fff';
-        circle.style.boxShadow = '0 0 20px rgba(255, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.6)';
+        // Create pulsating dot
+        const dot = document.createElement('div');
+        dot.className = 'gps-marker-dot';
 
         // Create label
         const label = document.createElement('div');
-        label.style.position = 'absolute';
-        label.style.top = '40px';
-        label.style.left = '50%';
-        label.style.transform = 'translateX(-50%)';
-        label.style.background = 'rgba(0, 0, 0, 0.9)';
-        label.style.color = '#fff';
-        label.style.padding = '4px 8px';
-        label.style.borderRadius = '4px';
-        label.style.fontSize = '12px';
-        label.style.fontFamily = 'monospace';
-        label.style.whiteSpace = 'nowrap';
-        label.style.border = '1px solid rgba(255, 0, 0, 0.8)';
-        label.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        label.className = 'gps-marker-label';
+        label.textContent = `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
-        gpsMarkerElement.appendChild(circle);
+        gpsMarkerElement.appendChild(dot);
         gpsMarkerElement.appendChild(label);
 
         // Add to markers overlay
         const markersOverlay = document.getElementById('markers-overlay');
         markersOverlay.appendChild(gpsMarkerElement);
 
-        // Update status
-        gpsStatus.textContent = `Plottat: ${lat.toFixed(5)}, ${lng.toFixed(5)} → (${Math.round(pixelPos.x)}, ${Math.round(pixelPos.y)})px`;
-        gpsStatus.style.color = 'rgba(0, 255, 0, 0.8)';
+        // Update status with clear success message
+        gpsStatus.textContent = `MARKERING LYCKADES! Position: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        gpsStatus.style.color = 'rgba(0, 255, 0, 1)';
+        gpsStatus.style.fontWeight = 'bold';
 
-        console.log('[GPS Debug] Plotted marker:', { lat, lng, pixel: pixelPos });
+        // Check if marker is visible in current viewport
+        const markerScreenX = pixelPos.x * scale + posX;
+        const markerScreenY = pixelPos.y * scale + posY;
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+
+        // Add some margin (100px) to determine if marker is "off screen"
+        const margin = 100;
+        const isVisible =
+          markerScreenX >= margin &&
+          markerScreenX <= containerWidth - margin &&
+          markerScreenY >= margin &&
+          markerScreenY <= containerHeight - margin;
+
+        // Pan to marker if it's off screen
+        if (!isVisible) {
+          // Zoom to 2x for better visibility
+          scale = 2.0;
+
+          // Center the marker in viewport
+          const centerX = containerWidth / 2;
+          const centerY = containerHeight / 2;
+          posX = centerX - pixelPos.x * scale;
+          posY = centerY - pixelPos.y * scale;
+
+          // Apply transform
+          updateTransform();
+          showZoomLevel();
+
+          // Update status to indicate we panned
+          setTimeout(() => {
+            gpsStatus.textContent = `MARKERING SYNLIG! Zoomade & panorerade till position.`;
+            gpsStatus.style.color = 'rgba(0, 255, 150, 1)';
+          }, 100);
+        }
+
+        console.log('[GPS Debug] Plotted marker:', { lat, lng, pixel: pixelPos, visible: isVisible });
       }
 
       // Handle mark button click (async to support URL resolving)
