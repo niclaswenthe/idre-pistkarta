@@ -3188,6 +3188,7 @@
     const gridCtx = gridCanvas.getContext('2d');
 
     function drawDebugGrid() {
+      console.log('[Debug Grid] Version 2024-03-04b — via-punkt-markering');
       const w = imgEl.naturalWidth;
       const h = imgEl.naturalHeight;
       if (!w || !h) return;
@@ -3382,6 +3383,44 @@
           ctx.textAlign = 'center';
           ctx.fillText(pair.letter, midX, midY + 2 * scaleY);
           ctx.textAlign = 'left';
+
+          // Rita tydliga via-punkt-markörer (stora gröna cirklar)
+          if (pair.via && pair.via.length > 0) {
+            pair.via.forEach(viaId => {
+              const viaPoint = refMap[viaId];
+              if (viaPoint) {
+                const vpx = viaPoint.px * scaleX;
+                const vpy = viaPoint.py * scaleY;
+                const viaRadius = Math.round(14 * scaleX);
+
+                // Stor grön fylld cirkel
+                ctx.beginPath();
+                ctx.arc(vpx, vpy, viaRadius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 255, 100, 0.8)';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3 * scaleX;
+                ctx.stroke();
+
+                // "VIA"-etikett
+                ctx.font = `bold ${Math.round(11 * scaleX)}px sans-serif`;
+                ctx.fillStyle = '#000';
+                ctx.textAlign = 'center';
+                ctx.fillText('VIA', vpx, vpy + 4 * scaleY);
+
+                // ID-etikett ovanför
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                const label = viaPoint.id;
+                const lblW = ctx.measureText(label).width;
+                ctx.fillRect(vpx - lblW / 2 - 3, vpy - viaRadius - 16 * scaleY, lblW + 6, 14 * scaleY);
+                ctx.fillStyle = '#0f0';
+                ctx.fillText(label, vpx, vpy - viaRadius - 5 * scaleY);
+                ctx.textAlign = 'left';
+
+                console.log(`[Debug Grid] Via-punkt ${viaPoint.id} ritad vid (${viaPoint.px}, ${viaPoint.py})`);
+              }
+            });
+          }
         });
 
         // Rita interpolerade punkter som diamanter
