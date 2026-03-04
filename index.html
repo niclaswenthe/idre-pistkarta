@@ -339,6 +339,99 @@
       }
     }
 
+    /* Sparade GPS-punkter — grön stil, permanent */
+    .saved-gps-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      z-index: 9;
+      cursor: pointer;
+    }
+    .saved-gps-marker .saved-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 200, 80, 0.95);
+      border: 3px solid white;
+      box-shadow: 0 2px 10px rgba(0, 200, 80, 0.6), 0 0 0 2px rgba(0, 200, 80, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+      font-family: monospace;
+    }
+    .saved-gps-marker .saved-label {
+      position: absolute;
+      top: 34px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 200, 80, 0.9);
+      color: white;
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: monospace;
+      font-weight: bold;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      border: 1px solid white;
+      display: none;
+    }
+    .saved-gps-marker:hover .saved-label {
+      display: block;
+    }
+    .saved-gps-marker .delete-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(255, 60, 60, 0.95);
+      border: 2px solid white;
+      color: white;
+      font-size: 11px;
+      line-height: 14px;
+      text-align: center;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .saved-gps-marker:hover .delete-btn {
+      display: block;
+    }
+
+    /* Lista med sparade punkter */
+    .saved-points-list {
+      margin-top: 6px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-size: 11px;
+    }
+    .saved-points-list .saved-point-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 6px;
+      background: rgba(0, 200, 80, 0.15);
+      border-radius: 4px;
+      margin-bottom: 3px;
+      color: rgba(255, 255, 255, 0.9);
+      font-family: monospace;
+      font-size: 10px;
+    }
+    .saved-points-list .saved-point-item .del-item {
+      cursor: pointer;
+      color: rgba(255, 100, 100, 0.8);
+      font-weight: bold;
+      margin-left: 6px;
+    }
+    .saved-points-list .saved-point-item .del-item:hover {
+      color: rgba(255, 0, 0, 1);
+    }
+
     .user-marker {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -2507,6 +2600,7 @@
       <button class="gps-copy-btn" id="gps-copy-btn" title="Kopiera koordinater">📋</button>
     </div>
     <button id="gps-save-btn" class="gps-save-btn">💾 Spara punkt</button>
+    <div class="saved-points-list" id="saved-points-list"></div>
   </div>
 
   <!-- Chatt-knapp (ovanför grupp-knappen) -->
@@ -3883,6 +3977,128 @@
       let gpsMarkerElement = null;
       let lastCopiedCoords = null;
       let pendingCoords = null; // Koordinater som väntar på bekräftelse
+      let manualPixelPos = null; // Pixelposition från manuell placering
+
+      // === SPARADE PUNKTER — localStorage ===
+      const SAVED_POINTS_KEY = 'pistkarta-saved-debug-points';
+      let savedDebugPoints = [];
+      const savedDebugMarkers = {}; // id → DOM-element
+
+      function loadSavedPoints() {
+        try {
+          const raw = localStorage.getItem(SAVED_POINTS_KEY);
+          if (raw) savedDebugPoints = JSON.parse(raw);
+        } catch (e) {
+          console.error('[GPS Debug] Kunde inte ladda sparade punkter:', e);
+          savedDebugPoints = [];
+        }
+      }
+
+      function persistSavedPoints() {
+        try {
+          localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(savedDebugPoints));
+        } catch (e) {
+          console.error('[GPS Debug] Kunde inte spara punkter:', e);
+        }
+      }
+
+      function renderSavedMarker(point) {
+        // Ta bort gammal markör om den redan finns
+        if (savedDebugMarkers[point.id]) {
+          savedDebugMarkers[point.id].remove();
+        }
+
+        const marker = document.createElement('div');
+        marker.className = 'saved-gps-marker';
+        marker.style.left = point.px + 'px';
+        marker.style.top = point.py + 'px';
+        marker.dataset.pointId = point.id;
+
+        const dot = document.createElement('div');
+        dot.className = 'saved-dot';
+        dot.textContent = point.num || '•';
+
+        const label = document.createElement('div');
+        label.className = 'saved-label';
+        label.textContent = `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`;
+
+        const delBtn = document.createElement('div');
+        delBtn.className = 'delete-btn';
+        delBtn.textContent = '✕';
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteSavedPoint(point.id);
+        });
+
+        marker.appendChild(dot);
+        marker.appendChild(label);
+        marker.appendChild(delBtn);
+
+        const markersOverlay = document.getElementById('markers-overlay');
+        markersOverlay.appendChild(marker);
+        savedDebugMarkers[point.id] = marker;
+      }
+
+      function renderAllSavedMarkers() {
+        // Rensa gamla
+        Object.values(savedDebugMarkers).forEach(el => el.remove());
+        Object.keys(savedDebugMarkers).forEach(k => delete savedDebugMarkers[k]);
+        // Rendera alla
+        savedDebugPoints.forEach(p => renderSavedMarker(p));
+      }
+
+      function updateSavedPointsList() {
+        const listEl = document.getElementById('saved-points-list');
+        if (savedDebugPoints.length === 0) {
+          listEl.innerHTML = '';
+          return;
+        }
+        listEl.innerHTML = savedDebugPoints.map(p =>
+          `<div class="saved-point-item">
+            <span>#${p.num} ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</span>
+            <span class="del-item" data-id="${p.id}" title="Ta bort">✕</span>
+          </div>`
+        ).join('');
+        // Klick-hantering för delete i listan
+        listEl.querySelectorAll('.del-item').forEach(el => {
+          el.addEventListener('click', () => deleteSavedPoint(el.dataset.id));
+        });
+      }
+
+      function deleteSavedPoint(id) {
+        savedDebugPoints = savedDebugPoints.filter(p => p.id !== id);
+        if (savedDebugMarkers[id]) {
+          savedDebugMarkers[id].remove();
+          delete savedDebugMarkers[id];
+        }
+        persistSavedPoints();
+        updateSavedPointsList();
+        console.log('[GPS Debug] Punkt borttagen:', id);
+      }
+
+      function addSavedPoint(lat, lng, px, py) {
+        const num = savedDebugPoints.length + 1;
+        const point = {
+          id: 'sp_' + Date.now(),
+          num: num,
+          lat: lat,
+          lng: lng,
+          px: Math.round(px),
+          py: Math.round(py),
+          timestamp: new Date().toISOString()
+        };
+        savedDebugPoints.push(point);
+        persistSavedPoints();
+        renderSavedMarker(point);
+        updateSavedPointsList();
+        console.log('[GPS Debug] Punkt sparad:', point);
+        return point;
+      }
+
+      // Ladda sparade punkter vid start
+      loadSavedPoints();
+      renderAllSavedMarkers();
+      updateSavedPointsList();
 
       // Copy button handler
       gpsCopyBtn.addEventListener('click', async () => {
@@ -4132,34 +4348,50 @@
         }
       });
 
-      // Handle "Spara" button click — bekräfta och spara punkten
+      // Handle "Spara" button click — spara punkten permanent till localStorage
       gpsSaveBtn.addEventListener('click', () => {
         if (!pendingCoords) return;
 
         const coords = pendingCoords;
         const coordsText = `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
 
-        // Markera som sparad
+        // Bestäm pixelposition — från manuell placering eller via GPS-konvertering
+        let px, py;
+        if (manualPixelPos) {
+          px = manualPixelPos.x;
+          py = manualPixelPos.y;
+        } else {
+          // Fallback: konvertera GPS → pixel via TPS
+          const pixelPos = gpsToPixel(coords.lat, coords.lng);
+          px = pixelPos.x;
+          py = pixelPos.y;
+        }
+
+        // Spara till localStorage och rendera grön markör
+        const point = addSavedPoint(coords.lat, coords.lng, px, py);
+
+        // Ta bort den tillfälliga röda markören (ersätts av grön sparad)
+        if (gpsMarkerElement) {
+          gpsMarkerElement.remove();
+          gpsMarkerElement = null;
+        }
+
+        // Visuell bekräftelse
         gpsSaveBtn.textContent = '✅ Sparad!';
         gpsSaveBtn.classList.add('saved');
 
-        gpsStatusText.innerHTML = `✅ <strong>SPARAD!</strong> ${coordsText}<br>Skicka koordinaterna till Niclas för att uppdatera kartdatan`;
+        gpsStatusText.innerHTML = `✅ <strong>SPARAD!</strong> Punkt #${point.num}: ${coordsText}<br>Punkten finns kvar på kartan (grön markör)`;
         gpsStatus.style.color = 'rgba(0, 255, 100, 1)';
         gpsStatus.style.fontWeight = 'bold';
 
-        console.log('[GPS Debug] Point saved:', {
-          lat: coords.lat,
-          lng: coords.lng,
-          coordsText: coordsText,
-          timestamp: new Date().toISOString()
-        });
-
-        // Dölj Spara-knappen efter bekräftelse
+        // Återställ efter bekräftelse
         setTimeout(() => {
           gpsSaveBtn.classList.remove('visible');
           gpsSaveBtn.classList.remove('saved');
+          gpsSaveBtn.textContent = '💾 Spara punkt';
           pendingCoords = null;
-        }, 3000);
+          manualPixelPos = null;
+        }, 2000);
       });
 
       // Handle Enter key in input
@@ -4242,6 +4474,9 @@
         gpsStatus.style.color = 'rgba(0, 200, 255, 1)';
         gpsStatus.style.fontWeight = 'bold';
 
+        // Spara pixelposition för Spara-knappen
+        manualPixelPos = { x: imgCoords.x, y: imgCoords.y };
+
         // Fyll i GPS-fältet med de beräknade koordinaterna (för enkel kopiering)
         if (gps) {
           const coordsText = `${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`;
@@ -4257,6 +4492,7 @@
           gpsCopyBtn.classList.remove('visible');
           gpsSaveBtn.classList.remove('visible');
           pendingCoords = null;
+          manualPixelPos = null;
         }
 
         console.log('[GPS Debug] Manual placement:', {
