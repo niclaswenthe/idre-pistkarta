@@ -2818,37 +2818,37 @@
       { num: 12, name: 'Skicenter Syd',               difficulty: 'green',   px: 1562, py: 1402 },
       { num: 13, name: 'Dalarnas längsta',            difficulty: 'green',   px: 1490, py: 1730 },
       { num: '13b', name: 'Dalarnas längsta (2)',       difficulty: 'green',   px: 1933, py: 962 },
-      { num: 14, name: 'Dalen 1',                     difficulty: 'green',   px: 1870, py: 1185 },
-      { num: 15, name: 'Dalen 2',                     difficulty: 'green',   px: 2080, py: 1330 },
+      { num: 14, name: 'Dalen 1',                     difficulty: 'green',   px: 1936, py: 1170 },
+      { num: 15, name: 'Dalen 2',                     difficulty: 'green',   px: 2106, py: 1321 },
 
       // === OST ===
       { num: 16, name: 'Ostbacken',                   difficulty: 'green',   px: 1975, py: 505 },
       { num: '16a', name: 'Ostbacken (grön 2)',         difficulty: 'green',   px: 1975, py: 505 },
       { num: '16b', name: 'Ostbacken (grön 3)',         difficulty: 'green',   px: 1975, py: 505 },
-      { num: 17, name: 'Ostkroken',                   difficulty: 'green',   px: 2080, py: 750 },
-      { num: 18, name: 'Lämmeln',                     difficulty: 'green',   px: 2070, py: 960 },
+      { num: 17, name: 'Ostkroken',                   difficulty: 'green',   px: 2070, py: 767 },
+      { num: 18, name: 'Lämmeln',                     difficulty: 'green',   px: 2091, py: 995 },
       { num: 19, name: 'Solbacken',                   difficulty: 'blue',    px: 2155, py: 925 },
-      { num: 20, name: 'Rödingen',                    difficulty: 'red',     px: 2200, py: 870 },
+      { num: 20, name: 'Rödingen',                    difficulty: 'red',     px: 2093, py: 565 },
       { num: 21, name: 'Snobbrännan',                 difficulty: 'black',   px: 2350, py: 880 },
       { num: 22, name: 'Djärven',                     difficulty: 'black',   px: 2380, py: 780 },
       { num: 23, name: 'Tävlingsbacken',              difficulty: 'black',   px: 2450, py: 700 },
       { num: 24, name: 'Chocken (extrem nedfart)',    difficulty: 'black',   px: 2390, py: 570 },
 
       // === NORD ===
-      { num: 25, name: 'Svarten 1',                   difficulty: 'black',   px: 895, py: 560 },
-      { num: 26, name: 'Svarten 2',                   difficulty: 'black',   px: 975, py: 555 },
+      { num: 25, name: 'Svarten 1',                   difficulty: 'black',   px: 952, py: 568 },
+      { num: 26, name: 'Svarten 2',                   difficulty: 'black',   px: 1009, py: 566 },
       { num: 27, name: 'Specialen',                   difficulty: 'black',   px: 860, py: 645 },
-      { num: 28, name: 'Carvingssvängen',             difficulty: 'red',     px: 1085, py: 650 },
-      { num: 29, name: 'Mellanbacken',                difficulty: 'red',     px: 905, py: 690 },
+      { num: 28, name: 'Carvingssvängen',             difficulty: 'red',     px: 1007, py: 644 },
+      { num: 29, name: 'Mellanbacken',                difficulty: 'red',     px: 985, py: 701 },
       { num: 30, name: 'Palmbacken',                  difficulty: 'red',     px: 865, py: 735 },
-      { num: 31, name: 'Turisten 1',                  difficulty: 'blue',    px: 965, py: 720 },
-      { num: 32, name: 'Turisten 2',                  difficulty: 'blue',    px: 920, py: 770 },
-      { num: 33, name: 'Gröngölingen 1',              difficulty: 'green',   px: 900, py: 820 },
-      { num: 34, name: 'Gröngölingen 2',              difficulty: 'green',   px: 860, py: 875 },
+      { num: 31, name: 'Turisten 1',                  difficulty: 'blue',    px: 1022, py: 740 },
+      { num: 32, name: 'Turisten 2',                  difficulty: 'blue',    px: 985, py: 774 },
+      { num: 33, name: 'Gröngölingen 1',              difficulty: 'green',   px: 957, py: 805 },
+      { num: 34, name: 'Gröngölingen 2',              difficulty: 'green',   px: 922, py: 844 },
 
       // === SKICROSS / ÖVRIGT ===
-      { num: 35, name: 'Blåbärsslingan',              difficulty: 'green',   px: 1075, py: 895 },
-      { num: 36, name: 'Fäbodssvängen',               difficulty: 'green',   px: 885, py: 980 },
+      { num: 35, name: 'Blåbärsslingan',              difficulty: 'green',   px: 1072, py: 919 },
+      { num: 36, name: 'Fäbodssvängen',               difficulty: 'green',   px: 975, py: 982 },
       { num: 37, name: 'Ravinen (skicross)',          difficulty: 'blue',    px: 1225, py: 640 },
       { num: 38, name: 'Tallbacken (skicross)',       difficulty: 'red',     px: 1280, py: 790 },
       { num: 39, name: 'Glidaren',                 difficulty: 'green', px: 1675, py: 440  },
@@ -3448,7 +3448,7 @@
       // Mutable copy of PISTE_DATA for calibration
       const pisteCalData = PISTE_DATA.map(p => {
         // Calibrated pistes (excluding those that need recalibration: 1c, 14, 15, 16a, 16b, 17, 18, 20, 25, 26, 28, 29, 31, 32, 33, 34, 35, 36)
-        const calibratedPistes = [1, '1b', 2, 3, 4, 5, 6, 7, 8, '8b', 9, 10, 11, 12, 13, '13b', 16, 19, 21, 22, 23, 24, 27, 30, 37, 38, 39, 40, 41];
+        const calibratedPistes = [1, '1b', '1c', 2, 3, 4, 5, 6, 7, 8, '8b', 9, 10, 11, 12, 13, '13b', 14, 15, 16, '16a', '16b', 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41];
         const isCalibrated = calibratedPistes.includes(p.num);
 
         return {
