@@ -4110,11 +4110,11 @@
           const coordsText = `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
           lastCopiedCoords = coordsText;
 
-          // Visa en förhandsvisning (plotta markören)
-          plotGPSMarker(coords.lat, coords.lng);
+          // FIXA: Plotta inte markören — bara visa koordinaterna som text
+          // plotGPSMarker(coords.lat, coords.lng);
 
-          // Visa koordinaterna tydligt
-          gpsStatusText.innerHTML = `📍 <strong>${coordsText}</strong><br>Kontrollera positionen — tryck Spara om den stämmer`;
+          // Visa koordinaterna tydligt utan att flytta markören
+          gpsStatusText.innerHTML = `📍 <strong>Länk-koordinater: ${coordsText}</strong><br>Markören stannar kvar där du placerade den`;
           gpsStatus.style.color = 'rgba(0, 200, 255, 1)';
           gpsStatus.style.fontWeight = 'bold';
           gpsCopyBtn.classList.add('visible');
