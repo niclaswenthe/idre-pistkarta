@@ -1846,6 +1846,55 @@
       white-space: nowrap;
     }
 
+    #calibration-crosshair {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+    }
+
+    #calibration-crosshair.active {
+      display: block;
+    }
+
+    .crosshair-lines {
+      position: absolute;
+      transform: translate(-50%, -50%);
+    }
+
+    .crosshair-h, .crosshair-v {
+      position: absolute;
+      background: rgba(255, 152, 0, 0.8);
+    }
+
+    .crosshair-h {
+      width: 20px;
+      height: 2px;
+      left: -10px;
+      top: -1px;
+    }
+
+    .crosshair-v {
+      width: 2px;
+      height: 20px;
+      left: -1px;
+      top: -10px;
+    }
+
+    .crosshair-coords {
+      position: absolute;
+      left: 15px;
+      top: -20px;
+      background: rgba(0, 0, 0, 0.9);
+      color: #FF9800;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+      border: 1px solid #FF9800;
+    }
+
     /* Map cursor in calibration mode */
     #map-container.calibration-mode {
       cursor: crosshair !important;
@@ -2044,6 +2093,14 @@
       <div id="markers-overlay"></div>
       <canvas id="grid-overlay"></canvas>
     </div>
+  </div>
+
+  <div id="calibration-crosshair">
+    <div class="crosshair-lines">
+      <div class="crosshair-h"></div>
+      <div class="crosshair-v"></div>
+    </div>
+    <div class="crosshair-coords"></div>
   </div>
 
   <div id="zoom-level"></div>
@@ -3102,6 +3159,47 @@
         ctx.fillText(pxLabel, labelX + 2, labelY + smallFont * 2 + 8);
       });
 
+      // --- Pist-markörer (debug-läge) ---
+      if (PISTE_DATA && PISTE_DATA.length > 0) {
+        const pistDotRadius = Math.round(8 * scaleX);
+        const pistFontSize = Math.round(12 * scaleX);
+
+        const difficultyColors = {
+          green: '#4CAF50',
+          blue: '#2196F3',
+          red: '#E91E63',
+          black: '#333'
+        };
+
+        PISTE_DATA.forEach(piste => {
+          if (!piste.px || !piste.py) return;
+
+          const pistPx = piste.px * scaleX;
+          const pistPy = piste.py * scaleY;
+          const color = difficultyColors[piste.difficulty] || '#999';
+
+          // Rita pistcirkel
+          ctx.beginPath();
+          ctx.arc(pistPx, pistPy, pistDotRadius, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.lineWidth = 2 * scaleX;
+          ctx.stroke();
+
+          // Rita pistnummer
+          ctx.font = `bold ${pistFontSize}px sans-serif`;
+          ctx.fillStyle = 'white';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(piste.num), pistPx, pistPy);
+        });
+
+        // Återställ textinställningar
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+      }
+
       // --- Legend ---
       const legendX = 20 * scaleX;
       const legendY = h - 120 * scaleY;
@@ -3131,8 +3229,9 @@
       gridCanvas.classList.remove('visible');
     }
 
-    // Aktivera debug-läge via URL-parameter ?debug=1
-    if (new URLSearchParams(window.location.search).get('debug') === '1') {
+    // Aktivera debug-läge via URL-parameter ?debug=1 eller ?debug=pist
+    const debugParam = new URLSearchParams(window.location.search).get('debug');
+    if (debugParam === '1' || debugParam === 'pist') {
       imgEl.addEventListener('load', () => {
         setTimeout(drawDebugGrid, 200); // Vänta lite så bilden renderat klart
       });
@@ -3542,6 +3641,21 @@
           <div class="piste-cal-marker-label">${num}</div>
         `;
 
+        // Make marker clickable to re-select that piste
+        marker.style.pointerEvents = 'auto';
+        marker.style.cursor = 'pointer';
+        marker.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectedPisteNum = num;
+          renderPisteList();
+
+          // Scroll selected into view
+          setTimeout(() => {
+            const sel = pisteCalList.querySelector('.piste-cal-item.selected');
+            if (sel) sel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 50);
+        });
+
         const overlay = document.getElementById('markers-overlay');
         overlay.appendChild(marker);
         pisteCalMarkers[num] = marker;
@@ -3627,6 +3741,44 @@
         }
       }, { passive: false });
 
+      // Crosshair cursor with coordinate display
+      const crosshair = document.getElementById('calibration-crosshair');
+      const crosshairCoords = crosshair.querySelector('.crosshair-coords');
+      const crosshairLines = crosshair.querySelector('.crosshair-lines');
+
+      function updateCrosshair(clientX, clientY) {
+        const coords = screenToImageCoords(clientX, clientY);
+        const px = Math.max(0, Math.min(CALIBRATION_IMAGE_WIDTH, Math.round(coords.x)));
+        const py = Math.max(0, Math.min(CALIBRATION_IMAGE_HEIGHT, Math.round(coords.y)));
+
+        crosshair.style.left = clientX + 'px';
+        crosshair.style.top = clientY + 'px';
+        crosshairCoords.textContent = `px: ${px}, py: ${py}`;
+      }
+
+      mapEl.addEventListener('mousemove', (e) => {
+        crosshair.classList.add('active');
+        updateCrosshair(e.clientX, e.clientY);
+      });
+
+      mapEl.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1) {
+          const touch = e.touches[0];
+          crosshair.classList.add('active');
+          updateCrosshair(touch.clientX, touch.clientY);
+        }
+      }, { passive: true });
+
+      mapEl.addEventListener('mouseleave', () => {
+        crosshair.classList.remove('active');
+      });
+
+      mapEl.addEventListener('touchend', () => {
+        setTimeout(() => {
+          crosshair.classList.remove('active');
+        }, 100);
+      }, { passive: true });
+
       // Copy PISTE_DATA code
       pisteCalCopyBtn.addEventListener('click', () => {
         const code = generatePisteCode();
@@ -3697,7 +3849,7 @@
       selectedPisteNum = pisteSections[0].nums[0]; // Select first piste
       renderPisteList();
 
-      // Show existing positions as markers
+      // Show existing positions as markers for ALL pistes (including calibrated ones)
       pisteCalData.forEach(p => {
         if (p.px && p.py) {
           placePisteMarker(p.num, p.px, p.py);
