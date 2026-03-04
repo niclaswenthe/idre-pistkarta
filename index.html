@@ -2848,6 +2848,7 @@
 
       // === SKICROSS / ÖVRIGT ===
       { num: 35, name: 'Blåbärsslingan',              difficulty: 'green',   px: 1072, py: 919 },
+      { num: '35b', name: 'Blåbärsslingan (2)',         difficulty: 'green',   px: 1072, py: 919 },
       { num: 36, name: 'Fäbodssvängen',               difficulty: 'green',   px: 975, py: 982 },
       { num: 37, name: 'Ravinen (skicross)',          difficulty: 'blue',    px: 1225, py: 640 },
       { num: 38, name: 'Tallbacken (skicross)',       difficulty: 'red',     px: 1280, py: 790 },
@@ -3447,8 +3448,8 @@
 
       // Mutable copy of PISTE_DATA for calibration
       const pisteCalData = PISTE_DATA.map(p => {
-        // Calibrated pistes (excluding those that need recalibration: 1c, 14, 15, 16a, 16b, 17, 18, 20, 25, 26, 28, 29, 31, 32, 33, 34, 35, 36)
-        const calibratedPistes = [1, '1b', '1c', 2, 3, 4, 5, 6, 7, 8, '8b', 9, 10, 11, 12, 13, '13b', 14, 15, 16, '16a', '16b', 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41];
+        // Calibrated pistes (excluding those that need recalibration: 1c, 14, 15, 16a, 16b, 17, 18, 20, 25, 26, 28, 29, 31, 32, 33, 34, 35, 35b, 36)
+        const calibratedPistes = [1, '1b', 2, 3, 4, 5, 6, 7, 8, '8b', 9, 10, 11, 12, 13, '13b', 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41];
         const isCalibrated = calibratedPistes.includes(p.num);
 
         return {
@@ -3466,13 +3467,13 @@
 
       // Sections for grouping in the UI list
       const pisteSections = [
-        { label: 'VÄST', nums: ['1', '1b', 2, 3, 4, 5, 6] },
+        { label: 'VÄST', nums: ['1', '1b', '1c', 2, 3, 4, 5, 6] },
         { label: 'SNOWPARK', nums: [7, 8, '8b'] },
         { label: 'ASKESTIGEN', nums: [9] },
         { label: 'SYD', nums: [10, 11, 12, 13, '13b', 14, 15] },
-        { label: 'OST', nums: [16, 17, 18, 19, 20, 21, 22, 23, 24] },
+        { label: 'OST', nums: [16, '16a', '16b', 17, 18, 19, 20, 21, 22, 23, 24] },
         { label: 'NORD', nums: [25, 26, 27, 28, 29, 30, 31, 32, 33, 34] },
-        { label: 'SKICROSS / ÖVRIGT', nums: [35, 36, 37, 38, 39, 40, 41] }
+        { label: 'SKICROSS / ÖVRIGT', nums: [35, '35b', 36, 37, 38, 39, 40, 41] }
       ];
 
       // Show overlay + crosshair cursor
