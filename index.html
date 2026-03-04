@@ -3581,6 +3581,117 @@
     }
 
     // ============================
+    // SPARADE PUNKTER — localStorage
+    // ============================
+    // Hanterar permanenta GPS-markörer som sparats via debug-verktyget.
+    // Dessa visas alltid, även utan ?debug=1.
+
+    const SAVED_POINTS_KEY = 'pistkarta-saved-debug-points';
+    let savedDebugPoints = [];
+    const savedDebugMarkers = {}; // id → DOM-element
+
+    function loadSavedPoints() {
+      try {
+        const raw = localStorage.getItem(SAVED_POINTS_KEY);
+        if (raw) savedDebugPoints = JSON.parse(raw);
+      } catch (e) {
+        console.error('[GPS Debug] Kunde inte ladda sparade punkter:', e);
+        savedDebugPoints = [];
+      }
+    }
+
+    function persistSavedPoints() {
+      try {
+        localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(savedDebugPoints));
+      } catch (e) {
+        console.error('[GPS Debug] Kunde inte spara punkter:', e);
+      }
+    }
+
+    function renderSavedMarker(point) {
+      // Ta bort gammal markör om den redan finns
+      if (savedDebugMarkers[point.id]) {
+        savedDebugMarkers[point.id].remove();
+      }
+
+      const marker = document.createElement('div');
+      marker.className = 'saved-gps-marker';
+      marker.style.left = point.px + 'px';
+      marker.style.top = point.py + 'px';
+      marker.dataset.pointId = point.id;
+
+      const dot = document.createElement('div');
+      dot.className = 'saved-dot';
+      dot.textContent = point.num || '•';
+
+      const label = document.createElement('div');
+      label.className = 'saved-label';
+      label.textContent = `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`;
+
+      const delBtn = document.createElement('div');
+      delBtn.className = 'delete-btn';
+      delBtn.textContent = '✕';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteSavedPoint(point.id);
+      });
+
+      marker.appendChild(dot);
+      marker.appendChild(label);
+      marker.appendChild(delBtn);
+
+      const markersOverlay = document.getElementById('markers-overlay');
+      markersOverlay.appendChild(marker);
+      savedDebugMarkers[point.id] = marker;
+    }
+
+    function renderAllSavedMarkers() {
+      // Rensa gamla
+      Object.values(savedDebugMarkers).forEach(el => el.remove());
+      Object.keys(savedDebugMarkers).forEach(k => delete savedDebugMarkers[k]);
+      // Rendera alla
+      savedDebugPoints.forEach(p => renderSavedMarker(p));
+    }
+
+    function deleteSavedPoint(id) {
+      savedDebugPoints = savedDebugPoints.filter(p => p.id !== id);
+      if (savedDebugMarkers[id]) {
+        savedDebugMarkers[id].remove();
+        delete savedDebugMarkers[id];
+      }
+      persistSavedPoints();
+      // Uppdatera debug-listan om den finns
+      const listEl = document.getElementById('saved-points-list');
+      if (listEl) updateSavedPointsList();
+      console.log('[GPS Debug] Punkt borttagen:', id);
+    }
+
+    function addSavedPoint(lat, lng, px, py) {
+      const num = savedDebugPoints.length + 1;
+      const point = {
+        id: 'sp_' + Date.now(),
+        num: num,
+        lat: lat,
+        lng: lng,
+        px: Math.round(px),
+        py: Math.round(py),
+        timestamp: new Date().toISOString()
+      };
+      savedDebugPoints.push(point);
+      persistSavedPoints();
+      renderSavedMarker(point);
+      // Uppdatera debug-listan om den finns
+      const listEl = document.getElementById('saved-points-list');
+      if (listEl) updateSavedPointsList();
+      console.log('[GPS Debug] Punkt sparad:', point);
+      return point;
+    }
+
+    // Ladda och visa sparade punkter vid start (alltid, även utan debug-läge)
+    loadSavedPoints();
+    renderAllSavedMarkers();
+
+    // ============================
     // DEBUG: FISKNÄT (GRID OVERLAY)
     // ============================
     // Aktiveras med ?debug=1 i URL:en.
@@ -3979,74 +4090,7 @@
       let pendingCoords = null; // Koordinater som väntar på bekräftelse
       let manualPixelPos = null; // Pixelposition från manuell placering
 
-      // === SPARADE PUNKTER — localStorage ===
-      const SAVED_POINTS_KEY = 'pistkarta-saved-debug-points';
-      let savedDebugPoints = [];
-      const savedDebugMarkers = {}; // id → DOM-element
-
-      function loadSavedPoints() {
-        try {
-          const raw = localStorage.getItem(SAVED_POINTS_KEY);
-          if (raw) savedDebugPoints = JSON.parse(raw);
-        } catch (e) {
-          console.error('[GPS Debug] Kunde inte ladda sparade punkter:', e);
-          savedDebugPoints = [];
-        }
-      }
-
-      function persistSavedPoints() {
-        try {
-          localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(savedDebugPoints));
-        } catch (e) {
-          console.error('[GPS Debug] Kunde inte spara punkter:', e);
-        }
-      }
-
-      function renderSavedMarker(point) {
-        // Ta bort gammal markör om den redan finns
-        if (savedDebugMarkers[point.id]) {
-          savedDebugMarkers[point.id].remove();
-        }
-
-        const marker = document.createElement('div');
-        marker.className = 'saved-gps-marker';
-        marker.style.left = point.px + 'px';
-        marker.style.top = point.py + 'px';
-        marker.dataset.pointId = point.id;
-
-        const dot = document.createElement('div');
-        dot.className = 'saved-dot';
-        dot.textContent = point.num || '•';
-
-        const label = document.createElement('div');
-        label.className = 'saved-label';
-        label.textContent = `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`;
-
-        const delBtn = document.createElement('div');
-        delBtn.className = 'delete-btn';
-        delBtn.textContent = '✕';
-        delBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          deleteSavedPoint(point.id);
-        });
-
-        marker.appendChild(dot);
-        marker.appendChild(label);
-        marker.appendChild(delBtn);
-
-        const markersOverlay = document.getElementById('markers-overlay');
-        markersOverlay.appendChild(marker);
-        savedDebugMarkers[point.id] = marker;
-      }
-
-      function renderAllSavedMarkers() {
-        // Rensa gamla
-        Object.values(savedDebugMarkers).forEach(el => el.remove());
-        Object.keys(savedDebugMarkers).forEach(k => delete savedDebugMarkers[k]);
-        // Rendera alla
-        savedDebugPoints.forEach(p => renderSavedMarker(p));
-      }
-
+      // === DEBUG UI: Lista med sparade punkter ===
       function updateSavedPointsList() {
         const listEl = document.getElementById('saved-points-list');
         if (savedDebugPoints.length === 0) {
@@ -4065,39 +4109,7 @@
         });
       }
 
-      function deleteSavedPoint(id) {
-        savedDebugPoints = savedDebugPoints.filter(p => p.id !== id);
-        if (savedDebugMarkers[id]) {
-          savedDebugMarkers[id].remove();
-          delete savedDebugMarkers[id];
-        }
-        persistSavedPoints();
-        updateSavedPointsList();
-        console.log('[GPS Debug] Punkt borttagen:', id);
-      }
-
-      function addSavedPoint(lat, lng, px, py) {
-        const num = savedDebugPoints.length + 1;
-        const point = {
-          id: 'sp_' + Date.now(),
-          num: num,
-          lat: lat,
-          lng: lng,
-          px: Math.round(px),
-          py: Math.round(py),
-          timestamp: new Date().toISOString()
-        };
-        savedDebugPoints.push(point);
-        persistSavedPoints();
-        renderSavedMarker(point);
-        updateSavedPointsList();
-        console.log('[GPS Debug] Punkt sparad:', point);
-        return point;
-      }
-
-      // Ladda sparade punkter vid start
-      loadSavedPoints();
-      renderAllSavedMarkers();
+      // Initiera debug-listan
       updateSavedPointsList();
 
       // Copy button handler
