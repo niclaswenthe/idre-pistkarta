@@ -160,6 +160,39 @@
       font-family: monospace;
       min-height: 16px;
     }
+    .gps-manual-btn {
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: 2px solid rgba(0, 200, 255, 0.6);
+      background: rgba(0, 200, 255, 0.15);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .gps-manual-btn:active {
+      transform: scale(0.95);
+    }
+    .gps-manual-btn.active {
+      background: rgba(0, 200, 255, 0.5);
+      border-color: rgba(0, 200, 255, 1);
+      box-shadow: 0 0 12px rgba(0, 200, 255, 0.5);
+      animation: manual-btn-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes manual-btn-pulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(0, 200, 255, 0.5); }
+      50% { box-shadow: 0 0 24px rgba(0, 200, 255, 0.8); }
+    }
+    /* Crosshair-markör när manuellt läge är aktivt */
+    #map-container.manual-place-mode {
+      cursor: crosshair !important;
+    }
+    #map-container.manual-place-mode * {
+      cursor: crosshair !important;
+    }
 
     /* GPS Marker - Mycket tydlig pulsande markör */
     .gps-marker {
@@ -2416,6 +2449,7 @@
   <div class="gps-debug-tool" id="gps-debug-tool">
     <input type="text" id="gps-input" placeholder="GPS eller Google Maps-länk" />
     <button id="gps-mark-btn">Markera</button>
+    <button id="gps-manual-btn" class="gps-manual-btn">📍 Placera manuellt</button>
     <div class="gps-status" id="gps-status"></div>
   </div>
 
@@ -3336,6 +3370,66 @@
       return { x: px, y: py };
     }
 
+    // Invers TPS: pixel → GPS via Newton-iteration
+    // TPS är inte analytiskt inverterbar, så vi söker lat/lng som ger rätt pixel
+    function pixelToGps(targetPx, targetPy) {
+      if (!tps) return null;
+
+      // Skala tillbaka till kalibreringskoordinater
+      let calPx = targetPx;
+      let calPy = targetPy;
+      if (imgEl.naturalWidth && imgEl.naturalHeight) {
+        calPx = targetPx / (imgEl.naturalWidth / CALIBRATION_IMAGE_WIDTH);
+        calPy = targetPy / (imgEl.naturalHeight / CALIBRATION_IMAGE_HEIGHT);
+      }
+
+      // Startgissning: hitta närmaste referenspunkt
+      let bestDist = Infinity;
+      let lat = 61.89, lng = 12.85; // Fallback: centralt Idre Fjäll
+      for (const ref of ALL_TPS_POINTS) {
+        const dx = ref.px - calPx;
+        const dy = ref.py - calPy;
+        const d = dx * dx + dy * dy;
+        if (d < bestDist) {
+          bestDist = d;
+          lat = ref.lat;
+          lng = ref.lng;
+        }
+      }
+
+      // Newton-iteration: minimera |gpsToPixel(lat,lng) - target|
+      const epsilon = 0.000001; // Liten störning för numerisk derivata
+      for (let iter = 0; iter < 50; iter++) {
+        const p = gpsToPixel(lat, lng);
+        const errX = p.x - targetPx;
+        const errY = p.y - targetPy;
+
+        // Konvergerat? (inom 0.5 pixel)
+        if (Math.abs(errX) < 0.5 && Math.abs(errY) < 0.5) break;
+
+        // Numerisk Jacobian (partiella derivator)
+        const pLatPlus = gpsToPixel(lat + epsilon, lng);
+        const pLngPlus = gpsToPixel(lat, lng + epsilon);
+
+        const dxdlat = (pLatPlus.x - p.x) / epsilon;
+        const dxdlng = (pLngPlus.x - p.x) / epsilon;
+        const dydlat = (pLatPlus.y - p.y) / epsilon;
+        const dydlng = (pLngPlus.y - p.y) / epsilon;
+
+        // Lös 2x2 linjärt system: J * [dlat, dlng] = -[errX, errY]
+        const det = dxdlat * dydlng - dxdlng * dydlat;
+        if (Math.abs(det) < 1e-20) break; // Singulär Jacobian
+
+        const dlat = -(dydlng * errX - dxdlng * errY) / det;
+        const dlng = -(-dydlat * errX + dxdlat * errY) / det;
+
+        lat += dlat;
+        lng += dlng;
+      }
+
+      return { lat, lng };
+    }
+
     // ============================
     // DEBUG: FISKNÄT (GRID OVERLAY)
     // ============================
@@ -3917,6 +4011,154 @@
           gpsMarkBtn.click();
         }
       });
+
+      // ============================
+      // MANUELL PLACERING PÅ KARTAN
+      // ============================
+      const gpsManualBtn = document.getElementById('gps-manual-btn');
+      let manualPlaceMode = false;
+
+      gpsManualBtn.addEventListener('click', () => {
+        manualPlaceMode = !manualPlaceMode;
+        if (manualPlaceMode) {
+          gpsManualBtn.classList.add('active');
+          gpsManualBtn.textContent = '🎯 Klicka på kartan...';
+          container.classList.add('manual-place-mode');
+          gpsStatus.textContent = 'Tryck/klicka var som helst på kartan för att placera markören';
+          gpsStatus.style.color = 'rgba(0, 200, 255, 1)';
+          gpsStatus.style.fontWeight = 'bold';
+        } else {
+          gpsManualBtn.classList.remove('active');
+          gpsManualBtn.textContent = '📍 Placera manuellt';
+          container.classList.remove('manual-place-mode');
+          gpsStatus.textContent = '';
+          gpsStatus.style.fontWeight = 'normal';
+        }
+      });
+
+      // Klick-hantering: placera markör manuellt på kartan
+      function handleManualPlace(clientX, clientY) {
+        if (!manualPlaceMode) return false;
+
+        // Konvertera skärmkoordinat → bildpixel
+        const imgCoords = screenToImageCoords(clientX, clientY);
+
+        // Ta bort befintlig markör
+        if (gpsMarkerElement) {
+          gpsMarkerElement.remove();
+        }
+
+        // Skapa markör på klickad position
+        gpsMarkerElement = document.createElement('div');
+        gpsMarkerElement.className = 'gps-marker';
+        gpsMarkerElement.style.left = imgCoords.x + 'px';
+        gpsMarkerElement.style.top = imgCoords.y + 'px';
+
+        const dot = document.createElement('div');
+        dot.className = 'gps-marker-dot';
+
+        // Beräkna ungefärlig GPS via invers TPS
+        const gps = pixelToGps(imgCoords.x, imgCoords.y);
+        const gpsText = gps
+          ? `GPS: ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}`
+          : `Pixel: (${Math.round(imgCoords.x)}, ${Math.round(imgCoords.y)})`;
+
+        const label = document.createElement('div');
+        label.className = 'gps-marker-label';
+        label.textContent = gpsText;
+
+        gpsMarkerElement.appendChild(dot);
+        gpsMarkerElement.appendChild(label);
+
+        const markersOverlay = document.getElementById('markers-overlay');
+        markersOverlay.appendChild(gpsMarkerElement);
+
+        // Uppdatera status
+        const pixelText = `px(${Math.round(imgCoords.x)}, ${Math.round(imgCoords.y)})`;
+        gpsStatus.innerHTML = `✅ PLACERAD! ${pixelText}<br>${gpsText}`;
+        gpsStatus.style.color = 'rgba(0, 255, 0, 1)';
+        gpsStatus.style.fontWeight = 'bold';
+
+        // Fyll i GPS-fältet med de beräknade koordinaterna (för enkel kopiering)
+        if (gps) {
+          gpsInput.value = `${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`;
+        }
+
+        console.log('[GPS Debug] Manual placement:', {
+          screen: { x: clientX, y: clientY },
+          pixel: { x: Math.round(imgCoords.x), y: Math.round(imgCoords.y) },
+          gps: gps
+        });
+
+        return true;
+      }
+
+      // Fånga klick på kartan i manuellt läge
+      // Vi använder mousedown + mouseup för att skilja drag från klick
+      let manualMouseDown = null;
+      container.addEventListener('mousedown', (e) => {
+        if (manualPlaceMode) {
+          manualMouseDown = { x: e.clientX, y: e.clientY };
+        }
+      });
+      container.addEventListener('mouseup', (e) => {
+        if (!manualPlaceMode || !manualMouseDown) return;
+        const dx = Math.abs(e.clientX - manualMouseDown.x);
+        const dy = Math.abs(e.clientY - manualMouseDown.y);
+        manualMouseDown = null;
+
+        // Om musen rörts mer än 5px var det en drag, inte ett klick
+        if (dx > 5 || dy > 5) return;
+
+        // Ignorera klick på UI-element
+        if (e.target.closest('.gps-debug-tool') ||
+            e.target.closest('.debug-toggle-btn') ||
+            e.target.closest('.zoom-controls') ||
+            e.target.closest('#joystick-base') ||
+            e.target.closest('.chat-panel') ||
+            e.target.closest('.members-panel') ||
+            e.target.closest('.session-bar') ||
+            e.target.closest('.group-btn')) return;
+
+        handleManualPlace(e.clientX, e.clientY);
+      });
+
+      // Touch-stöd för manuell placering
+      let manualTouchStart = null;
+      container.addEventListener('touchstart', (e) => {
+        if (manualPlaceMode && e.touches.length === 1) {
+          manualTouchStart = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY,
+            time: Date.now()
+          };
+        }
+      }, { passive: true });
+      container.addEventListener('touchend', (e) => {
+        if (!manualPlaceMode || !manualTouchStart) return;
+        if (e.changedTouches.length === 0) return;
+
+        const touch = e.changedTouches[0];
+        const dx = Math.abs(touch.clientX - manualTouchStart.x);
+        const dy = Math.abs(touch.clientY - manualTouchStart.y);
+        const dt = Date.now() - manualTouchStart.time;
+        manualTouchStart = null;
+
+        // Om fingret rörts mer än 10px eller hölls mer än 500ms — det var en pan/scroll
+        if (dx > 10 || dy > 10 || dt > 500) return;
+
+        // Ignorera klick på UI-element
+        if (e.target.closest('.gps-debug-tool') ||
+            e.target.closest('.debug-toggle-btn') ||
+            e.target.closest('.zoom-controls') ||
+            e.target.closest('#joystick-base') ||
+            e.target.closest('.chat-panel') ||
+            e.target.closest('.members-panel') ||
+            e.target.closest('.session-bar') ||
+            e.target.closest('.group-btn')) return;
+
+        handleManualPlace(touch.clientX, touch.clientY);
+      }, { passive: true });
     }
 
     // ============================
