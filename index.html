@@ -159,6 +159,33 @@
       color: rgba(255, 215, 64, 0.8);
       font-family: monospace;
       min-height: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .gps-copy-btn {
+      display: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: none;
+      background: rgba(255, 215, 64, 0.2);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .gps-copy-btn.visible {
+      display: inline-block;
+    }
+    .gps-copy-btn:active {
+      transform: scale(0.9);
+      background: rgba(255, 215, 64, 0.4);
+    }
+    .gps-copy-btn.copied {
+      background: rgba(0, 255, 150, 0.3);
     }
     .gps-manual-btn {
       padding: 10px 16px;
@@ -2450,7 +2477,10 @@
     <input type="text" id="gps-input" placeholder="GPS eller Google Maps-länk" />
     <button id="gps-mark-btn">Markera</button>
     <button id="gps-manual-btn" class="gps-manual-btn">📍 Placera manuellt</button>
-    <div class="gps-status" id="gps-status"></div>
+    <div class="gps-status" id="gps-status">
+      <span id="gps-status-text"></span>
+      <button class="gps-copy-btn" id="gps-copy-btn" title="Kopiera koordinater">📋</button>
+    </div>
   </div>
 
   <!-- Chatt-knapp (ovanför grupp-knappen) -->
@@ -3817,11 +3847,50 @@
       const gpsInput = document.getElementById('gps-input');
       const gpsMarkBtn = document.getElementById('gps-mark-btn');
       const gpsStatus = document.getElementById('gps-status');
+      const gpsStatusText = document.getElementById('gps-status-text');
+      const gpsCopyBtn = document.getElementById('gps-copy-btn');
 
       gpsDebugTool.classList.add('active');
 
       // Store GPS marker reference
       let gpsMarkerElement = null;
+      let lastCopiedCoords = null;
+
+      // Copy button handler
+      gpsCopyBtn.addEventListener('click', async () => {
+        if (!lastCopiedCoords) return;
+
+        try {
+          await navigator.clipboard.writeText(lastCopiedCoords);
+          gpsCopyBtn.classList.add('copied');
+          gpsCopyBtn.textContent = '✓';
+          setTimeout(() => {
+            gpsCopyBtn.classList.remove('copied');
+            gpsCopyBtn.textContent = '📋';
+          }, 1500);
+        } catch (err) {
+          console.error('Failed to copy:', err);
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = lastCopiedCoords;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-9999px';
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            gpsCopyBtn.classList.add('copied');
+            gpsCopyBtn.textContent = '✓';
+            setTimeout(() => {
+              gpsCopyBtn.classList.remove('copied');
+              gpsCopyBtn.textContent = '📋';
+            }, 1500);
+          } catch (err2) {
+            console.error('Fallback copy failed:', err2);
+          }
+          document.body.removeChild(textArea);
+        }
+      });
 
       // Check if input looks like a URL
       function isURL(input) {
@@ -3855,8 +3924,9 @@
         // Use corsproxy.io to follow the redirect
         const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
 
-        gpsStatus.textContent = 'Resolvar Google Maps-länk...';
+        gpsStatusText.textContent = 'Resolvar Google Maps-länk...';
         gpsStatus.style.color = 'rgba(255, 215, 64, 0.8)';
+        gpsCopyBtn.classList.remove('visible');
 
         try {
           const response = await fetch(proxyUrl, { redirect: 'follow' });
@@ -3941,9 +4011,12 @@
         markersOverlay.appendChild(gpsMarkerElement);
 
         // Update status with clear success message
-        gpsStatus.textContent = `MARKERING LYCKADES! Position: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        const coordsText = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        gpsStatusText.textContent = `MARKERING LYCKADES! Position: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
         gpsStatus.style.color = 'rgba(0, 255, 0, 1)';
         gpsStatus.style.fontWeight = 'bold';
+        lastCopiedCoords = coordsText;
+        gpsCopyBtn.classList.add('visible');
 
         // Check if marker is visible in current viewport
         const markerScreenX = pixelPos.x * scale + posX;
@@ -3976,7 +4049,7 @@
 
           // Update status to indicate we panned
           setTimeout(() => {
-            gpsStatus.textContent = `MARKERING SYNLIG! Zoomade & panorerade till position.`;
+            gpsStatusText.textContent = `MARKERING SYNLIG! Zoomade & panorerade till position.`;
             gpsStatus.style.color = 'rgba(0, 255, 150, 1)';
           }, 100);
         }
@@ -4000,8 +4073,9 @@
         if (coords) {
           plotGPSMarker(coords.lat, coords.lng);
         } else {
-          gpsStatus.textContent = 'Kunde inte hitta koordinater. Prova: 61.8886, 12.8557';
+          gpsStatusText.textContent = 'Kunde inte hitta koordinater. Prova: 61.8886, 12.8557';
           gpsStatus.style.color = 'rgba(255, 0, 0, 0.8)';
+          gpsCopyBtn.classList.remove('visible');
         }
       });
 
@@ -4024,15 +4098,17 @@
           gpsManualBtn.classList.add('active');
           gpsManualBtn.textContent = '🎯 Klicka på kartan...';
           container.classList.add('manual-place-mode');
-          gpsStatus.textContent = 'Tryck/klicka var som helst på kartan för att placera markören';
+          gpsStatusText.textContent = 'Tryck/klicka var som helst på kartan för att placera markören';
           gpsStatus.style.color = 'rgba(0, 200, 255, 1)';
           gpsStatus.style.fontWeight = 'bold';
+          gpsCopyBtn.classList.remove('visible');
         } else {
           gpsManualBtn.classList.remove('active');
           gpsManualBtn.textContent = '📍 Placera manuellt';
           container.classList.remove('manual-place-mode');
-          gpsStatus.textContent = '';
+          gpsStatusText.textContent = '';
           gpsStatus.style.fontWeight = 'normal';
+          gpsCopyBtn.classList.remove('visible');
         }
       });
 
@@ -4075,13 +4151,18 @@
 
         // Uppdatera status
         const pixelText = `px(${Math.round(imgCoords.x)}, ${Math.round(imgCoords.y)})`;
-        gpsStatus.innerHTML = `✅ PLACERAD! ${pixelText}<br>${gpsText}`;
+        gpsStatusText.innerHTML = `✅ PLACERAD! ${pixelText}<br>${gpsText}`;
         gpsStatus.style.color = 'rgba(0, 255, 0, 1)';
         gpsStatus.style.fontWeight = 'bold';
 
         // Fyll i GPS-fältet med de beräknade koordinaterna (för enkel kopiering)
         if (gps) {
-          gpsInput.value = `${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`;
+          const coordsText = `${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`;
+          gpsInput.value = coordsText;
+          lastCopiedCoords = coordsText;
+          gpsCopyBtn.classList.add('visible');
+        } else {
+          gpsCopyBtn.classList.remove('visible');
         }
 
         console.log('[GPS Debug] Manual placement:', {
