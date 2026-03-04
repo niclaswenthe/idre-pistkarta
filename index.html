@@ -212,6 +212,27 @@
       background: rgba(0, 255, 100, 0.5);
       border-color: rgba(0, 255, 100, 1);
     }
+    .gps-export-btn {
+      display: none;
+      padding: 8px 16px;
+      background: rgba(100, 100, 255, 0.4);
+      color: #fff;
+      border: 1px solid rgba(100, 100, 255, 0.6);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .gps-export-btn.visible {
+      display: block;
+    }
+    .gps-export-btn:hover {
+      background: rgba(100, 100, 255, 0.6);
+    }
+    .gps-export-btn.exported {
+      background: rgba(0, 200, 100, 0.4);
+      border-color: rgba(0, 200, 100, 0.6);
+    }
     .gps-manual-btn {
       padding: 10px 16px;
       border-radius: 6px;
@@ -2600,6 +2621,7 @@
       <button class="gps-copy-btn" id="gps-copy-btn" title="Kopiera koordinater">📋</button>
     </div>
     <button id="gps-save-btn" class="gps-save-btn">💾 Spara punkt</button>
+    <button id="gps-export-btn" class="gps-export-btn">📤 Exportera punkter</button>
     <div class="saved-points-list" id="saved-points-list"></div>
   </div>
 
@@ -3591,20 +3613,52 @@
     const savedDebugMarkers = {}; // id → DOM-element
 
     function loadSavedPoints() {
+      // Ladda från localStorage först (snabb, synkron)
       try {
         const raw = localStorage.getItem(SAVED_POINTS_KEY);
         if (raw) savedDebugPoints = JSON.parse(raw);
       } catch (e) {
-        console.error('[GPS Debug] Kunde inte ladda sparade punkter:', e);
+        console.error('[GPS Debug] Kunde inte ladda sparade punkter från localStorage:', e);
         savedDebugPoints = [];
+      }
+
+      // Försök ladda från Firebase (asynkront, överskriver localStorage om data finns)
+      if (db) {
+        db.ref('pistkarta/debug-points').once('value').then(snapshot => {
+          const data = snapshot.val();
+          if (data) {
+            const firebasePoints = Object.values(data);
+            if (firebasePoints.length > 0) {
+              savedDebugPoints = firebasePoints;
+              // Synka tillbaka till localStorage
+              try { localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(savedDebugPoints)); } catch(e) {}
+              renderAllSavedMarkers();
+              console.log('[GPS Debug] Laddade', firebasePoints.length, 'punkter från Firebase');
+            }
+          }
+        }).catch(err => {
+          console.warn('[GPS Debug] Kunde inte ladda från Firebase, använder localStorage:', err);
+        });
       }
     }
 
     function persistSavedPoints() {
+      // Spara till localStorage (snabb backup)
       try {
         localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(savedDebugPoints));
       } catch (e) {
-        console.error('[GPS Debug] Kunde inte spara punkter:', e);
+        console.error('[GPS Debug] Kunde inte spara till localStorage:', e);
+      }
+
+      // Spara till Firebase (primär lagring)
+      if (db) {
+        const pointsObj = {};
+        savedDebugPoints.forEach(p => { pointsObj[p.id] = p; });
+        db.ref('pistkarta/debug-points').set(pointsObj).then(() => {
+          console.log('[GPS Debug] Sparade', savedDebugPoints.length, 'punkter till Firebase');
+        }).catch(err => {
+          console.error('[GPS Debug] Kunde inte spara till Firebase:', err);
+        });
       }
     }
 
@@ -4081,6 +4135,7 @@
       const gpsStatusText = document.getElementById('gps-status-text');
       const gpsCopyBtn = document.getElementById('gps-copy-btn');
       const gpsSaveBtn = document.getElementById('gps-save-btn');
+      const gpsExportBtn = document.getElementById('gps-export-btn');
 
       gpsDebugTool.classList.add('active');
 
@@ -4093,6 +4148,14 @@
       // === DEBUG UI: Lista med sparade punkter ===
       function updateSavedPointsList() {
         const listEl = document.getElementById('saved-points-list');
+        // Visa/dölj exportera-knappen
+        if (gpsExportBtn) {
+          if (savedDebugPoints.length > 0) {
+            gpsExportBtn.classList.add('visible');
+          } else {
+            gpsExportBtn.classList.remove('visible');
+          }
+        }
         if (savedDebugPoints.length === 0) {
           listEl.innerHTML = '';
           return;
@@ -4403,6 +4466,41 @@
           gpsSaveBtn.textContent = '💾 Spara punkt';
           pendingCoords = null;
           manualPixelPos = null;
+        }, 2000);
+      });
+
+      // Handle "Exportera" button click — kopiera JSON till urklipp
+      gpsExportBtn.addEventListener('click', async () => {
+        if (savedDebugPoints.length === 0) return;
+
+        const exportData = savedDebugPoints.map(p => ({
+          num: p.num,
+          lat: p.lat,
+          lng: p.lng,
+          px: p.px,
+          py: p.py,
+          timestamp: p.timestamp
+        }));
+
+        const json = JSON.stringify(exportData, null, 2);
+
+        try {
+          await navigator.clipboard.writeText(json);
+        } catch (e) {
+          // Fallback
+          const ta = document.createElement('textarea');
+          ta.value = json;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+
+        gpsExportBtn.textContent = '✅ Kopierat till urklipp!';
+        gpsExportBtn.classList.add('exported');
+        setTimeout(() => {
+          gpsExportBtn.textContent = '📤 Exportera punkter';
+          gpsExportBtn.classList.remove('exported');
         }, 2000);
       });
 
