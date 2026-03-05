@@ -3236,7 +3236,7 @@
 
       // === SÖDRA ===
       { id: 'N', lat: 61.8846, lng: 12.8403, px: 1542, py: 1450 }, // Sydgondolen
-      { id: 'N2', lat: 61.887647216933274, lng: 12.8569743536489, px: 1549, py: 1417 }, // Sydgondolen (topp)
+      { id: 'N2', lat: 0, lng: 0, px: 1549, py: 1417 }, // Sydgondolen (topp) — GPS saknas. Gammal koordinat (61.8876, 12.8570) motsvarar Toppstugan/Städjan, men pixelposition pekar på mellanstation. Exkluderas från TPS.
       { id: 'R', lat: 61.8801, lng: 12.8358, px: 2072, py: 1599 }, // Biejjieliften
       { id: 'R2', lat: 61.88352819115693, lng: 12.834220877937309, px: 2014, py: 875 }, // Biejjieliften (topp)
       { id: 'S', lat: 61.8801, lng: 12.8497, px: 2236, py: 1111 }, // Dalsliften
@@ -3341,7 +3341,7 @@
       { letter: 'T', name: 'Ostknappen',          base: 'T',  top: 'T2' },
       { letter: 'X', name: 'Chockentransporten',  base: 'X',  top: 'X2' },
       // SÖDRA
-      { letter: 'N', name: 'Sydgondolen',         base: 'N',  top: 'N2' },
+      // { letter: 'N', name: 'Sydgondolen',         base: 'N',  top: 'N2' }, // Exkluderad: N2 saknar verifierad GPS
       { letter: 'R', name: 'Biejjieliften',       base: 'R',  top: 'R2' },
       { letter: 'S', name: 'Dalsliften',          base: 'S',  top: 'S2' },
     ];
