@@ -3700,8 +3700,9 @@
 
       const marker = document.createElement('div');
       marker.className = 'saved-gps-marker';
-      marker.style.left = point.px + 'px';
-      marker.style.top = point.py + 'px';
+      const pixelPos = gpsToPixel(point.lat, point.lng);
+      marker.style.left = pixelPos.x + 'px';
+      marker.style.top = pixelPos.y + 'px';
       marker.dataset.pointId = point.id;
 
       const dot = document.createElement('div');
