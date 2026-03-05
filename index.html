@@ -233,6 +233,59 @@
       background: rgba(0, 200, 100, 0.4);
       border-color: rgba(0, 200, 100, 0.6);
     }
+    .gps-track-btn {
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: 2px solid rgba(255, 80, 80, 0.6);
+      background: rgba(255, 80, 80, 0.15);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .gps-track-btn:active {
+      transform: scale(0.95);
+    }
+    .gps-track-btn.tracking {
+      background: rgba(255, 80, 80, 0.5);
+      border-color: rgba(255, 80, 80, 1);
+      box-shadow: 0 0 12px rgba(255, 80, 80, 0.5);
+      animation: track-btn-pulse 1s ease-in-out infinite;
+    }
+    @keyframes track-btn-pulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(255, 80, 80, 0.5); }
+      50% { box-shadow: 0 0 24px rgba(255, 80, 80, 0.8); }
+    }
+    .gps-track-export-btn {
+      display: none;
+      padding: 8px 16px;
+      background: rgba(255, 150, 50, 0.4);
+      color: #fff;
+      border: 1px solid rgba(255, 150, 50, 0.6);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .gps-track-export-btn.visible {
+      display: block;
+    }
+    .gps-track-export-btn.exported {
+      background: rgba(0, 200, 100, 0.4);
+      border-color: rgba(0, 200, 100, 0.6);
+    }
+    .track-info {
+      display: none;
+      color: rgba(255, 180, 180, 1);
+      font-size: 12px;
+      padding: 4px 0;
+    }
+    .track-info.visible {
+      display: block;
+    }
     .gps-manual-btn {
       padding: 10px 16px;
       border-radius: 6px;
@@ -2622,6 +2675,9 @@
     </div>
     <button id="gps-save-btn" class="gps-save-btn">💾 Spara punkt</button>
     <button id="gps-export-btn" class="gps-export-btn">📤 Exportera punkter</button>
+    <button id="gps-track-btn" class="gps-track-btn">📍 Spåra lift</button>
+    <div class="track-info" id="track-info"></div>
+    <button id="gps-track-export-btn" class="gps-track-export-btn">📤 Exportera spår</button>
     <div class="saved-points-list" id="saved-points-list"></div>
   </div>
 
@@ -3806,6 +3862,212 @@
     });
 
     // ============================
+    // LIVE GPS TRACKING
+    // ============================
+    let trackingActive = false;
+    let trackWatchId = null;
+    let trackSessionId = null;
+    let trackPoints = [];
+    let trackPolyline = null; // SVG element for the track line
+    let trackStartTime = null;
+
+    function generateTrackSessionId() {
+      return 'track_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+    }
+
+    function startTracking() {
+      if (!navigator.geolocation) {
+        alert('GPS är inte tillgänglig i din webbläsare');
+        return;
+      }
+
+      trackingActive = true;
+      trackSessionId = generateTrackSessionId();
+      trackPoints = [];
+      trackStartTime = Date.now();
+
+      // Skapa SVG overlay för spårlinjen om den inte finns
+      ensureTrackOverlay();
+
+      console.log('[Track] Startar GPS-tracking, session:', trackSessionId);
+
+      // Skapa session i Firebase
+      if (db) {
+        db.ref('pistkarta/tracks/' + trackSessionId).set({
+          startTime: new Date().toISOString(),
+          status: 'active',
+          device: navigator.userAgent.substr(0, 100)
+        });
+      }
+
+      trackWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const point = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: pos.coords.accuracy || null,
+            altitude: pos.coords.altitude || null,
+            speed: pos.coords.speed || null,
+            heading: pos.coords.heading || null,
+            timestamp: new Date().toISOString(),
+            t: Date.now() - trackStartTime // ms sedan start
+          };
+
+          trackPoints.push(point);
+
+          // Spara till Firebase (varje punkt)
+          if (db) {
+            const idx = trackPoints.length - 1;
+            db.ref('pistkarta/tracks/' + trackSessionId + '/points/' + idx).set(point);
+          }
+
+          // Rita spårlinje
+          renderTrackLine();
+
+          // Uppdatera info
+          updateTrackInfo();
+
+          console.log('[Track] Punkt ' + trackPoints.length + ':',
+            point.lat.toFixed(6) + ', ' + point.lng.toFixed(6),
+            'acc:', (point.accuracy || '?') + 'm',
+            'alt:', (point.altitude ? point.altitude.toFixed(0) + 'm' : '?'),
+            'speed:', (point.speed ? (point.speed * 3.6).toFixed(1) + 'km/h' : '?'));
+        },
+        (err) => {
+          console.error('[Track] GPS-fel:', err);
+          updateTrackInfo('GPS-fel: ' + err.message);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 1000,
+          timeout: 15000,
+        }
+      );
+    }
+
+    function stopTracking() {
+      trackingActive = false;
+
+      if (trackWatchId !== null) {
+        navigator.geolocation.clearWatch(trackWatchId);
+        trackWatchId = null;
+      }
+
+      // Uppdatera session i Firebase
+      if (db && trackSessionId) {
+        db.ref('pistkarta/tracks/' + trackSessionId).update({
+          endTime: new Date().toISOString(),
+          status: 'completed',
+          totalPoints: trackPoints.length
+        });
+      }
+
+      console.log('[Track] Stoppade tracking. Totalt', trackPoints.length, 'punkter.');
+      updateTrackInfo();
+    }
+
+    function ensureTrackOverlay() {
+      let svg = document.getElementById('track-overlay-svg');
+      if (!svg) {
+        svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.id = 'track-overlay-svg';
+        svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:12;overflow:visible;';
+        // SVG behöver matchande dimensioner med bilden
+        const markersOverlay = document.getElementById('markers-overlay');
+        markersOverlay.appendChild(svg);
+      }
+      return svg;
+    }
+
+    function renderTrackLine() {
+      if (trackPoints.length < 2) return;
+
+      const svg = ensureTrackOverlay();
+
+      // Konvertera alla GPS-punkter till pixelkoordinater
+      const pixelPoints = trackPoints.map(p => gpsToPixel(p.lat, p.lng));
+
+      // Bygg SVG path
+      let pathData = 'M ' + pixelPoints[0].x + ' ' + pixelPoints[0].y;
+      for (let i = 1; i < pixelPoints.length; i++) {
+        pathData += ' L ' + pixelPoints[i].x + ' ' + pixelPoints[i].y;
+      }
+
+      // Uppdatera eller skapa path-element
+      let path = document.getElementById('track-path');
+      if (!path) {
+        path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.id = 'track-path';
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'rgba(255, 60, 60, 0.9)');
+        path.setAttribute('stroke-width', '4');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linejoin', 'round');
+        // Glödeffekt
+        path.setAttribute('filter', 'drop-shadow(0 0 4px rgba(255, 60, 60, 0.6))');
+        svg.appendChild(path);
+      }
+      path.setAttribute('d', pathData);
+
+      // Rita senaste punkt som pulsande cirkel
+      let dot = document.getElementById('track-current-dot');
+      if (!dot) {
+        dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dot.id = 'track-current-dot';
+        dot.setAttribute('r', '6');
+        dot.setAttribute('fill', 'rgba(255, 60, 60, 1)');
+        dot.setAttribute('stroke', 'white');
+        dot.setAttribute('stroke-width', '2');
+        svg.appendChild(dot);
+      }
+      const lastPx = pixelPoints[pixelPoints.length - 1];
+      dot.setAttribute('cx', lastPx.x);
+      dot.setAttribute('cy', lastPx.y);
+
+      // Uppdatera SVG viewBox baserat på bildens storlek
+      if (imgEl.naturalWidth && imgEl.naturalHeight) {
+        svg.setAttribute('viewBox', '0 0 ' + imgEl.naturalWidth + ' ' + imgEl.naturalHeight);
+      }
+    }
+
+    function updateTrackInfo(errorMsg) {
+      const infoEl = document.getElementById('track-info');
+      if (!infoEl) return;
+
+      if (errorMsg) {
+        infoEl.textContent = errorMsg;
+        infoEl.classList.add('visible');
+        return;
+      }
+
+      if (trackPoints.length === 0 && !trackingActive) {
+        infoEl.classList.remove('visible');
+        return;
+      }
+
+      const elapsed = Date.now() - (trackStartTime || Date.now());
+      const mins = Math.floor(elapsed / 60000);
+      const secs = Math.floor((elapsed % 60000) / 1000);
+
+      let info = trackPoints.length + ' punkter';
+      info += ' | ' + mins + ':' + secs.toString().padStart(2, '0');
+
+      if (trackPoints.length > 0) {
+        const last = trackPoints[trackPoints.length - 1];
+        if (last.accuracy) info += ' | ±' + Math.round(last.accuracy) + 'm';
+        if (last.altitude) info += ' | ' + Math.round(last.altitude) + 'm höjd';
+        if (last.speed) info += ' | ' + (last.speed * 3.6).toFixed(1) + ' km/h';
+      }
+
+      if (!trackingActive && trackPoints.length > 0) {
+        info += ' (stoppad)';
+      }
+
+      infoEl.textContent = info;
+      infoEl.classList.add('visible');
+    }
+
+    // ============================
     // DEBUG: FISKNÄT (GRID OVERLAY)
     // ============================
     // Aktiveras med ?debug=1 i URL:en.
@@ -4561,6 +4823,67 @@
         setTimeout(() => {
           gpsExportBtn.textContent = '📤 Exportera punkter';
           gpsExportBtn.classList.remove('exported');
+        }, 2000);
+      });
+
+      // ============================
+      // LIVE GPS TRACKING KNAPPAR
+      // ============================
+      const gpsTrackBtn = document.getElementById('gps-track-btn');
+      const gpsTrackExportBtn = document.getElementById('gps-track-export-btn');
+
+      gpsTrackBtn.addEventListener('click', () => {
+        if (!trackingActive) {
+          startTracking();
+          gpsTrackBtn.textContent = '⏹ Stoppa spårning';
+          gpsTrackBtn.classList.add('tracking');
+          gpsTrackExportBtn.classList.remove('visible');
+        } else {
+          stopTracking();
+          gpsTrackBtn.textContent = '📍 Spåra lift';
+          gpsTrackBtn.classList.remove('tracking');
+          if (trackPoints.length > 0) {
+            gpsTrackExportBtn.classList.add('visible');
+          }
+        }
+      });
+
+      gpsTrackExportBtn.addEventListener('click', async () => {
+        if (trackPoints.length === 0) return;
+
+        const exportData = {
+          sessionId: trackSessionId,
+          startTime: trackStartTime ? new Date(trackStartTime).toISOString() : null,
+          totalPoints: trackPoints.length,
+          points: trackPoints.map(p => ({
+            lat: p.lat,
+            lng: p.lng,
+            accuracy: p.accuracy,
+            altitude: p.altitude,
+            speed: p.speed,
+            heading: p.heading,
+            timestamp: p.timestamp
+          }))
+        };
+
+        const json = JSON.stringify(exportData, null, 2);
+
+        try {
+          await navigator.clipboard.writeText(json);
+        } catch (e) {
+          const ta = document.createElement('textarea');
+          ta.value = json;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+
+        gpsTrackExportBtn.textContent = '✅ Kopierat!';
+        gpsTrackExportBtn.classList.add('exported');
+        setTimeout(() => {
+          gpsTrackExportBtn.textContent = '📤 Exportera spår';
+          gpsTrackExportBtn.classList.remove('exported');
         }, 2000);
       });
 
