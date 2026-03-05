@@ -3609,17 +3609,47 @@
     // Dessa visas alltid, även utan ?debug=1.
 
     const SAVED_POINTS_KEY = 'pistkarta-saved-debug-points';
-    let savedDebugPoints = [];
+
+    // Hårdkodade standardpunkter som alltid finns tillgängliga
+    const DEFAULT_SAVED_POINTS = [
+      {
+        id: 'sp_default_1',
+        num: 1,
+        lat: 61.8877728,
+        lng: 12.8571941,
+        px: 2134,
+        py: 352,
+        timestamp: '2026-03-04T15:30:31.382Z'
+      }
+    ];
+
+    let savedDebugPoints = [...DEFAULT_SAVED_POINTS];
     const savedDebugMarkers = {}; // id → DOM-element
+
+    // Hjälpfunktion för att merge:a standardpunkter med laddade punkter
+    function mergeWithDefaultPoints(loadedPoints) {
+      const pointsById = new Map();
+
+      // Lägg till standardpunkter först
+      DEFAULT_SAVED_POINTS.forEach(p => pointsById.set(p.id, p));
+
+      // Lägg till/skriv över med laddade punkter
+      loadedPoints.forEach(p => pointsById.set(p.id, p));
+
+      return Array.from(pointsById.values());
+    }
 
     function loadSavedPoints() {
       // Ladda från localStorage först (snabb, synkron)
       try {
         const raw = localStorage.getItem(SAVED_POINTS_KEY);
-        if (raw) savedDebugPoints = JSON.parse(raw);
+        if (raw) {
+          const loadedPoints = JSON.parse(raw);
+          savedDebugPoints = mergeWithDefaultPoints(loadedPoints);
+        }
       } catch (e) {
         console.error('[GPS Debug] Kunde inte ladda sparade punkter från localStorage:', e);
-        savedDebugPoints = [];
+        savedDebugPoints = [...DEFAULT_SAVED_POINTS];
       }
 
       // Försök ladda från Firebase (asynkront, överskriver localStorage om data finns)
@@ -3629,7 +3659,7 @@
           if (data) {
             const firebasePoints = Object.values(data);
             if (firebasePoints.length > 0) {
-              savedDebugPoints = firebasePoints;
+              savedDebugPoints = mergeWithDefaultPoints(firebasePoints);
               // Synka tillbaka till localStorage
               try { localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(savedDebugPoints)); } catch(e) {}
               renderAllSavedMarkers();
